@@ -8,8 +8,11 @@ import (
 
 // Response represents a response from the search API
 type Response struct {
-	Results []*Result `xml:"http://marklogic.com/appservices/search result"`
-	Facets  []*Facet  `xml:"http://marklogic.com/appservices/search facet"`
+	Total      int64     `xml:"total,attr"`
+	Start      int64     `xml:"start,attr"`
+	PageLength int64     `xml:"page-length,attr"`
+	Results    []*Result `xml:"http://marklogic.com/appservices/search result"`
+	Facets     []*Facet  `xml:"http://marklogic.com/appservices/search facet"`
 }
 
 // Result is an individual document fragment found by the search

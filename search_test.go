@@ -61,6 +61,9 @@ func TestSearch(t *testing.T) {
 	defer server.Close()
 	want :=
 		&Response{
+			Total:      1,
+			Start:      1,
+			PageLength: 10,
 			Results: []*Result{
 				&Result{
 					Uri: "/resources/wikipedia/ru_id/341620.xml",
@@ -88,7 +91,37 @@ func TestSearch(t *testing.T) {
 					},
 				},
 			},
+			Facets: []*Facet{
+				&Facet{
+					Name: "Organization",
+					Type: "xs:string",
+					FacetValues: []*FacetValue{
+						&FacetValue{
+							Name:  "Starfleet",
+							Label: "Starfleet",
+							Count: 1,
+						},
+					},
+				},
+				&Facet{
+					Name: "Species",
+					Type: "xs:string",
+					FacetValues: []*FacetValue{
+						&FacetValue{
+							Name:  "Android",
+							Label: "Android",
+							Count: 1,
+						},
+						&FacetValue{
+							Name:  "Artificial intelligence",
+							Label: "Artificial intelligence",
+							Count: 1,
+						},
+					},
+				},
+			},
 		}
+	// Using Basic Auth for test so initial call isn't actually made
 	client, _ := NewClient("localhost", 8050, "admin", "admin", BASIC_AUTH)
 	client.Base = server.URL
 	resp, err := client.Search("data")
