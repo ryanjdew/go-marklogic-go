@@ -17,8 +17,16 @@ type Response struct {
 
 // Result is an individual document fragment found by the search
 type Result struct {
-	Uri      string     `xml:"uri,attr"`
-	Snippets []*Snippet `xml:"http://marklogic.com/appservices/search snippet"`
+	Uri        string     `xml:"uri,attr"`
+	Href       string     `xml:"href,attr"`
+	MimeType   string     `xml:"mimetype,attr"`
+	Format     string     `xml:"format,attr"`
+	Path       string     `xml:"path,attr"`
+	Index      int64      `xml:"index,attr"`
+	Score      int64      `xml:"score,attr"`
+	Confidence float64    `xml:"confidence,attr"`
+	Fitness    float64    `xml:"fitness,attr"`
+	Snippets   []*Snippet `xml:"http://marklogic.com/appservices/search snippet"`
 }
 
 //Snippet
@@ -29,6 +37,7 @@ type Snippet struct {
 
 // Matches in a snippet
 type Match struct {
+	Path string
 	Text []*Text
 }
 
@@ -71,6 +80,13 @@ func ReadResults(reader io.Reader) (*Response, error) {
 }
 
 func (m *Match) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
+	for i := range start.Attr {
+		attr := start.Attr[i]
+		if attr.Name.Local == "path" {
+			m.Path = attr.Value
+			break
+		}
+	}
 	for {
 		if token, err := d.Token(); (err == nil) && (token != nil) {
 			switch t := token.(type) {
