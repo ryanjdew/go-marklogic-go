@@ -1,8 +1,8 @@
 package go_marklogic_go
 
 import (
-//"encoding/xml"
-//"io"
+	"encoding/xml"
+	//"io"
 )
 
 // Query represents a structured query from the search API
