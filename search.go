@@ -1,6 +1,7 @@
 package go_marklogic_go
 
 import (
+	//"encoding/json"
 	"encoding/xml"
 	"io"
 	"net/http"
@@ -64,6 +65,15 @@ type FacetValue struct {
 
 func (c *Client) Search(text string) (*Response, error) {
 	req, _ := http.NewRequest("GET", c.Base+"/search?q="+text, nil)
+	ApplyAuth(c, req)
+	resp, _ := c.HttpClient.Do(req)
+	defer resp.Body.Close()
+	return ReadResults(resp.Body)
+}
+
+func (c *Client) StructuredSearch(query *Query) (*Response, error) {
+	buf := query.Encode()
+	req, _ := http.NewRequest("POST", c.Base+"/search", buf)
 	ApplyAuth(c, req)
 	resp, _ := c.HttpClient.Do(req)
 	defer resp.Body.Close()
