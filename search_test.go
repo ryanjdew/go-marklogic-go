@@ -1,15 +1,16 @@
-package go_marklogic_go
+package goMarklogicGo
 
 import (
 	"fmt"
-	"github.com/davecgh/go-spew/spew"
 	"net/http"
 	"net/http/httptest"
 	"reflect"
 	"testing"
+
+	"github.com/davecgh/go-spew/spew"
 )
 
-var exampleResponse string = `
+var exampleResponse = `
 <search:response xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns="" xmlns:search="http://marklogic.com/appservices/search" snippet-format="snippet" total="1" start="1" page-length="10">
 	<search:result index="1" uri="/resources/wikipedia/ru_id/341620.xml" path='fn:doc("/resources/wikipedia/ru_id/341620.xml")' score="178432" confidence="0.9790292" fitness="0.9790292" href="/v1/documents?uri=%2Fresources%2Fwikipedia%2Fru_id%2F341620.xml"
 	mimetype="text/xml" format="xml">
@@ -66,7 +67,7 @@ func TestSearch(t *testing.T) {
 			PageLength: 10,
 			Results: []*Result{
 				&Result{
-					Uri:        "/resources/wikipedia/ru_id/341620.xml",
+					URI:        "/resources/wikipedia/ru_id/341620.xml",
 					Href:       "/v1/documents?uri=%2Fresources%2Fwikipedia%2Fru_id%2F341620.xml",
 					MimeType:   "text/xml",
 					Format:     "xml",
@@ -131,7 +132,7 @@ func TestSearch(t *testing.T) {
 			},
 		}
 	// Using Basic Auth for test so initial call isn't actually made
-	client, _ := NewClient("localhost", 8050, "admin", "admin", BASIC_AUTH)
+	client, _ := NewClient("localhost", 8050, "admin", "admin", BasicAuth)
 	client.Base = server.URL
 	resp, err := client.Search("data")
 	if err != nil {

@@ -1,4 +1,4 @@
-package go_marklogic_go
+package goMarklogicGo
 
 import (
 	//"encoding/json"
@@ -18,7 +18,7 @@ type Response struct {
 
 // Result is an individual document fragment found by the search
 type Result struct {
-	Uri        string     `xml:"uri,attr"`
+	URI        string     `xml:"uri,attr"`
 	Href       string     `xml:"href,attr"`
 	MimeType   string     `xml:"mimetype,attr"`
 	Format     string     `xml:"format,attr"`
@@ -30,13 +30,13 @@ type Result struct {
 	Snippets   []*Snippet `xml:"http://marklogic.com/appservices/search snippet"`
 }
 
-//Snippet
+// Snippet represents a snippet
 type Snippet struct {
 	Location string   `xml:"uri,attr"`
 	Matches  []*Match `xml:"http://marklogic.com/appservices/search match"`
 }
 
-// Matches in a snippet
+// Match is a path in document that matches the query
 type Match struct {
 	Path string
 	Text []*Text
@@ -56,31 +56,33 @@ type Facet struct {
 	FacetValues []*FacetValue `xml:"http://marklogic.com/appservices/search facet-value"`
 }
 
-//
+// FacetValue is a value with the frequency that value occurs
 type FacetValue struct {
 	Name  string `xml:"name,attr"`
 	Label string `xml:",chardata"`
 	Count int64  `xml:"count,attr"`
 }
 
+// Search with text value
 func (c *Client) Search(text string) (*Response, error) {
 	req, _ := http.NewRequest("GET", c.Base+"/search?q="+text, nil)
-	ApplyAuth(c, req)
-	resp, _ := c.HttpClient.Do(req)
+	applyAuth(c, req)
+	resp, _ := c.HTTPClient.Do(req)
 	defer resp.Body.Close()
-	return ReadResults(resp.Body)
+	return readResults(resp.Body)
 }
 
+// StructuredSearch searches with a structured query
 func (c *Client) StructuredSearch(query *Query) (*Response, error) {
 	buf := query.Encode()
 	req, _ := http.NewRequest("POST", c.Base+"/search", buf)
-	ApplyAuth(c, req)
-	resp, _ := c.HttpClient.Do(req)
+	applyAuth(c, req)
+	resp, _ := c.HTTPClient.Do(req)
 	defer resp.Body.Close()
-	return ReadResults(resp.Body)
+	return readResults(resp.Body)
 }
 
-func ReadResults(reader io.Reader) (*Response, error) {
+func readResults(reader io.Reader) (*Response, error) {
 	results := &Response{}
 	decoder := xml.NewDecoder(reader)
 	if err := decoder.Decode(results); err != nil {
@@ -89,6 +91,7 @@ func ReadResults(reader io.Reader) (*Response, error) {
 	return results, nil
 }
 
+//UnmarshalXML for Match struct in a special way to handle highlighting matching text
 func (m *Match) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
 	for i := range start.Attr {
 		attr := start.Attr[i]

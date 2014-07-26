@@ -12,6 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Package go_marklogic_go provides a way to interact with MarkLogic's
+// Package goMarklogicGo provides a way to interact with MarkLogic's
 // REST API.
-package go_marklogic_go
+package goMarklogicGo

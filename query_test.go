@@ -1,4 +1,4 @@
-package go_marklogic_go
+package goMarklogicGo
 
 import (
 	"fmt"

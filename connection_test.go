@@ -1,4 +1,4 @@
-package go_marklogic_go
+package goMarklogicGo
 
 import (
 	"testing"
@@ -7,7 +7,7 @@ import (
 func TestConnection(t *testing.T) {
 	expectedBase := "http://localhost:8050/v1"
 	// Using BASIC_AUTH, so it doesn't start authenitcation
-	client, err := NewClient("localhost", 8050, "admin", "admin", BASIC_AUTH)
+	client, err := NewClient("localhost", 8050, "admin", "admin", BasicAuth)
 	if err != nil {
 		t.Errorf("Error = %v", err)
 	} else if client.Base != expectedBase {

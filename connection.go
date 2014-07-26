@@ -1,16 +1,18 @@
-package go_marklogic_go
+package goMarklogicGo
 
 import (
-	digestAuth "github.com/ryanjdew/http-digest-auth-client"
 	"net/http"
 	"net/url"
 	"strconv"
+
+	digestAuth "github.com/ryanjdew/http-digest-auth-client"
 )
 
+// Authentication options
 const (
-	BASIC_AUTH = iota
-	DIGEST_AUTH
-	NONE
+	BasicAuth = iota
+	DigestAuth
+	None
 )
 
 // Client is used for connecting to the MarkLogic REST API.
@@ -18,17 +20,17 @@ type Client struct {
 	Base          string
 	Userinfo      *url.Userinfo
 	AuthType      int
-	HttpClient    *http.Client
+	HTTPClient    *http.Client
 	DigestHeaders *digestAuth.DigestHeaders
 }
 
-//
+// NewClient creates the Client struct used for searching, etc.
 func NewClient(host string, port int64, username string, password string, authType int) (*Client, error) {
 	base := "http://" + host + ":" + strconv.FormatInt(port, 10) + "/v1"
 	var client *Client
 	var digestHeaders *digestAuth.DigestHeaders
 	var err error
-	if authType == DIGEST_AUTH {
+	if authType == DigestAuth {
 		digestHeaders = &digestAuth.DigestHeaders{}
 		digestHeaders, err = digestHeaders.Auth(username, password, base+"/config/resources")
 	}
@@ -37,19 +39,19 @@ func NewClient(host string, port int64, username string, password string, authTy
 			Base:          base,
 			Userinfo:      url.UserPassword(username, password),
 			AuthType:      authType,
-			HttpClient:    &http.Client{},
+			HTTPClient:    &http.Client{},
 			DigestHeaders: digestHeaders,
 		}
 	}
 	return client, err
 }
 
-// This function adds the neccessary headers for authentication
-func ApplyAuth(c *Client, req *http.Request) {
+// applyAuth adds the neccessary headers for authentication
+func applyAuth(c *Client, req *http.Request) {
 	pwd, _ := c.Userinfo.Password()
-	if c.AuthType == BASIC_AUTH {
+	if c.AuthType == BasicAuth {
 		req.SetBasicAuth(c.Userinfo.Username(), pwd)
-	} else if c.AuthType == DIGEST_AUTH {
+	} else if c.AuthType == DigestAuth {
 		c.DigestHeaders.ApplyAuth(req)
 	}
 }
