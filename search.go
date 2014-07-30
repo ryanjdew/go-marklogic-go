@@ -77,8 +77,8 @@ func (c *Client) Search(text string, start int64, pageLength int64) (*Response, 
 func (c *Client) StructuredSearch(query *Query, start int64, pageLength int64) (*Response, error) {
 	buf := query.Encode()
 	req, _ := http.NewRequest("POST", c.Base+"/search?format=xml&start="+strconv.FormatInt(start, 10)+"&pageLength="+strconv.FormatInt(pageLength, 10), buf)
-	req.Header.Add("Content-Type", "application/xml")
 	applyAuth(c, req)
+	req.Header.Add("Content-Type", "application/xml")
 	resp, _ := c.HTTPClient.Do(req)
 	defer resp.Body.Close()
 	return readResults(resp.Body)

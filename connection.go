@@ -1,11 +1,10 @@
 package goMarklogicGo
 
 import (
+	digestAuth "github.com/ryanjdew/http-digest-auth-client"
 	"net/http"
 	"net/url"
 	"strconv"
-
-	digestAuth "github.com/ryanjdew/http-digest-auth-client"
 )
 
 // Authentication options
@@ -27,19 +26,20 @@ type Client struct {
 // NewClient creates the Client struct used for searching, etc.
 func NewClient(host string, port int64, username string, password string, authType int) (*Client, error) {
 	base := "http://" + host + ":" + strconv.FormatInt(port, 10) + "/v1"
+	httpClient := &http.Client{}
 	var client *Client
 	var digestHeaders *digestAuth.DigestHeaders
 	var err error
 	if authType == DigestAuth {
 		digestHeaders = &digestAuth.DigestHeaders{}
-		digestHeaders, err = digestHeaders.Auth(username, password, base+"/config/resources")
+		digestHeaders, err = digestHeaders.Auth(username, password, base+"/config/resources?format=xml")
 	}
 	if err == nil {
 		client = &Client{
 			Base:          base,
 			Userinfo:      url.UserPassword(username, password),
 			AuthType:      authType,
-			HTTPClient:    &http.Client{},
+			HTTPClient:    httpClient,
 			DigestHeaders: digestHeaders,
 		}
 	}

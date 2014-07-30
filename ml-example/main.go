@@ -3,10 +3,9 @@ package main
 import (
 	"flag"
 	"fmt"
-	"log"
-
 	"github.com/davecgh/go-spew/spew"
 	goMarkLogicGo "github.com/ryanjdew/go-marklogic-go"
+	"log"
 )
 
 var host string
@@ -49,4 +48,5 @@ func main() {
 	resp, err := client.StructuredSearch(query, 1, 10)
 	fmt.Print("decoded response:\n")
 	fmt.Print(spew.Sdump(resp))
+
 }

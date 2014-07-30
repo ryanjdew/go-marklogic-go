@@ -16,3 +16,17 @@ XML data. JSON data. Semantic data.
 Status
 =========
 [![GoDoc](https://godoc.org/github.com/ryanjdew/go-marklogic-go?status.svg)](https://godoc.org/github.com/ryanjdew/go-marklogic-go) [![Build Status](https://drone.io/github.com/ryanjdew/go-marklogic-go/status.png)](https://drone.io/github.com/ryanjdew/go-marklogic-go/latest)
+
+Sample Code
+=========
+
+```go
+client, _ := goMarkLogicGo.NewClient("localhost", 8050, "admin", "admin", goMarkLogicGo.DigestAuth)
+query := goMarkLogicGo.NewQuery(goMarkLogicGo.XML)
+query.Queries = []interface{}{
+  &goMarkLogicGo.TermQuery{
+    Terms: []string{queryStr},
+  },
+}
+resp, err := client.StructuredSearch(query, 1, 10)
+```
