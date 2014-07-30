@@ -5,6 +5,7 @@ import (
 	"encoding/xml"
 	"io"
 	"net/http"
+	"strconv"
 )
 
 // Response represents a response from the search API
@@ -64,8 +65,8 @@ type FacetValue struct {
 }
 
 // Search with text value
-func (c *Client) Search(text string) (*Response, error) {
-	req, _ := http.NewRequest("GET", c.Base+"/search?q="+text, nil)
+func (c *Client) Search(text string, start int64, pageLength int64) (*Response, error) {
+	req, _ := http.NewRequest("GET", c.Base+"/search?q="+text+"&format=xml&start="+strconv.FormatInt(start, 10)+"&pageLength="+strconv.FormatInt(pageLength, 10), nil)
 	applyAuth(c, req)
 	resp, _ := c.HTTPClient.Do(req)
 	defer resp.Body.Close()
@@ -73,9 +74,10 @@ func (c *Client) Search(text string) (*Response, error) {
 }
 
 // StructuredSearch searches with a structured query
-func (c *Client) StructuredSearch(query *Query) (*Response, error) {
+func (c *Client) StructuredSearch(query *Query, start int64, pageLength int64) (*Response, error) {
 	buf := query.Encode()
-	req, _ := http.NewRequest("POST", c.Base+"/search", buf)
+	req, _ := http.NewRequest("POST", c.Base+"/search?format=xml&start="+strconv.FormatInt(start, 10)+"&pageLength="+strconv.FormatInt(pageLength, 10), buf)
+	req.Header.Add("Content-Type", "application/xml")
 	applyAuth(c, req)
 	resp, _ := c.HTTPClient.Do(req)
 	defer resp.Body.Close()

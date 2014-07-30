@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"encoding/xml"
+	"fmt"
 )
 
 // Format options
@@ -339,5 +340,6 @@ func (q *Query) Encode() *bytes.Buffer {
 		enc := xml.NewEncoder(buf)
 		enc.Encode(q)
 	}
+	fmt.Print(buf.String())
 	return buf
 }

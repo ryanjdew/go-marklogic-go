@@ -134,7 +134,7 @@ func TestSearch(t *testing.T) {
 	// Using Basic Auth for test so initial call isn't actually made
 	client, _ := NewClient("localhost", 8050, "admin", "admin", BasicAuth)
 	client.Base = server.URL
-	resp, err := client.Search("data")
+	resp, err := client.Search("data", 1, 10)
 	if err != nil {
 		t.Errorf("Error = %v", err)
 	} else if resp == nil {
