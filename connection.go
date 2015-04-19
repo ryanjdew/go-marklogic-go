@@ -1,10 +1,11 @@
 package goMarklogicGo
 
 import (
-	digestAuth "github.com/ryanjdew/http-digest-auth-client"
 	"net/http"
 	"net/url"
 	"strconv"
+
+	digestAuth "github.com/ryanjdew/http-digest-auth-client"
 )
 
 // Authentication options

@@ -132,7 +132,7 @@ func TestSearch(t *testing.T) {
 			},
 		}
 	// Using Basic Auth for test so initial call isn't actually made
-	client, _ := NewClient("localhost", 8050, "admin", "admin", BasicAuth)
+	client, _ := NewClient("localhost", 8000, "admin", "admin", DigestAuth)
 	client.Base = server.URL
 	resp, err := client.Search("data", 1, 10)
 	if err != nil {
