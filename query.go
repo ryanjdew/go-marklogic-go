@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"encoding/xml"
+	"fmt"
 )
 
 // Format options
@@ -11,6 +12,65 @@ const (
 	XML = iota
 	JSON
 )
+
+// QueryHandle is a handle that places the results into
+// a Query struct
+type QueryHandle struct {
+	Format int
+	bytes  []byte
+	query  *Query
+}
+
+// GetFormat returns int that represents XML or JSON
+func (qh *QueryHandle) GetFormat() int {
+	return qh.Format
+}
+
+// Encode returns Query struct that represents XML or JSON
+func (qh *QueryHandle) Encode(bytes []byte) *Query {
+	qh.bytes = bytes
+	qh.query = &Query{}
+	if qh.GetFormat() == JSON {
+		json.Unmarshal(bytes, &qh.query)
+	} else {
+		xml.Unmarshal(bytes, &qh.query)
+	}
+	return qh.query
+}
+
+// Decode returns []byte of XML or JSON that represents the Query struct
+func (qh *QueryHandle) Decode(query *Query) []byte {
+	qh.query = query
+	buf := new(bytes.Buffer)
+	if qh.GetFormat() == JSON {
+		enc := json.NewEncoder(buf)
+		enc.Encode(qh.query)
+	} else {
+		enc := xml.NewEncoder(buf)
+		enc.Encode(qh.query)
+	}
+	qh.bytes = buf.Bytes()
+	return qh.bytes
+}
+
+// Get returns string of XML or JSON
+func (qh *QueryHandle) Get() *Query {
+	return qh.query
+}
+
+// Serialized returns string of XML or JSON
+func (qh *QueryHandle) Serialized() string {
+	buf := new(bytes.Buffer)
+	if qh.GetFormat() == JSON {
+		enc := json.NewEncoder(buf)
+		enc.Encode(qh.query)
+	} else {
+		enc := xml.NewEncoder(buf)
+		enc.Encode(qh.query)
+	}
+	qh.bytes = buf.Bytes()
+	return string(qh.bytes)
+}
 
 // Query represents http://docs.marklogic.com/guide/search-dev/structured-query#id_85307
 type Query struct {
@@ -319,7 +379,7 @@ type RangeQuery struct {
 	Element       QueryElement   `xml:"http://marklogic.com/appservices/search element,omitempty" json:"element,omitempty"`
 	Attribute     QueryAttribute `xml:"http://marklogic.com/appservices/search attribute,omitempty" json:"attribute,omitempty"`
 	JSONKey       string         `xml:"http://marklogic.com/appservices/search json-key,omitempty" json:"json-key,omitempty"`
-	Field         Field          `xml:"http://marklogic.com/appservices/search field,omitempty" json:"field,omitempty"`
+	Field         FieldReference `xml:"http://marklogic.com/appservices/search field,omitempty" json:"field,omitempty"`
 	PathIndex     string         `xml:"http://marklogic.com/appservices/search path-index,omitempty" json:"path-index,omitempty"`
 	FragmentScope string         `xml:"http://marklogic.com/appservices/search fragment-scope,omitempty" json:"fragment-scope,omitempty"`
 	Value         string         `xml:"http://marklogic.com/appservices/search value,omitempty" json:"value,omitempty"`
@@ -334,18 +394,18 @@ func (q RangeQuery) MarshalJSON() ([]byte, error) {
 	return wrapJSON(fakeRangeQuery(q))
 }
 
-// Field represents http://docs.marklogic.com/guide/search-dev/structured-query#id_83393
-type Field struct {
+// FieldReference represents http://docs.marklogic.com/guide/search-dev/structured-query#id_83393
+type FieldReference struct {
 	XMLName   xml.Name `xml:"http://marklogic.com/appservices/search field" json:"-"`
 	Name      string   `xml:"name,attr"`
 	Collation string   `xml:"collation,attr"`
 }
 
-type fakeField Field
+type fakeFieldReference FieldReference
 
 //MarshalJSON for Field struct in a special way to add wraping {"field":...}
-func (q Field) MarshalJSON() ([]byte, error) {
-	return wrapJSON(fakeField(q))
+func (q FieldReference) MarshalJSON() ([]byte, error) {
+	return wrapJSON(fakeFieldReference(q))
 }
 
 // ValueQuery represents http://docs.marklogic.com/guide/search-dev/structured-query#id_39758
@@ -595,19 +655,6 @@ func NewQuery(format int) *Query {
 	return &Query{Format: format}
 }
 
-// Encode returns a buffer that contains the encoded Query struct string
-func (q *Query) Encode() *bytes.Buffer {
-	buf := new(bytes.Buffer)
-	if q.Format == JSON {
-		enc := json.NewEncoder(buf)
-		enc.Encode(q)
-	} else {
-		enc := xml.NewEncoder(buf)
-		enc.Encode(q)
-	}
-	return buf
-}
-
 // UnmarshalJSON Query converts to JSON
 func (q *Query) UnmarshalJSON(data []byte) error {
 	fake := fakeQuery(*q)
@@ -727,184 +774,472 @@ func (q *LocksQuery) UnmarshalJSON(data []byte) error {
 	return err2
 }
 
-// Decode decodes text into Query struct
-func (q *Query) Decode(input string) error {
-	inputData := []byte(input)
-	if q.Format == JSON {
-		return json.Unmarshal(inputData, &q)
-	}
-	return xml.Unmarshal(inputData, &q)
-}
-
 // DecodeJSONWithQueries decodes text into Query struct
 func DecodeJSONWithQueries(inputData []byte) ([]interface{}, error) {
 	var queries []interface{}
 	var rootQuery map[string]json.RawMessage
 	err := json.Unmarshal(inputData, &rootQuery)
 	var data map[string][]json.RawMessage
-	err = json.Unmarshal(rootQuery["query"], &data)
-	for _, query := range data["queries"] {
-		var queryStructs map[string]json.RawMessage
-		err = json.Unmarshal(query, &queryStructs)
-		for key, queryJSON := range queryStructs {
-			var queryStruct interface{}
-			switch key {
-			case "query":
-				q := Query{}
-				err = json.Unmarshal(queryJSON, &q)
-				queryStruct = q
-			case "or-query":
-				q := OrQuery{}
-				err = json.Unmarshal(queryJSON, &q)
-				queryStruct = q
-			case "and-query":
-				q := AndQuery{}
-				err = json.Unmarshal(queryJSON, &q)
-				queryStruct = q
-			case "term-query":
-				q := TermQuery{}
-				err = json.Unmarshal(queryJSON, &q)
-				queryStruct = q
-			case "and-not-query":
-				q := AndNotQuery{}
-				err = json.Unmarshal(queryJSON, &q)
-				queryStruct = q
-			case "positive-query":
-				q := PositiveQuery{}
-				err = json.Unmarshal(queryJSON, &q)
-				queryStruct = q
-			case "negative-query":
-				q := NegativeQuery{}
-				err = json.Unmarshal(queryJSON, &q)
-				queryStruct = q
-			case "not-query":
-				q := NotQuery{}
-				err = json.Unmarshal(queryJSON, &q)
-				queryStruct = q
-			case "not-in-query":
-				q := NotInQuery{}
-				err = json.Unmarshal(queryJSON, &q)
-				queryStruct = q
-			case "near-query":
-				q := NearQuery{}
-				err = json.Unmarshal(queryJSON, &q)
-				queryStruct = q
-			case "boost-query":
-				q := BoostQuery{}
-				err = json.Unmarshal(queryJSON, &q)
-				queryStruct = q
-			case "matching-query":
-				q := MatchingQuery{}
-				err = json.Unmarshal(queryJSON, &q)
-				queryStruct = q
-			case "boosting-query":
-				q := BoostingQuery{}
-				err = json.Unmarshal(queryJSON, &q)
-				queryStruct = q
-			case "properties-query":
-				q := PropertiesQuery{}
-				err = json.Unmarshal(queryJSON, &q)
-				queryStruct = q
-			case "directory-query":
-				q := DirectoryQuery{}
-				err = json.Unmarshal(queryJSON, &q)
-				queryStruct = q
-			case "collection-query":
-				q := CollectionQuery{}
-				err = json.Unmarshal(queryJSON, &q)
-				queryStruct = q
-			case "container-query":
-				q := ContainerQuery{}
-				err = json.Unmarshal(queryJSON, &q)
-				queryStruct = q
-			case "element":
-				q := QueryElement{}
-				err = json.Unmarshal(queryJSON, &q)
-				queryStruct = q
-			case "attribute":
-				q := QueryAttribute{}
-				err = json.Unmarshal(queryJSON, &q)
-				queryStruct = q
-			case "document-query":
-				q := DocumentQuery{}
-				err = json.Unmarshal(queryJSON, &q)
-				queryStruct = q
-			case "document-fragment-query":
-				q := DocumentFragmentQuery{}
-				err = json.Unmarshal(queryJSON, &q)
-				queryStruct = q
-			case "locks-query":
-				q := LocksQuery{}
-				err = json.Unmarshal(queryJSON, &q)
-				queryStruct = q
-			case "range-query":
-				q := RangeQuery{}
-				err = json.Unmarshal(queryJSON, &q)
-				queryStruct = q
-			case "field":
-				q := Field{}
-				err = json.Unmarshal(queryJSON, &q)
-				queryStruct = q
-			case "value-query":
-				q := ValueQuery{}
-				err = json.Unmarshal(queryJSON, &q)
-				queryStruct = q
-			case "word-query":
-				q := WordQuery{}
-				err = json.Unmarshal(queryJSON, &q)
-				queryStruct = q
-			case "parent":
-				q := QueryParent{}
-				err = json.Unmarshal(queryJSON, &q)
-				queryStruct = q
-			case "heatmap":
-				q := HeatMap{}
-				err = json.Unmarshal(queryJSON, &q)
-				queryStruct = q
-			case "point":
-				q := Point{}
-				err = json.Unmarshal(queryJSON, &q)
-				queryStruct = q
-			case "box":
-				q := Box{}
-				err = json.Unmarshal(queryJSON, &q)
-				queryStruct = q
-			case "circle":
-				q := Circle{}
-				err = json.Unmarshal(queryJSON, &q)
-				queryStruct = q
-			case "polygon":
-				q := Polygon{}
-				err = json.Unmarshal(queryJSON, &q)
-				queryStruct = q
-			case "geo-elem-query":
-				q := GeoElemQuery{}
-				err = json.Unmarshal(queryJSON, &q)
-				queryStruct = q
-			case "lat":
-				q := Lat{}
-				err = json.Unmarshal(queryJSON, &q)
-				queryStruct = q
-			case "lon":
-				q := Lon{}
-				err = json.Unmarshal(queryJSON, &q)
-				queryStruct = q
-			case "geo-elem-pair-query":
-				q := GeoElemPairQuery{}
-				err = json.Unmarshal(queryJSON, &q)
-				queryStruct = q
-			case "geo-attr-pair-query":
-				q := GeoAttrPairQuery{}
-				err = json.Unmarshal(queryJSON, &q)
-				queryStruct = q
-			case "geo-path-query":
-				q := GeoPathQuery{}
-				err = json.Unmarshal(queryJSON, &q)
-				queryStruct = q
-			default:
+	for _, root := range rootQuery {
+		err = json.Unmarshal(root, &data)
+		for _, query := range data["queries"] {
+			var queryStructs map[string]json.RawMessage
+			err = json.Unmarshal(query, &queryStructs)
+			for key, queryJSON := range queryStructs {
+				var queryStruct interface{}
+				switch key {
+				case "query":
+					q := Query{}
+					err = json.Unmarshal(queryJSON, &q)
+					queryStruct = q
+				case "or-query":
+					q := OrQuery{}
+					err = json.Unmarshal(queryJSON, &q)
+					queryStruct = q
+				case "and-query":
+					q := AndQuery{}
+					err = json.Unmarshal(queryJSON, &q)
+					queryStruct = q
+				case "term-query":
+					q := TermQuery{}
+					err = json.Unmarshal(queryJSON, &q)
+					queryStruct = q
+				case "and-not-query":
+					q := AndNotQuery{}
+					err = json.Unmarshal(queryJSON, &q)
+					queryStruct = q
+				case "positive-query":
+					q := PositiveQuery{}
+					err = json.Unmarshal(queryJSON, &q)
+					queryStruct = q
+				case "negative-query":
+					q := NegativeQuery{}
+					err = json.Unmarshal(queryJSON, &q)
+					queryStruct = q
+				case "not-query":
+					q := NotQuery{}
+					err = json.Unmarshal(queryJSON, &q)
+					queryStruct = q
+				case "not-in-query":
+					q := NotInQuery{}
+					err = json.Unmarshal(queryJSON, &q)
+					queryStruct = q
+				case "near-query":
+					q := NearQuery{}
+					err = json.Unmarshal(queryJSON, &q)
+					queryStruct = q
+				case "boost-query":
+					q := BoostQuery{}
+					err = json.Unmarshal(queryJSON, &q)
+					queryStruct = q
+				case "matching-query":
+					q := MatchingQuery{}
+					err = json.Unmarshal(queryJSON, &q)
+					queryStruct = q
+				case "boosting-query":
+					q := BoostingQuery{}
+					err = json.Unmarshal(queryJSON, &q)
+					queryStruct = q
+				case "properties-query":
+					q := PropertiesQuery{}
+					err = json.Unmarshal(queryJSON, &q)
+					queryStruct = q
+				case "directory-query":
+					q := DirectoryQuery{}
+					err = json.Unmarshal(queryJSON, &q)
+					queryStruct = q
+				case "collection-query":
+					q := CollectionQuery{}
+					err = json.Unmarshal(queryJSON, &q)
+					queryStruct = q
+				case "container-query":
+					q := ContainerQuery{}
+					err = json.Unmarshal(queryJSON, &q)
+					queryStruct = q
+				case "element":
+					q := QueryElement{}
+					err = json.Unmarshal(queryJSON, &q)
+					queryStruct = q
+				case "attribute":
+					q := QueryAttribute{}
+					err = json.Unmarshal(queryJSON, &q)
+					queryStruct = q
+				case "document-query":
+					q := DocumentQuery{}
+					err = json.Unmarshal(queryJSON, &q)
+					queryStruct = q
+				case "document-fragment-query":
+					q := DocumentFragmentQuery{}
+					err = json.Unmarshal(queryJSON, &q)
+					queryStruct = q
+				case "locks-query":
+					q := LocksQuery{}
+					err = json.Unmarshal(queryJSON, &q)
+					queryStruct = q
+				case "range-query":
+					q := RangeQuery{}
+					err = json.Unmarshal(queryJSON, &q)
+					queryStruct = q
+				case "field":
+					q := Field{}
+					err = json.Unmarshal(queryJSON, &q)
+					queryStruct = q
+				case "value-query":
+					q := ValueQuery{}
+					err = json.Unmarshal(queryJSON, &q)
+					queryStruct = q
+				case "word-query":
+					q := WordQuery{}
+					err = json.Unmarshal(queryJSON, &q)
+					queryStruct = q
+				case "parent":
+					q := QueryParent{}
+					err = json.Unmarshal(queryJSON, &q)
+					queryStruct = q
+				case "heatmap":
+					q := HeatMap{}
+					err = json.Unmarshal(queryJSON, &q)
+					queryStruct = q
+				case "point":
+					q := Point{}
+					err = json.Unmarshal(queryJSON, &q)
+					queryStruct = q
+				case "box":
+					q := Box{}
+					err = json.Unmarshal(queryJSON, &q)
+					queryStruct = q
+				case "circle":
+					q := Circle{}
+					err = json.Unmarshal(queryJSON, &q)
+					queryStruct = q
+				case "polygon":
+					q := Polygon{}
+					err = json.Unmarshal(queryJSON, &q)
+					queryStruct = q
+				case "geo-elem-query":
+					q := GeoElemQuery{}
+					err = json.Unmarshal(queryJSON, &q)
+					queryStruct = q
+				case "lat":
+					q := Lat{}
+					err = json.Unmarshal(queryJSON, &q)
+					queryStruct = q
+				case "lon":
+					q := Lon{}
+					err = json.Unmarshal(queryJSON, &q)
+					queryStruct = q
+				case "geo-elem-pair-query":
+					q := GeoElemPairQuery{}
+					err = json.Unmarshal(queryJSON, &q)
+					queryStruct = q
+				case "geo-attr-pair-query":
+					q := GeoAttrPairQuery{}
+					err = json.Unmarshal(queryJSON, &q)
+					queryStruct = q
+				case "geo-path-query":
+					q := GeoPathQuery{}
+					err = json.Unmarshal(queryJSON, &q)
+					queryStruct = q
+				default:
+				}
+				queries = append(queries, queryStruct)
 			}
-			queries = append(queries, queryStruct)
 		}
 	}
 	return queries, err
+}
+
+// UnmarshalXML Query converts to XML
+func (q *Query) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
+	queries, err2 := DecodeXMLWithQueries(d, start)
+	q.Queries = queries
+	fmt.Printf("Query:%+v\n", q)
+	return err2
+}
+
+// UnmarshalXML OrQuery converts to XML
+func (q *OrQuery) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
+	queries, err2 := DecodeXMLWithQueries(d, start)
+	q.Queries = queries
+	return err2
+}
+
+// UnmarshalXML AndQuery converts to XML
+func (q *AndQuery) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
+	fake := fakeAndQuery(*q)
+	err := d.DecodeElement(&fake, &start)
+	if err != nil {
+		return err
+	}
+	q.Ordered = fake.Ordered
+	queries, err2 := DecodeXMLWithQueries(d, start)
+	q.Queries = queries
+	return err2
+}
+
+// UnmarshalXML PositiveQuery converts to XML
+func (q *PositiveQuery) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
+	queries, err2 := DecodeXMLWithQueries(d, start)
+	q.Queries = queries
+	return err2
+}
+
+// UnmarshalXML NegativeQuery converts to XML
+func (q *NegativeQuery) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
+	queries, err2 := DecodeXMLWithQueries(d, start)
+	q.Queries = queries
+	return err2
+}
+
+// UnmarshalXML NotQuery converts to XML
+func (q *NotQuery) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
+	queries, err2 := DecodeXMLWithQueries(d, start)
+	q.Queries = queries
+	return err2
+}
+
+// UnmarshalXML NearQuery converts to XML
+func (q *NearQuery) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
+	fake := fakeNearQuery(*q)
+	err := d.DecodeElement(&fake, &start)
+	if err != nil {
+		return err
+	}
+	q.Ordered = fake.Ordered
+	q.Distance = fake.Distance
+	q.DistanceWeight = fake.DistanceWeight
+	queries, err2 := DecodeXMLWithQueries(d, start)
+	q.Queries = queries
+	return err2
+}
+
+// UnmarshalXML MatchingQuery converts to XML
+func (q *MatchingQuery) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
+	queries, err2 := DecodeXMLWithQueries(d, start)
+	q.Queries = queries
+	return err2
+}
+
+// UnmarshalXML BoostingQuery converts to XML
+func (q *BoostingQuery) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
+	queries, err2 := DecodeXMLWithQueries(d, start)
+	q.Queries = queries
+	return err2
+}
+
+// UnmarshalXML PropertiesQuery converts to XML
+func (q *PropertiesQuery) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
+	queries, err2 := DecodeXMLWithQueries(d, start)
+	q.Queries = queries
+	return err2
+}
+
+// UnmarshalXML ContainerQuery converts to XML
+func (q *ContainerQuery) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
+	fake := fakeContainerQuery(*q)
+	err := d.DecodeElement(&fake, &start)
+	if err != nil {
+		return err
+	}
+	q.Element = fake.Element
+	q.JSONKey = fake.JSONKey
+	q.FragmentScope = fake.FragmentScope
+	queries, err2 := DecodeXMLWithQueries(d, start)
+	q.Queries = queries
+	return err2
+}
+
+// UnmarshalXML DocumentFragmentQuery converts to XML
+func (q *DocumentFragmentQuery) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
+	queries, err2 := DecodeXMLWithQueries(d, start)
+	q.Queries = queries
+	return err2
+}
+
+// UnmarshalXML LocksQuery converts to XML
+func (q *LocksQuery) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
+	queries, err2 := DecodeXMLWithQueries(d, start)
+	q.Queries = queries
+	return err2
+}
+
+// DecodeXMLWithQueries decodes text into Query struct
+func DecodeXMLWithQueries(d *xml.Decoder, start xml.StartElement) ([]interface{}, error) {
+	var queries []interface{}
+	for {
+		if token, err := d.Token(); (err == nil) && (token != nil) {
+			switch t := token.(type) {
+			case xml.StartElement:
+				e := xml.StartElement(t)
+				var queryStruct interface{}
+				switch e.Name.Local {
+				case "query":
+					q := Query{}
+					err = d.DecodeElement(&q, &e)
+					queryStruct = q
+				case "or-query":
+					q := OrQuery{}
+					err = d.DecodeElement(&q, &e)
+					queryStruct = q
+				case "and-query":
+					q := AndQuery{}
+					err = d.DecodeElement(&q, &e)
+					queryStruct = q
+				case "term-query":
+					q := TermQuery{}
+					err = d.DecodeElement(&q, &e)
+					queryStruct = q
+				case "and-not-query":
+					q := AndNotQuery{}
+					err = d.DecodeElement(&q, &e)
+					queryStruct = q
+				case "positive-query":
+					q := PositiveQuery{}
+					err = d.DecodeElement(&q, &e)
+					queryStruct = q
+				case "negative-query":
+					q := NegativeQuery{}
+					err = d.DecodeElement(&q, &e)
+					queryStruct = q
+				case "not-query":
+					q := NotQuery{}
+					err = d.DecodeElement(&q, &e)
+					queryStruct = q
+				case "not-in-query":
+					q := NotInQuery{}
+					err = d.DecodeElement(&q, &e)
+					queryStruct = q
+				case "near-query":
+					q := NearQuery{}
+					err = d.DecodeElement(&q, &e)
+					queryStruct = q
+				case "boost-query":
+					q := BoostQuery{}
+					err = d.DecodeElement(&q, &e)
+					queryStruct = q
+				case "matching-query":
+					q := MatchingQuery{}
+					err = d.DecodeElement(&q, &e)
+					queryStruct = q
+				case "boosting-query":
+					q := BoostingQuery{}
+					err = d.DecodeElement(&q, &e)
+					queryStruct = q
+				case "properties-query":
+					q := PropertiesQuery{}
+					err = d.DecodeElement(&q, &e)
+					queryStruct = q
+				case "directory-query":
+					q := DirectoryQuery{}
+					err = d.DecodeElement(&q, &e)
+					queryStruct = q
+				case "collection-query":
+					q := CollectionQuery{}
+					err = d.DecodeElement(&q, &e)
+					queryStruct = q
+				case "container-query":
+					q := ContainerQuery{}
+					err = d.DecodeElement(&q, &e)
+					queryStruct = q
+				case "element":
+					q := QueryElement{}
+					err = d.DecodeElement(&q, &e)
+					queryStruct = q
+				case "attribute":
+					q := QueryAttribute{}
+					err = d.DecodeElement(&q, &e)
+					queryStruct = q
+				case "document-query":
+					q := DocumentQuery{}
+					err = d.DecodeElement(&q, &e)
+					queryStruct = q
+				case "document-fragment-query":
+					q := DocumentFragmentQuery{}
+					err = d.DecodeElement(&q, &e)
+					queryStruct = q
+				case "locks-query":
+					q := LocksQuery{}
+					err = d.DecodeElement(&q, &e)
+					queryStruct = q
+				case "range-query":
+					q := RangeQuery{}
+					err = d.DecodeElement(&q, &e)
+					queryStruct = q
+				case "field":
+					q := Field{}
+					err = d.DecodeElement(&q, &e)
+					queryStruct = q
+				case "value-query":
+					q := ValueQuery{}
+					err = d.DecodeElement(&q, &e)
+					queryStruct = q
+				case "word-query":
+					q := WordQuery{}
+					err = d.DecodeElement(&q, &e)
+					queryStruct = q
+				case "parent":
+					q := QueryParent{}
+					err = d.DecodeElement(&q, &e)
+					queryStruct = q
+				case "heatmap":
+					q := HeatMap{}
+					err = d.DecodeElement(&q, &e)
+					queryStruct = q
+				case "point":
+					q := Point{}
+					err = d.DecodeElement(&q, &e)
+					queryStruct = q
+				case "box":
+					q := Box{}
+					err = d.DecodeElement(&q, &e)
+					queryStruct = q
+				case "circle":
+					q := Circle{}
+					err = d.DecodeElement(&q, &e)
+					queryStruct = q
+				case "polygon":
+					q := Polygon{}
+					err = d.DecodeElement(&q, &e)
+					queryStruct = q
+				case "geo-elem-query":
+					q := GeoElemQuery{}
+					err = d.DecodeElement(&q, &e)
+					queryStruct = q
+				case "lat":
+					q := Lat{}
+					err = d.DecodeElement(&q, &e)
+					queryStruct = q
+				case "lon":
+					q := Lon{}
+					err = d.DecodeElement(&q, &e)
+					queryStruct = q
+				case "geo-elem-pair-query":
+					q := GeoElemPairQuery{}
+					err = d.DecodeElement(&q, &e)
+					queryStruct = q
+				case "geo-attr-pair-query":
+					q := GeoAttrPairQuery{}
+					err = d.DecodeElement(&q, &e)
+					queryStruct = q
+				case "geo-path-query":
+					q := GeoPathQuery{}
+					err = d.DecodeElement(&q, &e)
+					queryStruct = q
+				default:
+				}
+				fmt.Printf("element name: %s", e.Name.Local)
+				fmt.Printf("query struct: %+v", queryStruct)
+				queries = append(queries, queryStruct)
+			case xml.EndElement:
+				e := xml.EndElement(t)
+				fmt.Printf("End element\n")
+				fmt.Printf("element name: %s", e.Name.Local)
+				if e.Name.Space == "http://marklogic.com/appservices/search" && e.Name.Local == "queries" {
+					return queries, err
+				}
+			}
+		} else {
+			return queries, err
+		}
+	}
 }

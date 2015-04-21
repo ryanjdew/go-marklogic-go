@@ -2,6 +2,7 @@ package goMarklogicGo
 
 import (
 	//"encoding/json"
+	"bytes"
 	"encoding/xml"
 	"io"
 	"net/http"
@@ -66,20 +67,27 @@ type FacetValue struct {
 
 // Search with text value
 func (c *Client) Search(text string, start int64, pageLength int64) (*Response, error) {
-	req, _ := http.NewRequest("GET", c.Base+"/search?q="+text+"&format=xml&start="+strconv.FormatInt(start, 10)+"&pageLength="+strconv.FormatInt(pageLength, 10), nil)
+	req, _ := http.NewRequest("GET", c.Base()+"/search?q="+text+"&format=xml&start="+strconv.FormatInt(start, 10)+"&pageLength="+strconv.FormatInt(pageLength, 10), nil)
 	applyAuth(c, req)
-	resp, _ := c.HTTPClient.Do(req)
+	resp, _ := c.HTTPClient().Do(req)
 	defer resp.Body.Close()
 	return readResults(resp.Body)
 }
 
 // StructuredSearch searches with a structured query
-func (c *Client) StructuredSearch(query *Query, start int64, pageLength int64) (*Response, error) {
-	buf := query.Encode()
-	req, _ := http.NewRequest("POST", c.Base+"/search?format=xml&start="+strconv.FormatInt(start, 10)+"&pageLength="+strconv.FormatInt(pageLength, 10), buf)
+func (c *Client) StructuredSearch(query Handle, start int64, pageLength int64) (*Response, error) {
+	var reqType string
+	if query.GetFormat() == JSON {
+		reqType = "json"
+	} else {
+		reqType = "xml"
+	}
+	buf := new(bytes.Buffer)
+	buf.Write([]byte(query.Serialized()))
+	req, _ := http.NewRequest("POST", c.Base()+"/search?format="+reqType+"&start="+strconv.FormatInt(start, 10)+"&pageLength="+strconv.FormatInt(pageLength, 10), buf)
 	applyAuth(c, req)
-	req.Header.Add("Content-Type", "application/xml")
-	resp, _ := c.HTTPClient.Do(req)
+	req.Header.Add("Content-Type", "application/"+reqType)
+	resp, _ := c.HTTPClient().Do(req)
 	defer resp.Body.Close()
 	return readResults(resp.Body)
 }

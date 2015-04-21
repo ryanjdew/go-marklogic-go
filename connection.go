@@ -17,11 +17,7 @@ const (
 
 // Client is used for connecting to the MarkLogic REST API.
 type Client struct {
-	Base          string
-	Userinfo      *url.Userinfo
-	AuthType      int
-	HTTPClient    *http.Client
-	DigestHeaders *digestAuth.DigestHeaders
+	*BasicClient
 }
 
 // NewClient creates the Client struct used for searching, etc.
@@ -37,22 +33,66 @@ func NewClient(host string, port int64, username string, password string, authTy
 	}
 	if err == nil {
 		client = &Client{
-			Base:          base,
-			Userinfo:      url.UserPassword(username, password),
-			AuthType:      authType,
-			HTTPClient:    httpClient,
-			DigestHeaders: digestHeaders,
+			&BasicClient{
+				base:          base,
+				userinfo:      url.UserPassword(username, password),
+				authType:      authType,
+				httpClient:    httpClient,
+				digestHeaders: digestHeaders,
+			},
 		}
 	}
 	return client, err
 }
 
+// RESTClient is an inteface the different REST Clients (Client and ManagementClient)
+type RESTClient interface {
+	Base() string
+	Userinfo() *url.Userinfo
+	AuthType() int
+	HTTPClient() *http.Client
+	DigestHeaders() *digestAuth.DigestHeaders
+}
+
+// BasicClient is the basic parts that compose both
+type BasicClient struct {
+	base          string
+	userinfo      *url.Userinfo
+	authType      int
+	httpClient    *http.Client
+	digestHeaders *digestAuth.DigestHeaders
+}
+
+func (bc *BasicClient) Base() string {
+	return bc.base
+}
+
+func (bc *BasicClient) SetBase(base string) {
+	bc.base = base
+}
+
+func (bc *BasicClient) Userinfo() *url.Userinfo {
+	return bc.userinfo
+}
+
+func (bc *BasicClient) AuthType() int {
+	return bc.authType
+}
+
+func (bc *BasicClient) HTTPClient() *http.Client {
+	return bc.httpClient
+}
+
+func (bc *BasicClient) DigestHeaders() *digestAuth.DigestHeaders {
+	return bc.digestHeaders
+}
+
 // applyAuth adds the neccessary headers for authentication
-func applyAuth(c *Client, req *http.Request) {
-	pwd, _ := c.Userinfo.Password()
-	if c.AuthType == BasicAuth {
-		req.SetBasicAuth(c.Userinfo.Username(), pwd)
-	} else if c.AuthType == DigestAuth {
-		c.DigestHeaders.ApplyAuth(req)
+func applyAuth(c RESTClient, req *http.Request) {
+	pwd, _ := c.Userinfo().Password()
+	if c.AuthType() == BasicAuth {
+		req.SetBasicAuth(c.Userinfo().Username(), pwd)
+	} else if c.AuthType() == DigestAuth {
+		c.DigestHeaders().ApplyAuth(req)
 	}
 }
