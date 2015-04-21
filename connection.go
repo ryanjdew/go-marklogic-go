@@ -63,26 +63,31 @@ type BasicClient struct {
 	digestHeaders *digestAuth.DigestHeaders
 }
 
+// Base provides the base of the REST calls that will be made
 func (bc *BasicClient) Base() string {
 	return bc.base
 }
 
-func (bc *BasicClient) SetBase(base string) {
+func (bc *BasicClient) setBase(base string) {
 	bc.base = base
 }
 
+// Userinfo returns the credentials for the RESTClient
 func (bc *BasicClient) Userinfo() *url.Userinfo {
 	return bc.userinfo
 }
 
+// AuthType returns the int that represents an authentication type (BasicAuth, DigestAuth)
 func (bc *BasicClient) AuthType() int {
 	return bc.authType
 }
 
+// HTTPClient returns the *http.Client to use to make the REST calls
 func (bc *BasicClient) HTTPClient() *http.Client {
 	return bc.httpClient
 }
 
+// DigestHeaders returns the digest headers that need updated with each DigestAuth call
 func (bc *BasicClient) DigestHeaders() *digestAuth.DigestHeaders {
 	return bc.digestHeaders
 }
