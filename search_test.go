@@ -134,7 +134,30 @@ func TestSearch(t *testing.T) {
 	// Using Basic Auth for test so initial call isn't actually made
 	client, _ := NewClient("localhost", 8000, "admin", "admin", BasicAuth)
 	client.setBase(server.URL)
-	resp, err := client.Search("data", 1, 10)
+	respHandle := &ResponseHandle{Format: XML}
+	err := client.Search("data", 1, 10, respHandle)
+	resp := respHandle.Get()
+	if err != nil {
+		t.Errorf("Error = %v", err)
+	} else if resp == nil {
+		t.Errorf("No response found")
+	} else if !reflect.DeepEqual(resp.Results, want.Results) {
+		t.Errorf("Search Results = %+v, Want = %+v", spew.Sdump(resp.Results), spew.Sdump(want.Results))
+	} else if !reflect.DeepEqual(resp.Facets, want.Facets) {
+		t.Errorf("Search Facets = %+v, Want = %+v", spew.Sdump(resp.Facets), spew.Sdump(want.Facets))
+	} else if !reflect.DeepEqual(resp, want) {
+		t.Errorf("Search Response = %+v, Want = %+v", spew.Sdump(resp), spew.Sdump(want))
+	}
+	query :=
+		&Query{
+			Queries: []interface{}{
+				&TermQuery{Terms: []string{"data"}},
+			},
+		}
+	qh := &QueryHandle{}
+	qh.Decode(query)
+	err = client.StructuredSearch(qh, 1, 10, respHandle)
+	resp = respHandle.Get()
 	if err != nil {
 		t.Errorf("Error = %v", err)
 	} else if resp == nil {

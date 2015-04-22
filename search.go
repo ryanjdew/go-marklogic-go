@@ -3,11 +3,70 @@ package goMarklogicGo
 import (
 	//"encoding/json"
 	"bytes"
+	"encoding/json"
 	"encoding/xml"
 	"io"
+	"io/ioutil"
 	"net/http"
 	"strconv"
 )
+
+// ResponseHandle is a handle that places the results into
+// a Response struct
+type ResponseHandle struct {
+	Format   int
+	bytes    []byte
+	response *Response
+}
+
+// GetFormat returns int that represents XML or JSON
+func (rh *ResponseHandle) GetFormat() int {
+	return rh.Format
+}
+
+// Encode returns Response struct that represents XML or JSON
+func (rh *ResponseHandle) Encode(bytes []byte) {
+	rh.bytes = bytes
+	rh.response = &Response{}
+	if rh.GetFormat() == JSON {
+		json.Unmarshal(bytes, &rh.response)
+	} else {
+		xml.Unmarshal(bytes, &rh.response)
+	}
+}
+
+// Decode returns []byte of XML or JSON that represents the Response struct
+func (rh *ResponseHandle) Decode(response interface{}) {
+	rh.response = response.(*Response)
+	buf := new(bytes.Buffer)
+	if rh.GetFormat() == JSON {
+		enc := json.NewEncoder(buf)
+		enc.Encode(rh.response)
+	} else {
+		enc := xml.NewEncoder(buf)
+		enc.Encode(rh.response)
+	}
+	rh.bytes = buf.Bytes()
+}
+
+// Get returns string of XML or JSON
+func (rh *ResponseHandle) Get() *Response {
+	return rh.response
+}
+
+// Serialized returns string of XML or JSON
+func (rh *ResponseHandle) Serialized() string {
+	buf := new(bytes.Buffer)
+	if rh.GetFormat() == JSON {
+		enc := json.NewEncoder(buf)
+		enc.Encode(rh.response)
+	} else {
+		enc := xml.NewEncoder(buf)
+		enc.Encode(rh.response)
+	}
+	rh.bytes = buf.Bytes()
+	return string(rh.bytes)
+}
 
 // Response represents a response from the search API
 type Response struct {
@@ -66,16 +125,24 @@ type FacetValue struct {
 }
 
 // Search with text value
-func (c *Client) Search(text string, start int64, pageLength int64) (*Response, error) {
-	req, _ := http.NewRequest("GET", c.Base()+"/search?q="+text+"&format=xml&start="+strconv.FormatInt(start, 10)+"&pageLength="+strconv.FormatInt(pageLength, 10), nil)
+func (c *Client) Search(text string, start int64, pageLength int64, response Handle) error {
+	req, err := http.NewRequest("GET", c.Base()+"/search?q="+text+"&format=xml&start="+strconv.FormatInt(start, 10)+"&pageLength="+strconv.FormatInt(pageLength, 10), nil)
+	if err != nil {
+		return err
+	}
 	applyAuth(c, req)
-	resp, _ := c.HTTPClient().Do(req)
+	resp, err := c.HTTPClient().Do(req)
+	if err != nil {
+		return err
+	}
 	defer resp.Body.Close()
-	return readResults(resp.Body)
+	contents, err := ioutil.ReadAll(resp.Body)
+	response.Encode(contents)
+	return err
 }
 
 // StructuredSearch searches with a structured query
-func (c *Client) StructuredSearch(query Handle, start int64, pageLength int64) (*Response, error) {
+func (c *Client) StructuredSearch(query Handle, start int64, pageLength int64, response Handle) error {
 	var reqType string
 	if query.GetFormat() == JSON {
 		reqType = "json"
@@ -84,12 +151,20 @@ func (c *Client) StructuredSearch(query Handle, start int64, pageLength int64) (
 	}
 	buf := new(bytes.Buffer)
 	buf.Write([]byte(query.Serialized()))
-	req, _ := http.NewRequest("POST", c.Base()+"/search?format="+reqType+"&start="+strconv.FormatInt(start, 10)+"&pageLength="+strconv.FormatInt(pageLength, 10), buf)
+	req, err := http.NewRequest("POST", c.Base()+"/search?format="+reqType+"&start="+strconv.FormatInt(start, 10)+"&pageLength="+strconv.FormatInt(pageLength, 10), buf)
+	if err != nil {
+		return err
+	}
 	applyAuth(c, req)
 	req.Header.Add("Content-Type", "application/"+reqType)
-	resp, _ := c.HTTPClient().Do(req)
+	resp, err := c.HTTPClient().Do(req)
+	if err != nil {
+		return err
+	}
 	defer resp.Body.Close()
-	return readResults(resp.Body)
+	contents, err := ioutil.ReadAll(resp.Body)
+	response.Encode(contents)
+	return err
 }
 
 func readResults(reader io.Reader) (*Response, error) {

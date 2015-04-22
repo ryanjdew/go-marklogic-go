@@ -16,12 +16,15 @@ func TestXMLQueryDecode(t *testing.T) {
 	})
 	server := httptest.NewServer(handler)
 	defer server.Close()
-	want := "<query xmlns=\"http://marklogic.com/appservices/search\"><term-query xmlns=\"http://marklogic.com/appservices/search\"><text xmlns=\"http://marklogic.com/appservices/search\">data</text></term-query></query>"
+	want := "<query xmlns=\"http://marklogic.com/appservices/search\"><and-query xmlns=\"http://marklogic.com/appservices/search\"><ordered xmlns=\"http://marklogic.com/appservices/search\">true</ordered><term-query xmlns=\"http://marklogic.com/appservices/search\"><text xmlns=\"http://marklogic.com/appservices/search\">data</text></term-query></and-query></query>"
 	query :=
 		&Query{
 			Queries: []interface{}{
-				&TermQuery{
-					Terms: []string{"data"},
+				&AndQuery{
+					Ordered: true,
+					Queries: []interface{}{
+						&TermQuery{Terms: []string{"data"}},
+					},
 				},
 			},
 		}
@@ -56,11 +59,12 @@ func TestJSONQueryDecode(t *testing.T) {
 	})
 	server := httptest.NewServer(handler)
 	defer server.Close()
-	want := `{"query":{"queries":[{"locks-query":{"queries":[{"term-query":{"text":["data"]}}]}}]}}`
+	want := `{"query":{"queries":[{"and-query":{"ordered":true,"queries":[{"term-query":{"text":["data"]}}]}}]}}`
 	query :=
 		&Query{
 			Queries: []interface{}{
-				&LocksQuery{
+				&AndQuery{
+					Ordered: true,
 					Queries: []interface{}{
 						&TermQuery{Terms: []string{"data"}},
 					},

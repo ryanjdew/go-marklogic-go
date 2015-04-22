@@ -27,7 +27,7 @@ func (qh *QueryHandle) GetFormat() int {
 }
 
 // Encode returns Query struct that represents XML or JSON
-func (qh *QueryHandle) Encode(bytes []byte) *Query {
+func (qh *QueryHandle) Encode(bytes []byte) {
 	qh.bytes = bytes
 	qh.query = &Query{}
 	if qh.GetFormat() == JSON {
@@ -35,12 +35,11 @@ func (qh *QueryHandle) Encode(bytes []byte) *Query {
 	} else {
 		xml.Unmarshal(bytes, &qh.query)
 	}
-	return qh.query
 }
 
 // Decode returns []byte of XML or JSON that represents the Query struct
-func (qh *QueryHandle) Decode(query *Query) []byte {
-	qh.query = query
+func (qh *QueryHandle) Decode(query interface{}) {
+	qh.query = query.(*Query)
 	buf := new(bytes.Buffer)
 	if qh.GetFormat() == JSON {
 		enc := json.NewEncoder(buf)
@@ -50,7 +49,6 @@ func (qh *QueryHandle) Decode(query *Query) []byte {
 		enc.Encode(qh.query)
 	}
 	qh.bytes = buf.Bytes()
-	return qh.bytes
 }
 
 // Get returns string of XML or JSON
@@ -1227,13 +1225,9 @@ func DecodeXMLWithQueries(d *xml.Decoder, start xml.StartElement) ([]interface{}
 					queryStruct = q
 				default:
 				}
-				fmt.Printf("element name: %s", e.Name.Local)
-				fmt.Printf("query struct: %+v", queryStruct)
 				queries = append(queries, queryStruct)
 			case xml.EndElement:
 				e := xml.EndElement(t)
-				fmt.Printf("End element\n")
-				fmt.Printf("element name: %s", e.Name.Local)
 				if e.Name.Space == "http://marklogic.com/appservices/search" && e.Name.Local == "queries" {
 					return queries, err
 				}

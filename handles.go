@@ -3,9 +3,8 @@ package goMarklogicGo
 // Handle interface
 type Handle interface {
 	GetFormat() int
-	Get() interface{}
-	Encode(interface{}) interface{}
-	Decode(interface{}) interface{}
+	Encode([]byte)
+	Decode(interface{})
 	Serialized() string
 }
 
@@ -21,14 +20,13 @@ func (r *RawHandle) GetFormat() int {
 }
 
 // Encode returns the bytes that represent XML or JSON
-func (r *RawHandle) Encode(bytes []byte) []byte {
+func (r *RawHandle) Encode(bytes []byte) {
 	r.bytes = bytes
-	return r.bytes
 }
 
 // Decode returns the bytes that represent XML or JSON
-func (r *RawHandle) Decode(bytes []byte) []byte {
-	return r.Encode(bytes)
+func (r *RawHandle) Decode(bytes interface{}) {
+	r.Encode(bytes.([]byte))
 }
 
 // Get returns string of XML or JSON
