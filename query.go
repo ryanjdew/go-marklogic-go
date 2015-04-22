@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"encoding/json"
 	"encoding/xml"
-	"fmt"
 )
 
 // Format options
@@ -648,11 +647,6 @@ func (q GeoPathQuery) MarshalJSON() ([]byte, error) {
 	return wrapJSON(fakeGeoPathQuery(q))
 }
 
-// NewQuery returns a Query struct pointer and accepts a format const as a parameter
-func NewQuery(format int) *Query {
-	return &Query{Format: format}
-}
-
 // UnmarshalJSON Query converts to JSON
 func (q *Query) UnmarshalJSON(data []byte) error {
 	fake := fakeQuery(*q)
@@ -951,7 +945,6 @@ func DecodeJSONWithQueries(inputData []byte) ([]interface{}, error) {
 func (q *Query) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
 	queries, err2 := DecodeXMLWithQueries(d, start)
 	q.Queries = queries
-	fmt.Printf("Query:%+v\n", q)
 	return err2
 }
 

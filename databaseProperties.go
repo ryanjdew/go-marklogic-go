@@ -10,6 +10,7 @@ import (
 
 // DatabaseProperties represents the properties of a MarkLogic Database
 type DatabaseProperties struct {
+	XMLName                             xml.Name                     `xml:"http://marklogic.com/manage database-properties" json:"-"`
 	DatabaseName                        string                       `xml:"http://marklogic.com/manage database-name" json:"database-name"`
 	Forest                              []string                     `xml:"http://marklogic.com/manage forest" json:"forest"`
 	SecurityDatabase                    string                       `xml:"http://marklogic.com/manage security-database" json:"security-database"`

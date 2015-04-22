@@ -3,9 +3,10 @@ package main
 import (
 	"flag"
 	"fmt"
+	"log"
+
 	"github.com/davecgh/go-spew/spew"
 	goMarkLogicGo "github.com/ryanjdew/go-marklogic-go"
-	"log"
 )
 
 var host string
@@ -17,7 +18,7 @@ var queryStr string
 
 func main() {
 	flag.StringVar(&host, "host", "localhost", "MarkLogic REST Host")
-	flag.Int64Var(&port, "port", 8041, "MarkLogic REST Port")
+	flag.Int64Var(&port, "port", 8050, "MarkLogic REST Port")
 	flag.StringVar(&username, "username", "admin", "MarkLogic REST Username")
 	flag.StringVar(&password, "password", "admin", "MarkLogic REST Password")
 	flag.StringVar(&auth, "auth", "basic", "MarkLogic REST Authentication method")
@@ -43,10 +44,19 @@ func main() {
 			Terms: []string{queryStr},
 		},
 	}
+
+	qh := &goMarkLogicGo.QueryHandle{}
+	qh.Decode(query)
 	fmt.Print("decoded query:\n")
-	fmt.Print(spew.Sdump(query))
-	resp, err := client.StructuredSearch(query, 1, 10)
+	fmt.Print(spew.Sdump(qh.Serialized()))
+	respHandle := &goMarkLogicGo.ResponseHandle{}
+	err = client.StructuredSearch(qh, 1, 10, respHandle)
+	resp := respHandle.Get()
 	fmt.Print("decoded response:\n")
 	fmt.Print(spew.Sdump(resp))
-
+	sugRespHandle := &goMarkLogicGo.SuggestionsResponseHandle{}
+	err = client.StructuredSuggestions(qh, queryStr, 10, "", sugRespHandle)
+	sugResp := sugRespHandle.Serialized()
+	fmt.Print("decoded response:\n")
+	fmt.Print(spew.Sdump(sugResp))
 }

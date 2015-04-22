@@ -28,5 +28,9 @@ query.Queries = []interface{}{
     Terms: []string{queryStr},
   },
 }
-resp, err := client.StructuredSearch(query, 1, 10)
+qh := &goMarkLogicGo.QueryHandle{}
+qh.Decode(query)
+respHandle := &goMarkLogicGo.ResponseHandle{}
+err = client.StructuredSearch(qh, 1, 10, respHandle)
+resp := respHandle.Get()
 ```
