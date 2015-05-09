@@ -16,7 +16,7 @@ import (
 type ResponseHandle struct {
 	Format   int
 	bytes    []byte
-	response *Response
+	response Response
 }
 
 // GetFormat returns int that represents XML or JSON
@@ -27,7 +27,7 @@ func (rh *ResponseHandle) GetFormat() int {
 // Encode returns Response struct that represents XML or JSON
 func (rh *ResponseHandle) Encode(bytes []byte) {
 	rh.bytes = bytes
-	rh.response = &Response{}
+	rh.response = Response{}
 	if rh.GetFormat() == JSON {
 		json.Unmarshal(bytes, &rh.response)
 	} else {
@@ -37,70 +37,62 @@ func (rh *ResponseHandle) Encode(bytes []byte) {
 
 // Decode returns []byte of XML or JSON that represents the Response struct
 func (rh *ResponseHandle) Decode(response interface{}) {
-	rh.response = response.(*Response)
+	rh.response = response.(Response)
 	buf := new(bytes.Buffer)
 	if rh.GetFormat() == JSON {
 		enc := json.NewEncoder(buf)
-		enc.Encode(rh.response)
+		enc.Encode(&rh.response)
 	} else {
 		enc := xml.NewEncoder(buf)
-		enc.Encode(rh.response)
+		enc.Encode(&rh.response)
 	}
 	rh.bytes = buf.Bytes()
 }
 
 // Get returns string of XML or JSON
 func (rh *ResponseHandle) Get() *Response {
-	return rh.response
+	return &rh.response
 }
 
 // Serialized returns string of XML or JSON
 func (rh *ResponseHandle) Serialized() string {
-	buf := new(bytes.Buffer)
-	if rh.GetFormat() == JSON {
-		enc := json.NewEncoder(buf)
-		enc.Encode(rh.response)
-	} else {
-		enc := xml.NewEncoder(buf)
-		enc.Encode(rh.response)
-	}
-	rh.bytes = buf.Bytes()
+	rh.Decode(rh.response)
 	return string(rh.bytes)
 }
 
 // Response represents a response from the search API
 type Response struct {
-	Total      int64     `xml:"total,attr" json:"total,omitempty"`
-	Start      int64     `xml:"start,attr" json:"start,omitempty"`
-	PageLength int64     `xml:"page-length,attr" json:"page-length,omitempty"`
-	Results    []*Result `xml:"http://marklogic.com/appservices/search result" json:"result,omitempty"`
-	Facets     []*Facet  `xml:"http://marklogic.com/appservices/search facet" json:"facet,omitempty"`
+	Total      int64    `xml:"total,attr" json:"total,omitempty"`
+	Start      int64    `xml:"start,attr" json:"start,omitempty"`
+	PageLength int64    `xml:"page-length,attr" json:"page-length,omitempty"`
+	Results    []Result `xml:"http://marklogic.com/appservices/search result" json:"result,omitempty"`
+	Facets     []Facet  `xml:"http://marklogic.com/appservices/search facet" json:"facet,omitempty"`
 }
 
 // Result is an individual document fragment found by the search
 type Result struct {
-	URI        string     `xml:"uri,attr" json:"uri,omitempty"`
-	Href       string     `xml:"href,attr" json:"href,omitempty"`
-	MimeType   string     `xml:"mimetype,attr" json:"mimetype,omitempty"`
-	Format     string     `xml:"format,attr" json:"format,omitempty"`
-	Path       string     `xml:"path,attr" json:"path,omitempty"`
-	Index      int64      `xml:"index,attr" json:"index,omitempty"`
-	Score      int64      `xml:"score,attr" json:"score,omitempty"`
-	Confidence float64    `xml:"confidence,attr" json:"confidence,omitempty"`
-	Fitness    float64    `xml:"fitness,attr" json:"fitness,omitempty"`
-	Snippets   []*Snippet `xml:"http://marklogic.com/appservices/search snippet" json:"snippet,omitempty"`
+	URI        string    `xml:"uri,attr" json:"uri,omitempty"`
+	Href       string    `xml:"href,attr" json:"href,omitempty"`
+	MimeType   string    `xml:"mimetype,attr" json:"mimetype,omitempty"`
+	Format     string    `xml:"format,attr" json:"format,omitempty"`
+	Path       string    `xml:"path,attr" json:"path,omitempty"`
+	Index      int64     `xml:"index,attr" json:"index,omitempty"`
+	Score      int64     `xml:"score,attr" json:"score,omitempty"`
+	Confidence float64   `xml:"confidence,attr" json:"confidence,omitempty"`
+	Fitness    float64   `xml:"fitness,attr" json:"fitness,omitempty"`
+	Snippets   []Snippet `xml:"http://marklogic.com/appservices/search snippet" json:"snippet,omitempty"`
 }
 
 // Snippet represents a snippet
 type Snippet struct {
-	Location string   `xml:"uri,attr" json:"uri,omitempty"`
-	Matches  []*Match `xml:"http://marklogic.com/appservices/search match" json:"match,omitempty"`
+	Location string  `xml:"uri,attr" json:"uri,omitempty"`
+	Matches  []Match `xml:"http://marklogic.com/appservices/search match" json:"match,omitempty"`
 }
 
 // Match is a path in document that matches the query
 type Match struct {
 	Path string
-	Text []*Text
+	Text []Text
 }
 
 // Text in a match. HightlightedText tells whether the text matched the query
@@ -112,9 +104,9 @@ type Text struct {
 
 // Facet represents a facet and contains a slice of FacetValue
 type Facet struct {
-	Name        string        `xml:"name,attr" json:"name,omitempty"`
-	Type        string        `xml:"type,attr" json:"type,omitempty"`
-	FacetValues []*FacetValue `xml:"http://marklogic.com/appservices/search facet-value" json:"facet-value,omitempty"`
+	Name        string       `xml:"name,attr" json:"name,omitempty"`
+	Type        string       `xml:"type,attr" json:"type,omitempty"`
+	FacetValues []FacetValue `xml:"http://marklogic.com/appservices/search facet-value" json:"facet-value,omitempty"`
 }
 
 // FacetValue is a value with the frequency that value occurs
@@ -168,12 +160,12 @@ func (c *Client) StructuredSearch(query Handle, start int64, pageLength int64, r
 }
 
 func readResults(reader io.Reader) (*Response, error) {
-	results := &Response{}
+	results := Response{}
 	decoder := xml.NewDecoder(reader)
-	if err := decoder.Decode(results); err != nil {
+	if err := decoder.Decode(&results); err != nil {
 		return nil, err
 	}
-	return results, nil
+	return &results, nil
 }
 
 //UnmarshalXML for Match struct in a special way to handle highlighting matching text
@@ -192,7 +184,7 @@ func (m *Match) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
 				var content string
 				e := xml.StartElement(t)
 				d.DecodeElement(&content, &e)
-				text := &Text{
+				text := Text{
 					Text:            content,
 					HighlightedText: e.Name.Space == "http://marklogic.com/appservices/search" && e.Name.Local == "highlight",
 				}
@@ -204,7 +196,7 @@ func (m *Match) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
 				}
 			case xml.CharData:
 				b := xml.CharData(t)
-				text := &Text{
+				text := Text{
 					Text:            string([]byte(b)),
 					HighlightedText: false,
 				}

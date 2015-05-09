@@ -61,12 +61,12 @@ func TestSearch(t *testing.T) {
 	server := httptest.NewServer(handler)
 	defer server.Close()
 	want :=
-		&Response{
+		Response{
 			Total:      1,
 			Start:      1,
 			PageLength: 10,
-			Results: []*Result{
-				&Result{
+			Results: []Result{
+				Result{
 					URI:        "/resources/wikipedia/ru_id/341620.xml",
 					Href:       "/v1/documents?uri=%2Fresources%2Fwikipedia%2Fru_id%2F341620.xml",
 					MimeType:   "text/xml",
@@ -76,21 +76,21 @@ func TestSearch(t *testing.T) {
 					Score:      178432,
 					Confidence: 0.9790292,
 					Fitness:    0.9790292,
-					Snippets: []*Snippet{
-						&Snippet{
-							Matches: []*Match{
-								&Match{
+					Snippets: []Snippet{
+						Snippet{
+							Matches: []Match{
+								Match{
 									Path: "fn:doc(\"/resources/wikipedia/ru_id/341620.xml\")/resource/description",
-									Text: []*Text{
-										&Text{
+									Text: []Text{
+										Text{
 											Text:            "Lieutenant Commander ",
 											HighlightedText: false,
 										},
-										&Text{
+										Text{
 											Text:            "Data",
 											HighlightedText: true,
 										},
-										&Text{
+										Text{
 											Text:            " is a character in the fictional Star Trek universe portrayed by actor Brent Spiner....",
 											HighlightedText: false,
 										},
@@ -101,28 +101,28 @@ func TestSearch(t *testing.T) {
 					},
 				},
 			},
-			Facets: []*Facet{
-				&Facet{
+			Facets: []Facet{
+				Facet{
 					Name: "Organization",
 					Type: "xs:string",
-					FacetValues: []*FacetValue{
-						&FacetValue{
+					FacetValues: []FacetValue{
+						FacetValue{
 							Name:  "Starfleet",
 							Label: "Starfleet",
 							Count: 1,
 						},
 					},
 				},
-				&Facet{
+				Facet{
 					Name: "Species",
 					Type: "xs:string",
-					FacetValues: []*FacetValue{
-						&FacetValue{
+					FacetValues: []FacetValue{
+						FacetValue{
 							Name:  "Android",
 							Label: "Android",
 							Count: 1,
 						},
-						&FacetValue{
+						FacetValue{
 							Name:  "Artificial intelligence",
 							Label: "Artificial intelligence",
 							Count: 1,
@@ -134,39 +134,39 @@ func TestSearch(t *testing.T) {
 	// Using Basic Auth for test so initial call isn't actually made
 	client, _ := NewClient("localhost", 8000, "admin", "admin", BasicAuth)
 	client.setBase(server.URL)
-	respHandle := &ResponseHandle{Format: XML}
-	err := client.Search("data", 1, 10, respHandle)
+	respHandle := ResponseHandle{Format: XML}
+	err := client.Search("data", 1, 10, &respHandle)
 	resp := respHandle.Get()
 	if err != nil {
 		t.Errorf("Error = %v", err)
 	} else if resp == nil {
 		t.Errorf("No response found")
-	} else if !reflect.DeepEqual(resp.Results, want.Results) {
-		t.Errorf("Search Results = %+v, Want = %+v", spew.Sdump(resp.Results), spew.Sdump(want.Results))
+	} else if !reflect.DeepEqual(want.Results[0], resp.Results[0]) {
+		t.Errorf("Search Results = %+v, Want = %+v", spew.Sdump(resp.Results[0]), spew.Sdump(want.Results[0]))
 	} else if !reflect.DeepEqual(resp.Facets, want.Facets) {
 		t.Errorf("Search Facets = %+v, Want = %+v", spew.Sdump(resp.Facets), spew.Sdump(want.Facets))
-	} else if !reflect.DeepEqual(resp, want) {
-		t.Errorf("Search Response = %+v, Want = %+v", spew.Sdump(resp), spew.Sdump(want))
+	} else if !reflect.DeepEqual(*resp, want) {
+		t.Errorf("Search Response = %+v, Want = %+v", spew.Sdump(*resp), spew.Sdump(want))
 	}
 	query :=
-		&Query{
+		Query{
 			Queries: []interface{}{
-				&TermQuery{Terms: []string{"data"}},
+				TermQuery{Terms: []string{"data"}},
 			},
 		}
-	qh := &QueryHandle{}
+	qh := QueryHandle{}
 	qh.Decode(query)
-	err = client.StructuredSearch(qh, 1, 10, respHandle)
+	err = client.StructuredSearch(&qh, 1, 10, &respHandle)
 	resp = respHandle.Get()
 	if err != nil {
 		t.Errorf("Error = %v", err)
 	} else if resp == nil {
 		t.Errorf("No response found")
-	} else if !reflect.DeepEqual(resp.Results, want.Results) {
-		t.Errorf("Search Results = %+v, Want = %+v", spew.Sdump(resp.Results), spew.Sdump(want.Results))
+	} else if !reflect.DeepEqual(resp.Results[0], want.Results[0]) {
+		t.Errorf("Search Results = %+v, Want = %+v", spew.Sdump(resp.Results[0]), spew.Sdump(want.Results[0]))
 	} else if !reflect.DeepEqual(resp.Facets, want.Facets) {
 		t.Errorf("Search Facets = %+v, Want = %+v", spew.Sdump(resp.Facets), spew.Sdump(want.Facets))
-	} else if !reflect.DeepEqual(resp, want) {
-		t.Errorf("Search Response = %+v, Want = %+v", spew.Sdump(resp), spew.Sdump(want))
+	} else if !reflect.DeepEqual(*resp, want) {
+		t.Errorf("Search Response = %+v, Want = %+v", spew.Sdump(*resp), spew.Sdump(want))
 	}
 }

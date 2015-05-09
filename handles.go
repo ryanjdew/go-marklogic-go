@@ -38,3 +38,36 @@ func (r *RawHandle) Get() string {
 func (r *RawHandle) Serialized() string {
 	return r.Get()
 }
+
+// MapHandle returns the raw string results of JSON or XML
+type MapHandle struct {
+	Format  int
+	bytes   []byte
+	mapItem *map[string]interface{}
+}
+
+// GetFormat returns int that represents XML or JSON
+func (m *MapHandle) GetFormat() int {
+	return m.Format
+}
+
+// Encode returns the bytes that represent XML or JSON
+func (m *MapHandle) Encode(bytes []byte) {
+	m.bytes = bytes
+}
+
+// Decode returns the bytes that represent XML or JSON
+func (m *MapHandle) Decode(mapItem interface{}) {
+	m.mapItem = mapItem.(*map[string]interface{})
+
+}
+
+// Get returns string of XML or JSON
+func (m *MapHandle) Get() *map[string]interface{} {
+	return m.mapItem
+}
+
+// Serialized returns string of XML or JSON
+func (m *MapHandle) Serialized() string {
+	return string(m.bytes)
+}

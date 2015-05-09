@@ -22,15 +22,15 @@ Sample Code
 
 ```go
 client, _ := goMarkLogicGo.NewClient("localhost", 8050, "admin", "admin", goMarkLogicGo.DigestAuth)
-query := goMarkLogicGo.NewQuery(goMarkLogicGo.XML)
+query := goMarkLogicGo.Query{Format: goMarkLogicGo.XML}
 query.Queries = []interface{}{
-  &goMarkLogicGo.TermQuery{
+  goMarkLogicGo.TermQuery{
     Terms: []string{queryStr},
   },
 }
-qh := &goMarkLogicGo.QueryHandle{}
+qh := goMarkLogicGo.QueryHandle{}
 qh.Decode(query)
-respHandle := &goMarkLogicGo.ResponseHandle{}
-err = client.StructuredSearch(qh, 1, 10, respHandle)
+respHandle := goMarkLogicGo.ResponseHandle{}
+err = client.StructuredSearch(&qh, 1, 10, &respHandle)
 resp := respHandle.Get()
 ```

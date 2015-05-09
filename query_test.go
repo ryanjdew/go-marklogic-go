@@ -18,17 +18,17 @@ func TestXMLQueryDecode(t *testing.T) {
 	defer server.Close()
 	want := "<query xmlns=\"http://marklogic.com/appservices/search\"><and-query xmlns=\"http://marklogic.com/appservices/search\"><ordered xmlns=\"http://marklogic.com/appservices/search\">true</ordered><term-query xmlns=\"http://marklogic.com/appservices/search\"><text xmlns=\"http://marklogic.com/appservices/search\">data</text></term-query></and-query></query>"
 	query :=
-		&Query{
+		Query{
 			Queries: []interface{}{
-				&AndQuery{
+				AndQuery{
 					Ordered: true,
 					Queries: []interface{}{
-						&TermQuery{Terms: []string{"data"}},
+						TermQuery{Terms: []string{"data"}},
 					},
 				},
 			},
 		}
-	qh := &QueryHandle{}
+	qh := QueryHandle{}
 	qh.Decode(query)
 	result := qh.Serialized()
 	if want != result {
@@ -44,7 +44,7 @@ func TestXMLQueryEncode(t *testing.T) {
 	server := httptest.NewServer(handler)
 	defer server.Close()
 	want := "<query xmlns=\"http://marklogic.com/appservices/search\"><term-query xmlns=\"http://marklogic.com/appservices/search\"><text xmlns=\"http://marklogic.com/appservices/search\">data</text></term-query></query>"
-	qh := &QueryHandle{}
+	qh := QueryHandle{}
 	qh.Encode([]byte(want))
 	result := qh.Serialized()
 	if want != result {
@@ -61,17 +61,17 @@ func TestJSONQueryDecode(t *testing.T) {
 	defer server.Close()
 	want := `{"query":{"queries":[{"and-query":{"ordered":true,"queries":[{"term-query":{"text":["data"]}}]}}]}}`
 	query :=
-		&Query{
+		Query{
 			Queries: []interface{}{
-				&AndQuery{
+				AndQuery{
 					Ordered: true,
 					Queries: []interface{}{
-						&TermQuery{Terms: []string{"data"}},
+						TermQuery{Terms: []string{"data"}},
 					},
 				},
 			},
 		}
-	qh := &QueryHandle{Format: JSON}
+	qh := QueryHandle{Format: JSON}
 	qh.Decode(query)
 	result := strings.TrimSpace(qh.Serialized())
 	if want != result {
@@ -86,10 +86,10 @@ func TestJSONQueryEncode(t *testing.T) {
 	})
 	server := httptest.NewServer(handler)
 	defer server.Close()
-	want := `{"query":{"queries":[{"term-query":{"text":["data"]}}]}}`
-	qh := &QueryHandle{Format: JSON}
+	want := `{"query":{"queries":[{"and-query":{"ordered":true,"queries":[{"term-query":{"text":["data"]}}]}}]}}`
+	qh := QueryHandle{Format: JSON}
 	qh.Encode([]byte(want))
-	result := strings.TrimSpace(qh.Serialized())
+	result := strings.TrimSpace((&qh).Serialized())
 	if want != result {
 		t.Errorf("Query Results = %+v, Want = %+v", result, want)
 	}

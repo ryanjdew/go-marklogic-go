@@ -38,24 +38,24 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	query := goMarkLogicGo.NewQuery(goMarkLogicGo.XML)
+	query := goMarkLogicGo.Query{Format: goMarkLogicGo.XML}
 	query.Queries = []interface{}{
-		&goMarkLogicGo.TermQuery{
+		goMarkLogicGo.TermQuery{
 			Terms: []string{queryStr},
 		},
 	}
 
-	qh := &goMarkLogicGo.QueryHandle{}
+	qh := goMarkLogicGo.QueryHandle{}
 	qh.Decode(query)
 	fmt.Print("decoded query:\n")
 	fmt.Print(spew.Sdump(qh.Serialized()))
-	respHandle := &goMarkLogicGo.ResponseHandle{}
-	err = client.StructuredSearch(qh, 1, 10, respHandle)
+	respHandle := goMarkLogicGo.ResponseHandle{}
+	err = client.StructuredSearch(&qh, 1, 10, &respHandle)
 	resp := respHandle.Get()
 	fmt.Print("decoded response:\n")
 	fmt.Print(spew.Sdump(resp))
-	sugRespHandle := &goMarkLogicGo.SuggestionsResponseHandle{}
-	err = client.StructuredSuggestions(qh, queryStr, 10, "", sugRespHandle)
+	sugRespHandle := goMarkLogicGo.SuggestionsResponseHandle{}
+	err = client.StructuredSuggestions(&qh, queryStr, 10, "", &sugRespHandle)
 	sugResp := sugRespHandle.Serialized()
 	fmt.Print("decoded response:\n")
 	fmt.Print(spew.Sdump(sugResp))
