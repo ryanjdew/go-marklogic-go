@@ -213,7 +213,7 @@ func (mc *ManagementClient) GetDatabaseProperties(databaseName string, propertie
 type DatabasePropertiesHandle struct {
 	Format             int
 	bytes              []byte
-	databaseProperties *DatabaseProperties
+	databaseProperties DatabaseProperties
 }
 
 // GetFormat returns int that represents XML or JSON
@@ -222,20 +222,19 @@ func (dh *DatabasePropertiesHandle) GetFormat() int {
 }
 
 // Encode returns Query struct that represents XML or JSON
-func (dh *DatabasePropertiesHandle) Encode(bytes []byte) *DatabaseProperties {
+func (dh *DatabasePropertiesHandle) Encode(bytes []byte) {
 	dh.bytes = bytes
-	dh.databaseProperties = &DatabaseProperties{}
+	dh.databaseProperties = DatabaseProperties{}
 	if dh.GetFormat() == JSON {
 		json.Unmarshal(bytes, &dh.databaseProperties)
 	} else {
 		xml.Unmarshal(bytes, &dh.databaseProperties)
 	}
-	return dh.databaseProperties
 }
 
 // Decode returns []byte of XML or JSON that represents the Query struct
-func (dh *DatabasePropertiesHandle) Decode(databaseProperties *DatabaseProperties) []byte {
-	dh.databaseProperties = databaseProperties
+func (dh *DatabasePropertiesHandle) Decode(databaseProperties interface{}) {
+	dh.databaseProperties = databaseProperties.(DatabaseProperties)
 	buf := new(bytes.Buffer)
 	if dh.GetFormat() == JSON {
 		enc := json.NewEncoder(buf)
@@ -245,24 +244,15 @@ func (dh *DatabasePropertiesHandle) Decode(databaseProperties *DatabasePropertie
 		enc.Encode(dh.databaseProperties)
 	}
 	dh.bytes = buf.Bytes()
-	return dh.bytes
 }
 
 // Get returns string of XML or JSON
-func (dh *DatabasePropertiesHandle) Get() *DatabaseProperties {
+func (dh *DatabasePropertiesHandle) Get() DatabaseProperties {
 	return dh.databaseProperties
 }
 
 // Serialized returns string of XML or JSON
 func (dh *DatabasePropertiesHandle) Serialized() string {
-	buf := new(bytes.Buffer)
-	if dh.GetFormat() == JSON {
-		enc := json.NewEncoder(buf)
-		enc.Encode(dh.databaseProperties)
-	} else {
-		enc := xml.NewEncoder(buf)
-		enc.Encode(dh.databaseProperties)
-	}
-	dh.bytes = buf.Bytes()
+	dh.Decode(dh.databaseProperties)
 	return string(dh.bytes)
 }

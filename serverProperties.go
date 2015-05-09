@@ -128,7 +128,7 @@ func (mc *ManagementClient) GetServerProperties(serverName string, groupID strin
 type ServerPropertiesHandle struct {
 	Format           int
 	bytes            []byte
-	serverProperties *ServerProperties
+	serverProperties ServerProperties
 }
 
 // GetFormat returns int that represents XML or JSON
@@ -137,20 +137,19 @@ func (sh *ServerPropertiesHandle) GetFormat() int {
 }
 
 // Encode returns Query struct that represents XML or JSON
-func (sh *ServerPropertiesHandle) Encode(bytes []byte) *ServerProperties {
+func (sh *ServerPropertiesHandle) Encode(bytes []byte) {
 	sh.bytes = bytes
-	sh.serverProperties = &ServerProperties{}
+	sh.serverProperties = ServerProperties{}
 	if sh.GetFormat() == JSON {
 		json.Unmarshal(bytes, &sh.serverProperties)
 	} else {
 		xml.Unmarshal(bytes, &sh.serverProperties)
 	}
-	return sh.serverProperties
 }
 
 // Decode returns []byte of XML or JSON that represents the Query struct
-func (sh *ServerPropertiesHandle) Decode(serverProperties *ServerProperties) []byte {
-	sh.serverProperties = serverProperties
+func (sh *ServerPropertiesHandle) Decode(serverProperties interface{}) {
+	sh.serverProperties = serverProperties.(ServerProperties)
 	buf := new(bytes.Buffer)
 	if sh.GetFormat() == JSON {
 		enc := json.NewEncoder(buf)
@@ -160,24 +159,15 @@ func (sh *ServerPropertiesHandle) Decode(serverProperties *ServerProperties) []b
 		enc.Encode(sh.serverProperties)
 	}
 	sh.bytes = buf.Bytes()
-	return sh.bytes
 }
 
 // Get returns string of XML or JSON
-func (sh *ServerPropertiesHandle) Get() *ServerProperties {
+func (sh *ServerPropertiesHandle) Get() ServerProperties {
 	return sh.serverProperties
 }
 
 // Serialized returns string of XML or JSON
 func (sh *ServerPropertiesHandle) Serialized() string {
-	buf := new(bytes.Buffer)
-	if sh.GetFormat() == JSON {
-		enc := json.NewEncoder(buf)
-		enc.Encode(sh.serverProperties)
-	} else {
-		enc := xml.NewEncoder(buf)
-		enc.Encode(sh.serverProperties)
-	}
-	sh.bytes = buf.Bytes()
+	sh.Decode(sh.serverProperties)
 	return string(sh.bytes)
 }
