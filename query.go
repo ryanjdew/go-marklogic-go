@@ -3,7 +3,6 @@ package goMarklogicGo
 import (
 	"bytes"
 	"encoding/xml"
-	"fmt"
 )
 
 // Format options
@@ -36,7 +35,6 @@ func (qh *QueryHandle) Encode(bytes []byte) {
 	if qh.GetFormat() == JSON {
 		unwrapped, _ := unwrapJSON(bytes, mapperFunction)
 		qh.query = unwrapped.(Query)
-		fmt.Printf("after encode: %v\n", qh.query)
 	} else {
 		xml.Unmarshal(bytes, &qh.query)
 	}

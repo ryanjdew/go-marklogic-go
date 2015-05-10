@@ -59,7 +59,7 @@ type DatabaseProperties struct {
 	InMemoryRangeIndexSize              int                          `xml:"http://marklogic.com/manage in-memory-range-index-size" json:"in-memory-range-index-size"`
 	InMemoryReverseIndexSize            int                          `xml:"http://marklogic.com/manage in-memory-reverse-index-size" json:"in-memory-reverse-index-size"`
 	InMemoryTripleIndexSize             int                          `xml:"http://marklogic.com/manage in-memory-triple-index-size" json:"in-memory-triple-index-size"`
-	LargeSizeThredhold                  int                          `xml:"http://marklogic.com/manage large-size-thredhold" json:"large-size-thredhold"`
+	LargeSizeThreshold                  int                          `xml:"http://marklogic.com/manage large-size-threshold" json:"large-size-threshold"`
 	Locking                             string                       `xml:"http://marklogic.com/manage locking" json:"locking"`
 	Journaling                          string                       `xml:"http://marklogic.com/manage journaling" json:"journaling"`
 	JournalSize                         int                          `xml:"http://marklogic.com/manage journal-size" json:"journal-size"`
@@ -79,13 +79,13 @@ type DatabaseProperties struct {
 	MergeMinRatio                       int                          `xml:"http://marklogic.com/manage merge-min-ratio" json:"merge-min-ratio"`
 	MergeTimestamp                      int                          `xml:"http://marklogic.com/manage merge-timestamp" json:"merge-timestamp"`
 	RetainUntilBackup                   bool                         `xml:"http://marklogic.com/manage retain-until-backup" json:"retain-until-backup"`
-	ElementWordQueryThrough             []ElementWordQueryThrough    `xml:"http://marklogic.com/manage element-word-query-through" json:"element-word-query-through"`
-	PhraseThrough                       []PhraseThrough              `xml:"http://marklogic.com/manage phrase-through" json:"phrase-through"`
-	PhraseAround                        []PhraseAround               `xml:"http://marklogic.com/manage phrase-around" json:"phrase-around"`
-	RangeElementIndex                   []RangeElementIndex          `xml:"http://marklogic.com/manage range-element-index" json:"range-element-index"`
-	RangeElementAttributeIndex          []RangeElementAttributeIndex `xml:"http://marklogic.com/manage range-element-attribute-index" json:"range-element-attribute-index"`
-	Field                               []Field                      `xml:"http://marklogic.com/manage field" json:"field"`
-	RangeFieldIndex                     []RangeFieldIndex            `xml:"http://marklogic.com/manage range-field-index" json:"range-field-index"`
+	ElementWordQueryThrough             []ElementWordQueryThrough    `xml:"http://marklogic.com/manage element-word-query-through" json:"element-word-query-through,omitempty"`
+	PhraseThrough                       []PhraseThrough              `xml:"http://marklogic.com/manage phrase-through" json:"phrase-through,omitempty"`
+	PhraseAround                        []PhraseAround               `xml:"http://marklogic.com/manage phrase-around" json:"phrase-around,omitempty"`
+	RangeElementIndex                   []RangeElementIndex          `xml:"http://marklogic.com/manage range-element-index" json:"range-element-index,omitempty"`
+	RangeElementAttributeIndex          []RangeElementAttributeIndex `xml:"http://marklogic.com/manage range-element-attribute-index" json:"range-element-attribute-index,omitempty"`
+	Field                               []Field                      `xml:"http://marklogic.com/manage field" json:"field,omitempty"`
+	RangeFieldIndex                     []RangeFieldIndex            `xml:"http://marklogic.com/manage range-field-index" json:"range-field-index,omitempty"`
 	DatabaseReplication                 string                       `xml:"http://marklogic.com/manage database-replication" json:"database-replication"`
 	RebalancerEnable                    bool                         `xml:"http://marklogic.com/manage rebalancer-enable" json:"rebalancer-enable"`
 	RebalancerThrottle                  int                          `xml:"http://marklogic.com/manage rebalancer-throttle" json:"rebalancer-throttle"`
@@ -99,20 +99,20 @@ type AssignmentPolicy struct {
 
 // ElementWordQueryThrough struct reprenting an element word query through in the database
 type ElementWordQueryThrough struct {
-	NamespaceURI string   `xml:"http://marklogic.com/manage namespace-uri" json:"namespace-uri"`
-	Localname    []string `xml:"http://marklogic.com/manage localname" json:"localname"`
+	NamespaceURI string      `xml:"http://marklogic.com/manage namespace-uri" json:"namespace-uri"`
+	Localname    interface{} `xml:"http://marklogic.com/manage localname" json:"localname"`
 }
 
 // PhraseThrough struct reprenting a phrase through in the database
 type PhraseThrough struct {
-	NamespaceURI string   `xml:"http://marklogic.com/manage namespace-uri" json:"namespace-uri"`
-	Localname    []string `xml:"http://marklogic.com/manage localname" json:"localname"`
+	NamespaceURI string      `xml:"http://marklogic.com/manage namespace-uri" json:"namespace-uri"`
+	Localname    interface{} `xml:"http://marklogic.com/manage localname" json:"localname"`
 }
 
 // PhraseAround struct reprenting a phrase around in the database
 type PhraseAround struct {
-	NamespaceURI string   `xml:"http://marklogic.com/manage namespace-uri" json:"namespace-uri"`
-	Localname    []string `xml:"http://marklogic.com/manage localname" json:"localname"`
+	NamespaceURI string      `xml:"http://marklogic.com/manage namespace-uri" json:"namespace-uri"`
+	Localname    interface{} `xml:"http://marklogic.com/manage localname" json:"localname"`
 }
 
 // RangeElementIndex struct reprenting an element range index in the database
@@ -141,10 +141,10 @@ type RangeElementAttributeIndex struct {
 type Field struct {
 	FieldName          string            `xml:"http://marklogic.com/manage field-name" json:"field-name"`
 	IncludeRoot        bool              `xml:"http://marklogic.com/manage include-root" json:"include-root"`
-	WordLexicon        []string          `xml:"http://marklogic.com/manage word-lexicon" json:"word-lexicon"`
-	IncludedElement    []IncludedElement `xml:"http://marklogic.com/manage included-element" json:"included-element"`
-	ExcludedElement    []IncludedElement `xml:"http://marklogic.com/manage included-element" json:"excluded-element"`
-	TokenizerOverrides string            `xml:"http://marklogic.com/manage tokenizer-overrides" json:"tokenizer-overrides,omitempty"`
+	WordLexicon        []string          `xml:"http://marklogic.com/manage word-lexicon" json:"word-lexicon,omitempty"`
+	IncludedElement    []IncludedElement `xml:"http://marklogic.com/manage included-element" json:"included-element,omitempty"`
+	ExcludedElement    []IncludedElement `xml:"http://marklogic.com/manage included-element" json:"excluded-element,omitempty"`
+	TokenizerOverrides string            `xml:"http://marklogic.com/manage tokenizer-overrides" json:"tokenizer-overrides"`
 }
 
 // IncludedElement struct containing information about an element contained in a field

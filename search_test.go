@@ -1,9 +1,6 @@
 package goMarklogicGo
 
 import (
-	"fmt"
-	"net/http"
-	"net/http/httptest"
 	"reflect"
 	"testing"
 
@@ -55,10 +52,7 @@ var exampleResponse = `
 `
 
 func TestSearch(t *testing.T) {
-	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		fmt.Fprintln(w, exampleResponse)
-	})
-	server := httptest.NewServer(handler)
+	client, server := testClient(exampleResponse)
 	defer server.Close()
 	want :=
 		Response{
@@ -132,8 +126,6 @@ func TestSearch(t *testing.T) {
 			},
 		}
 	// Using Basic Auth for test so initial call isn't actually made
-	client, _ := NewClient("localhost", 8000, "admin", "admin", BasicAuth)
-	client.setBase(server.URL)
 	respHandle := ResponseHandle{Format: XML}
 	err := client.Search("data", 1, 10, &respHandle)
 	resp := respHandle.Get()
