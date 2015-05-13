@@ -6,7 +6,9 @@ import (
 	"log"
 
 	"github.com/davecgh/go-spew/spew"
-	goMarkLogicGo "github.com/ryanjdew/go-marklogic-go"
+	marklogic "github.com/ryanjdew/go-marklogic-go"
+	handle "github.com/ryanjdew/go-marklogic-go/handle"
+	search "github.com/ryanjdew/go-marklogic-go/search"
 )
 
 var host string
@@ -26,35 +28,35 @@ func main() {
 	flag.Parse()
 	var authType int
 	if auth == "basic" {
-		authType = goMarkLogicGo.BasicAuth
+		authType = marklogic.BasicAuth
 	} else if auth == "digest" {
-		authType = goMarkLogicGo.DigestAuth
+		authType = marklogic.DigestAuth
 	} else {
-		authType = goMarkLogicGo.None
+		authType = marklogic.None
 	}
-	client, err := goMarkLogicGo.NewClient(host, port, username, password, authType)
+	client, err := marklogic.NewClient(host, port, username, password, authType)
 	fmt.Print("Client:\n")
 	fmt.Print(spew.Sdump(client))
 	if err != nil {
 		log.Fatal(err)
 	}
-	query := goMarkLogicGo.Query{Format: goMarkLogicGo.XML}
+	query := search.Query{Format: handle.XML}
 	query.Queries = []interface{}{
-		goMarkLogicGo.TermQuery{
+		search.TermQuery{
 			Terms: []string{queryStr},
 		},
 	}
 
-	qh := goMarkLogicGo.QueryHandle{}
+	qh := search.QueryHandle{}
 	qh.Decode(query)
 	fmt.Print("decoded query:\n")
 	fmt.Print(spew.Sdump(qh.Serialized()))
-	respHandle := goMarkLogicGo.ResponseHandle{}
+	respHandle := search.ResponseHandle{}
 	err = client.StructuredSearch(&qh, 1, 10, &respHandle)
 	resp := respHandle.Get()
 	fmt.Print("decoded response:\n")
 	fmt.Print(spew.Sdump(resp))
-	sugRespHandle := goMarkLogicGo.SuggestionsResponseHandle{}
+	sugRespHandle := search.SuggestionsResponseHandle{}
 	err = client.StructuredSuggestions(&qh, queryStr, 10, "", &sugRespHandle)
 	sugResp := sugRespHandle.Serialized()
 	fmt.Print("decoded response:\n")

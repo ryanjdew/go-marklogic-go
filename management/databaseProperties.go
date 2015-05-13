@@ -1,11 +1,13 @@
-package goMarklogicGo
+package management
 
 import (
 	"bytes"
 	"encoding/json"
 	"encoding/xml"
-	"io/ioutil"
 	"net/http"
+
+	clients "github.com/ryanjdew/go-marklogic-go/clients"
+	handle "github.com/ryanjdew/go-marklogic-go/handle"
 )
 
 // DatabaseProperties represents the properties of a MarkLogic Database
@@ -167,45 +169,21 @@ type RangeFieldIndex struct {
 }
 
 // SetDatabaseProperties sets the database properties
-func (mc *ManagementClient) SetDatabaseProperties(databaseName string, propertiesHandle Handle) error {
-	var reqType string
-	if propertiesHandle.GetFormat() == JSON {
-		reqType = "json"
-	} else {
-		reqType = "xml"
-	}
+func SetDatabaseProperties(mc *clients.ManagementClient, databaseName string, propertiesHandle handle.Handle) error {
+	reqType := handle.FormatEnumToString(propertiesHandle.GetFormat())
 	buf := new(bytes.Buffer)
 	buf.Write([]byte(propertiesHandle.Serialized()))
 	req, _ := http.NewRequest("PUT", mc.Base()+"/databases/"+databaseName+"/properties?format="+reqType, buf)
-	applyAuth(mc, req)
 	req.Header.Add("Content-Type", "application/"+reqType)
-	resp, err := mc.HTTPClient().Do(req)
-	defer resp.Body.Close()
-	if err != nil {
-		return err
-	}
-	return nil
+	return clients.Execute(mc, req, propertiesHandle)
 }
 
 // GetDatabaseProperties sets the database properties
-func (mc *ManagementClient) GetDatabaseProperties(databaseName string, propertiesHandle Handle) error {
-	var reqType string
-	if propertiesHandle.GetFormat() == JSON {
-		reqType = "json"
-	} else {
-		reqType = "xml"
-	}
+func GetDatabaseProperties(mc *clients.ManagementClient, databaseName string, propertiesHandle handle.Handle) error {
+	reqType := handle.FormatEnumToString(propertiesHandle.GetFormat())
 	req, _ := http.NewRequest("GET", mc.Base()+"/databases/"+databaseName+"/properties?format="+reqType, nil)
-	applyAuth(mc, req)
 	req.Header.Add("Content-Type", "application/"+reqType)
-	resp, err := mc.HTTPClient().Do(req)
-	if err != nil {
-		return err
-	}
-	defer resp.Body.Close()
-	contents, err := ioutil.ReadAll(resp.Body)
-	propertiesHandle.Encode([]byte(contents))
-	return err
+	return clients.Execute(mc, req, propertiesHandle)
 }
 
 // DatabasePropertiesHandle is a handle that places the results into
@@ -225,7 +203,7 @@ func (dh *DatabasePropertiesHandle) GetFormat() int {
 func (dh *DatabasePropertiesHandle) Encode(bytes []byte) {
 	dh.bytes = bytes
 	dh.databaseProperties = DatabaseProperties{}
-	if dh.GetFormat() == JSON {
+	if dh.GetFormat() == handle.JSON {
 		json.Unmarshal(bytes, &dh.databaseProperties)
 	} else {
 		xml.Unmarshal(bytes, &dh.databaseProperties)
@@ -236,7 +214,7 @@ func (dh *DatabasePropertiesHandle) Encode(bytes []byte) {
 func (dh *DatabasePropertiesHandle) Decode(databaseProperties interface{}) {
 	dh.databaseProperties = databaseProperties.(DatabaseProperties)
 	buf := new(bytes.Buffer)
-	if dh.GetFormat() == JSON {
+	if dh.GetFormat() == handle.JSON {
 		enc := json.NewEncoder(buf)
 		enc.Encode(dh.databaseProperties)
 	} else {

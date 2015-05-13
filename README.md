@@ -21,16 +21,25 @@ Sample Code
 =========
 
 ```go
-client, _ := goMarkLogicGo.NewClient("localhost", 8050, "admin", "admin", goMarkLogicGo.DigestAuth)
-query := goMarkLogicGo.Query{Format: goMarkLogicGo.XML}
-query.Queries = []interface{}{
-  goMarkLogicGo.TermQuery{
-    Terms: []string{queryStr},
-  },
+import (
+	"fmt"
+	marklogic "github.com/ryanjdew/go-marklogic-go"
+	handle "github.com/ryanjdew/go-marklogic-go/handle"
+	search "github.com/ryanjdew/go-marklogic-go/search"
+)
+func main() {
+  client, _ := marklogic.NewClient("localhost", 8050, "admin", "admin", marklogic.DigestAuth)
+  query := search.Query{Format: handle.XML}
+  query.Queries = []interface{}{
+    search.TermQuery{
+      Terms: []string{queryStr},
+    },
+  }
+  qh := search.QueryHandle{}
+  qh.Decode(query)
+  respHandle := search.ResponseHandle{}
+  err = client.StructuredSearch(&qh, 1, 10, &respHandle)
+  resp := respHandle.Get()
+  fmt.Print(respHandle.Serialized())
 }
-qh := goMarkLogicGo.QueryHandle{}
-qh.Decode(query)
-respHandle := goMarkLogicGo.ResponseHandle{}
-err = client.StructuredSearch(&qh, 1, 10, &respHandle)
-resp := respHandle.Get()
 ```

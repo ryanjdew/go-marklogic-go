@@ -1,10 +1,12 @@
-package goMarklogicGo
+package search
 
 import (
 	"reflect"
 	"testing"
 
 	"github.com/davecgh/go-spew/spew"
+	handle "github.com/ryanjdew/go-marklogic-go/handle"
+	test "github.com/ryanjdew/go-marklogic-go/test"
 )
 
 var exampleResponse = `
@@ -52,7 +54,7 @@ var exampleResponse = `
 `
 
 func TestSearch(t *testing.T) {
-	client, server := testClient(exampleResponse)
+	client, server := test.Client(exampleResponse)
 	defer server.Close()
 	want :=
 		Response{
@@ -126,8 +128,8 @@ func TestSearch(t *testing.T) {
 			},
 		}
 	// Using Basic Auth for test so initial call isn't actually made
-	respHandle := ResponseHandle{Format: XML}
-	err := client.Search("data", 1, 10, &respHandle)
+	respHandle := ResponseHandle{Format: handle.XML}
+	err := Search(client, "data", 1, 10, &respHandle)
 	resp := respHandle.Get()
 	if err != nil {
 		t.Errorf("Error = %v", err)
@@ -148,7 +150,7 @@ func TestSearch(t *testing.T) {
 		}
 	qh := QueryHandle{}
 	qh.Decode(query)
-	err = client.StructuredSearch(&qh, 1, 10, &respHandle)
+	err = StructuredSearch(client, &qh, 1, 10, &respHandle)
 	resp = respHandle.Get()
 	if err != nil {
 		t.Errorf("Error = %v", err)

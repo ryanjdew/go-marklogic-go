@@ -1,14 +1,14 @@
-package goMarklogicGo
+package search
 
 import (
-	//"encoding/json"
 	"bytes"
 	"encoding/json"
 	"encoding/xml"
-	"io"
-	"io/ioutil"
 	"net/http"
 	"strconv"
+
+	clients "github.com/ryanjdew/go-marklogic-go/clients"
+	handle "github.com/ryanjdew/go-marklogic-go/handle"
 )
 
 // ResponseHandle is a handle that places the results into
@@ -28,7 +28,7 @@ func (rh *ResponseHandle) GetFormat() int {
 func (rh *ResponseHandle) Encode(bytes []byte) {
 	rh.bytes = bytes
 	rh.response = Response{}
-	if rh.GetFormat() == JSON {
+	if rh.GetFormat() == handle.JSON {
 		json.Unmarshal(bytes, &rh.response)
 	} else {
 		xml.Unmarshal(bytes, &rh.response)
@@ -39,7 +39,7 @@ func (rh *ResponseHandle) Encode(bytes []byte) {
 func (rh *ResponseHandle) Decode(response interface{}) {
 	rh.response = response.(Response)
 	buf := new(bytes.Buffer)
-	if rh.GetFormat() == JSON {
+	if rh.GetFormat() == handle.JSON {
 		enc := json.NewEncoder(buf)
 		enc.Encode(&rh.response)
 	} else {
@@ -117,55 +117,27 @@ type FacetValue struct {
 }
 
 // Search with text value
-func (c *Client) Search(text string, start int64, pageLength int64, response Handle) error {
-	req, err := http.NewRequest("GET", c.Base()+"/search?q="+text+"&format=xml&start="+strconv.FormatInt(start, 10)+"&pageLength="+strconv.FormatInt(pageLength, 10), nil)
+func Search(c *clients.Client, text string, start int64, pageLength int64, response handle.Handle) error {
+	reqType := handle.FormatEnumToString(response.GetFormat())
+	req, err := http.NewRequest("GET", c.Base()+"/search?q="+text+"&format="+reqType+"&start="+strconv.FormatInt(start, 10)+"&pageLength="+strconv.FormatInt(pageLength, 10), nil)
 	if err != nil {
 		return err
 	}
-	applyAuth(c, req)
-	resp, err := c.HTTPClient().Do(req)
-	if err != nil {
-		return err
-	}
-	defer resp.Body.Close()
-	contents, err := ioutil.ReadAll(resp.Body)
-	response.Encode(contents)
-	return err
+	req.Header.Add("Content-Type", "application/"+reqType)
+	return clients.Execute(c, req, response)
 }
 
 // StructuredSearch searches with a structured query
-func (c *Client) StructuredSearch(query Handle, start int64, pageLength int64, response Handle) error {
-	var reqType string
-	if query.GetFormat() == JSON {
-		reqType = "json"
-	} else {
-		reqType = "xml"
-	}
+func StructuredSearch(c *clients.Client, query handle.Handle, start int64, pageLength int64, response handle.Handle) error {
+	reqType := handle.FormatEnumToString(query.GetFormat())
 	buf := new(bytes.Buffer)
 	buf.Write([]byte(query.Serialized()))
 	req, err := http.NewRequest("POST", c.Base()+"/search?format="+reqType+"&start="+strconv.FormatInt(start, 10)+"&pageLength="+strconv.FormatInt(pageLength, 10), buf)
 	if err != nil {
 		return err
 	}
-	applyAuth(c, req)
 	req.Header.Add("Content-Type", "application/"+reqType)
-	resp, err := c.HTTPClient().Do(req)
-	if err != nil {
-		return err
-	}
-	defer resp.Body.Close()
-	contents, err := ioutil.ReadAll(resp.Body)
-	response.Encode(contents)
-	return err
-}
-
-func readResults(reader io.Reader) (*Response, error) {
-	results := Response{}
-	decoder := xml.NewDecoder(reader)
-	if err := decoder.Decode(&results); err != nil {
-		return nil, err
-	}
-	return &results, nil
+	return clients.Execute(c, req, response)
 }
 
 //UnmarshalXML for Match struct in a special way to handle highlighting matching text

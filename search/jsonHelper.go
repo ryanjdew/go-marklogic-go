@@ -1,4 +1,4 @@
-package goMarklogicGo
+package search
 
 import (
 	"encoding/json"

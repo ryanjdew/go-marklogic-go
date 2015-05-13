@@ -1,11 +1,13 @@
-package goMarklogicGo
+package management
 
 import (
 	"bytes"
 	"encoding/json"
 	"encoding/xml"
-	"io/ioutil"
 	"net/http"
+
+	clients "github.com/ryanjdew/go-marklogic-go/clients"
+	handle "github.com/ryanjdew/go-marklogic-go/handle"
 )
 
 // ServerProperties represents the properties of a MarkLogic AppServer
@@ -79,48 +81,24 @@ type ServerProperties struct {
 }
 
 // SetServerProperties sets the database properties
-func (mc *ManagementClient) SetServerProperties(serverName string, propertiesHandle Handle) error {
-	var reqType string
-	if propertiesHandle.GetFormat() == JSON {
-		reqType = "json"
-	} else {
-		reqType = "xml"
-	}
+func SetServerProperties(mc *clients.ManagementClient, serverName string, propertiesHandle handle.Handle) error {
+	reqType := handle.FormatEnumToString(propertiesHandle.GetFormat())
 	buf := new(bytes.Buffer)
 	buf.Write([]byte(propertiesHandle.Serialized()))
 	req, _ := http.NewRequest("PUT", mc.Base()+"/servers/"+serverName+"/properties?format="+reqType, buf)
-	applyAuth(mc, req)
 	req.Header.Add("Content-Type", "application/"+reqType)
-	resp, err := mc.HTTPClient().Do(req)
-	defer resp.Body.Close()
-	if err != nil {
-		return err
-	}
-	return nil
+	return clients.Execute(mc, req, propertiesHandle)
 }
 
 // GetServerProperties sets the database properties
-func (mc *ManagementClient) GetServerProperties(serverName string, groupID string, propertiesHandle Handle) error {
-	var reqType string
-	if propertiesHandle.GetFormat() == JSON {
-		reqType = "json"
-	} else {
-		reqType = "xml"
-	}
+func GetServerProperties(mc *clients.ManagementClient, serverName string, groupID string, propertiesHandle handle.Handle) error {
+	reqType := handle.FormatEnumToString(propertiesHandle.GetFormat())
 	if groupID == "" {
 		groupID = "Default"
 	}
 	req, _ := http.NewRequest("GET", mc.Base()+"/servers/"+serverName+"/properties?format="+reqType+"&group-id="+groupID, nil)
-	applyAuth(mc, req)
 	req.Header.Add("Content-Type", "application/"+reqType)
-	resp, err := mc.HTTPClient().Do(req)
-	if err != nil {
-		return err
-	}
-	defer resp.Body.Close()
-	contents, err := ioutil.ReadAll(resp.Body)
-	propertiesHandle.Encode([]byte(contents))
-	return err
+	return clients.Execute(mc, req, propertiesHandle)
 }
 
 // ServerPropertiesHandle is a handle that places the results into
@@ -140,7 +118,7 @@ func (sh *ServerPropertiesHandle) GetFormat() int {
 func (sh *ServerPropertiesHandle) Encode(bytes []byte) {
 	sh.bytes = bytes
 	sh.serverProperties = ServerProperties{}
-	if sh.GetFormat() == JSON {
+	if sh.GetFormat() == handle.JSON {
 		json.Unmarshal(bytes, &sh.serverProperties)
 	} else {
 		xml.Unmarshal(bytes, &sh.serverProperties)
@@ -151,7 +129,7 @@ func (sh *ServerPropertiesHandle) Encode(bytes []byte) {
 func (sh *ServerPropertiesHandle) Decode(serverProperties interface{}) {
 	sh.serverProperties = serverProperties.(ServerProperties)
 	buf := new(bytes.Buffer)
-	if sh.GetFormat() == JSON {
+	if sh.GetFormat() == handle.JSON {
 		enc := json.NewEncoder(buf)
 		enc.Encode(sh.serverProperties)
 	} else {

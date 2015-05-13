@@ -1,10 +1,12 @@
-package goMarklogicGo
+package clients
 
 import (
+	"io/ioutil"
 	"net/http"
 	"net/url"
 	"strconv"
 
+	handle "github.com/ryanjdew/go-marklogic-go/handle"
 	digestAuth "github.com/ryanjdew/http-digest-auth-client"
 )
 
@@ -68,7 +70,9 @@ func (bc *BasicClient) Base() string {
 	return bc.base
 }
 
-func (bc *BasicClient) setBase(base string) {
+// SetBase is to only be used for testing purposes.
+// It is exported for subpackage test access.
+func (bc *BasicClient) SetBase(base string) {
 	bc.base = base
 }
 
@@ -100,4 +104,20 @@ func applyAuth(c RESTClient, req *http.Request) {
 	} else if c.AuthType() == DigestAuth {
 		c.DigestHeaders().ApplyAuth(req)
 	}
+}
+
+// Execute uses a client to run a request and places the results in the
+// response Handle
+func Execute(c RESTClient, req *http.Request, responseHandle handle.Handle) error {
+	applyAuth(c, req)
+	respType := handle.FormatEnumToString(responseHandle.GetFormat())
+	req.Header.Add("Accept", "application/"+respType)
+	resp, err := c.HTTPClient().Do(req)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+	contents, err := ioutil.ReadAll(resp.Body)
+	responseHandle.Encode(contents)
+	return err
 }

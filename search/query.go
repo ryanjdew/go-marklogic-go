@@ -1,14 +1,10 @@
-package goMarklogicGo
+package search
 
 import (
 	"bytes"
 	"encoding/xml"
-)
 
-// Format options
-const (
-	XML = iota
-	JSON
+	handle "github.com/ryanjdew/go-marklogic-go/handle"
 )
 
 var mapperFunction = func(str string) interface{} {
@@ -32,7 +28,7 @@ func (qh *QueryHandle) GetFormat() int {
 func (qh *QueryHandle) Encode(bytes []byte) {
 	qh.bytes = bytes
 	qh.query = Query{}
-	if qh.GetFormat() == JSON {
+	if qh.GetFormat() == handle.JSON {
 		unwrapped, _ := unwrapJSON(bytes, mapperFunction)
 		qh.query = unwrapped.(Query)
 	} else {
@@ -44,7 +40,7 @@ func (qh *QueryHandle) Encode(bytes []byte) {
 func (qh *QueryHandle) Decode(query interface{}) {
 	qh.query = query.(Query)
 	buf := new(bytes.Buffer)
-	if qh.GetFormat() == JSON {
+	if qh.GetFormat() == handle.JSON {
 		qh.bytes, _ = wrapJSON(qh.query)
 	} else {
 		enc := xml.NewEncoder(buf)
@@ -238,7 +234,7 @@ type ValueQuery struct {
 	Element       QueryElement   `xml:"http://marklogic.com/appservices/search element,omitempty" json:"element,omitempty"`
 	Attribute     QueryAttribute `xml:"http://marklogic.com/appservices/search attribute,omitempty" json:"attribute,omitempty"`
 	JSONKey       string         `xml:"http://marklogic.com/appservices/search json-key,omitempty" json:"json-key,omitempty"`
-	Field         Field          `xml:"http://marklogic.com/appservices/search field,omitempty" json:"field,omitempty"`
+	Field         FieldReference `xml:"http://marklogic.com/appservices/search field,omitempty" json:"field,omitempty"`
 	FragmentScope string         `xml:"http://marklogic.com/appservices/search fragment-scope,omitempty" json:"fragment-scope,omitempty"`
 	Text          []string       `xml:"http://marklogic.com/appservices/search text,omitempty" json:"text,omitempty"`
 	TermOptions   []string       `xml:"http://marklogic.com/appservices/search term-option,omitempty" json:"term-option,omitempty"`
@@ -251,7 +247,7 @@ type WordQuery struct {
 	Element       QueryElement   `xml:"http://marklogic.com/appservices/search element,omitempty" json:"element,omitempty"`
 	Attribute     QueryAttribute `xml:"http://marklogic.com/appservices/search attribute,omitempty" json:"attribute,omitempty"`
 	JSONKey       string         `xml:"http://marklogic.com/appservices/search json-key,omitempty" json:"json-key,omitempty"`
-	Field         Field          `xml:"http://marklogic.com/appservices/search field,omitempty" json:"field,omitempty"`
+	Field         FieldReference `xml:"http://marklogic.com/appservices/search field,omitempty" json:"field,omitempty"`
 	FragmentScope string         `xml:"http://marklogic.com/appservices/search fragment-scope,omitempty" json:"fragment-scope,omitempty"`
 	Text          []string       `xml:"http://marklogic.com/appservices/search text,omitempty" json:"text,omitempty"`
 	TermOptions   []string       `xml:"http://marklogic.com/appservices/search term-option,omitempty" json:"term-option,omitempty"`
@@ -378,14 +374,14 @@ type GeoPathQuery struct {
 
 // UnmarshalXML Query converts to XML
 func (q *Query) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
-	queries, err2 := DecodeXMLWithQueries(d, start)
+	queries, err2 := decodeXMLWithQueries(d, start)
 	q.Queries = queries
 	return err2
 }
 
 // UnmarshalXML OrQuery converts to XML
 func (q *OrQuery) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
-	queries, err2 := DecodeXMLWithQueries(d, start)
+	queries, err2 := decodeXMLWithQueries(d, start)
 	q.Queries = queries
 	return err2
 }
@@ -400,28 +396,28 @@ func (q *AndQuery) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
 		return err
 	}
 	q.Ordered = fake.Ordered
-	queries, err2 := DecodeXMLWithQueries(d, start)
+	queries, err2 := decodeXMLWithQueries(d, start)
 	q.Queries = queries
 	return err2
 }
 
 // UnmarshalXML PositiveQuery converts to XML
 func (q *PositiveQuery) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
-	queries, err2 := DecodeXMLWithQueries(d, start)
+	queries, err2 := decodeXMLWithQueries(d, start)
 	q.Queries = queries
 	return err2
 }
 
 // UnmarshalXML NegativeQuery converts to XML
 func (q *NegativeQuery) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
-	queries, err2 := DecodeXMLWithQueries(d, start)
+	queries, err2 := decodeXMLWithQueries(d, start)
 	q.Queries = queries
 	return err2
 }
 
 // UnmarshalXML NotQuery converts to XML
 func (q *NotQuery) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
-	queries, err2 := DecodeXMLWithQueries(d, start)
+	queries, err2 := decodeXMLWithQueries(d, start)
 	q.Queries = queries
 	return err2
 }
@@ -438,28 +434,28 @@ func (q *NearQuery) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
 	q.Ordered = fake.Ordered
 	q.Distance = fake.Distance
 	q.DistanceWeight = fake.DistanceWeight
-	queries, err2 := DecodeXMLWithQueries(d, start)
+	queries, err2 := decodeXMLWithQueries(d, start)
 	q.Queries = queries
 	return err2
 }
 
 // UnmarshalXML MatchingQuery converts to XML
 func (q *MatchingQuery) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
-	queries, err2 := DecodeXMLWithQueries(d, start)
+	queries, err2 := decodeXMLWithQueries(d, start)
 	q.Queries = queries
 	return err2
 }
 
 // UnmarshalXML BoostingQuery converts to XML
 func (q *BoostingQuery) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
-	queries, err2 := DecodeXMLWithQueries(d, start)
+	queries, err2 := decodeXMLWithQueries(d, start)
 	q.Queries = queries
 	return err2
 }
 
 // UnmarshalXML PropertiesQuery converts to XML
 func (q *PropertiesQuery) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
-	queries, err2 := DecodeXMLWithQueries(d, start)
+	queries, err2 := decodeXMLWithQueries(d, start)
 	q.Queries = queries
 	return err2
 }
@@ -476,27 +472,27 @@ func (q *ContainerQuery) UnmarshalXML(d *xml.Decoder, start xml.StartElement) er
 	q.Element = fake.Element
 	q.JSONKey = fake.JSONKey
 	q.FragmentScope = fake.FragmentScope
-	queries, err2 := DecodeXMLWithQueries(d, start)
+	queries, err2 := decodeXMLWithQueries(d, start)
 	q.Queries = queries
 	return err2
 }
 
 // UnmarshalXML DocumentFragmentQuery converts to XML
 func (q *DocumentFragmentQuery) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
-	queries, err2 := DecodeXMLWithQueries(d, start)
+	queries, err2 := decodeXMLWithQueries(d, start)
 	q.Queries = queries
 	return err2
 }
 
 // UnmarshalXML LocksQuery converts to XML
 func (q *LocksQuery) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
-	queries, err2 := DecodeXMLWithQueries(d, start)
+	queries, err2 := decodeXMLWithQueries(d, start)
 	q.Queries = queries
 	return err2
 }
 
-// DecodeXMLWithQueries decodes text into Query struct
-func DecodeXMLWithQueries(d *xml.Decoder, start xml.StartElement) ([]interface{}, error) {
+// decodeXMLWithQueries decodes text into Query struct
+func decodeXMLWithQueries(d *xml.Decoder, start xml.StartElement) ([]interface{}, error) {
 	var queries []interface{}
 	for {
 		if token, err := d.Token(); (err == nil) && (token != nil) {
@@ -567,7 +563,7 @@ func stringToQueryStruct(inputString string) interface{} {
 	case "range-query":
 		return &RangeQuery{}
 	case "field":
-		return &Field{}
+		return &FieldReference{}
 	case "value-query":
 		return &ValueQuery{}
 	case "word-query":

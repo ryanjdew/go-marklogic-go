@@ -1,21 +1,13 @@
-package goMarklogicGo
+package search
 
 import (
-	"fmt"
-	"io/ioutil"
-	"net/http"
-	"net/http/httptest"
 	"strings"
 	"testing"
+
+	handle "github.com/ryanjdew/go-marklogic-go/handle"
 )
 
 func TestXMLQueryDecode(t *testing.T) {
-	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		body, _ := ioutil.ReadAll(r.Body)
-		fmt.Fprintln(w, body)
-	})
-	server := httptest.NewServer(handler)
-	defer server.Close()
 	want := "<query xmlns=\"http://marklogic.com/appservices/search\"><and-query xmlns=\"http://marklogic.com/appservices/search\"><ordered xmlns=\"http://marklogic.com/appservices/search\">true</ordered><term-query xmlns=\"http://marklogic.com/appservices/search\"><text xmlns=\"http://marklogic.com/appservices/search\">data</text></term-query></and-query></query>"
 	query :=
 		Query{
@@ -37,12 +29,6 @@ func TestXMLQueryDecode(t *testing.T) {
 }
 
 func TestXMLQueryEncode(t *testing.T) {
-	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		body, _ := ioutil.ReadAll(r.Body)
-		fmt.Fprintln(w, body)
-	})
-	server := httptest.NewServer(handler)
-	defer server.Close()
 	want := "<query xmlns=\"http://marklogic.com/appservices/search\"><term-query xmlns=\"http://marklogic.com/appservices/search\"><text xmlns=\"http://marklogic.com/appservices/search\">data</text></term-query></query>"
 	qh := QueryHandle{}
 	qh.Encode([]byte(want))
@@ -53,12 +39,6 @@ func TestXMLQueryEncode(t *testing.T) {
 }
 
 func TestJSONQueryDecode(t *testing.T) {
-	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		body, _ := ioutil.ReadAll(r.Body)
-		fmt.Fprintln(w, body)
-	})
-	server := httptest.NewServer(handler)
-	defer server.Close()
 	want := `{"query":{"queries":[{"and-query":{"ordered":true,"queries":[{"term-query":{"text":["data"]}}]}}]}}`
 	query :=
 		Query{
@@ -71,7 +51,7 @@ func TestJSONQueryDecode(t *testing.T) {
 				},
 			},
 		}
-	qh := QueryHandle{Format: JSON}
+	qh := QueryHandle{Format: handle.JSON}
 	qh.Decode(query)
 	result := strings.TrimSpace(qh.Serialized())
 	if want != result {
@@ -80,14 +60,8 @@ func TestJSONQueryDecode(t *testing.T) {
 }
 
 func TestJSONQueryEncode(t *testing.T) {
-	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		body, _ := ioutil.ReadAll(r.Body)
-		fmt.Fprintln(w, body)
-	})
-	server := httptest.NewServer(handler)
-	defer server.Close()
 	want := `{"query":{"queries":[{"and-query":{"ordered":true,"queries":[{"term-query":{"text":["data"]}}]}}]}}`
-	qh := QueryHandle{Format: JSON}
+	qh := QueryHandle{Format: handle.JSON}
 	qh.Encode([]byte(want))
 	result := strings.TrimSpace((&qh).Serialized())
 	if want != result {

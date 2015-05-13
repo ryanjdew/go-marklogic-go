@@ -1,5 +1,22 @@
 package goMarklogicGo
 
+// Format options
+const (
+	XML = iota
+	JSON
+)
+
+// FormatEnumToString converts a format enum to a string value for the REST API
+func FormatEnumToString(formatEnum int) string {
+	var formatStr string
+	if formatEnum == JSON {
+		formatStr = "json"
+	} else {
+		formatStr = "xml"
+	}
+	return formatStr
+}
+
 // Handle interface
 type Handle interface {
 	GetFormat() int

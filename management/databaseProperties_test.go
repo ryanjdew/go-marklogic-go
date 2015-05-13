@@ -1,21 +1,13 @@
-package goMarklogicGo
+package management
 
 import (
 	"reflect"
 	"testing"
 
 	"github.com/davecgh/go-spew/spew"
+	handle "github.com/ryanjdew/go-marklogic-go/handle"
+	test "github.com/ryanjdew/go-marklogic-go/test"
 )
-
-func TestManagementConnection(t *testing.T) {
-	expectedBase := "http://localhost:8002/manage/v2"
-	client, err := NewManagementClient("localhost", "admin", "admin", BasicAuth)
-	if err != nil {
-		t.Errorf("Error = %v", err)
-	} else if client.Base() != expectedBase {
-		t.Errorf("Result = %v, want %v", client.Base(), expectedBase)
-	}
-}
 
 var dbPropertiesWantResp = `{
   "database-name": "samplestack",
@@ -152,93 +144,13 @@ var dbPropertiesWantResp = `{
 }`
 
 func TestDatabaseProperties(t *testing.T) {
-	client, server := testManagementClient(dbPropertiesWantResp)
+	client, server := test.ManagementClient(dbPropertiesWantResp)
 	defer server.Close()
-	propertiesHandle := DatabasePropertiesHandle{Format: JSON}
-	client.GetDatabaseProperties("Documents", &propertiesHandle)
-	want := normalizeSpace(dbPropertiesWantResp)
-	result := normalizeSpace(propertiesHandle.Serialized())
+	propertiesHandle := DatabasePropertiesHandle{Format: handle.JSON}
+	GetDatabaseProperties(client, "Documents", &propertiesHandle)
+	want := test.NormalizeSpace(dbPropertiesWantResp)
+	result := test.NormalizeSpace(propertiesHandle.Serialized())
 	if !reflect.DeepEqual(want, result) {
 		t.Errorf("DB Properties Results = %+v, Want = %+v", spew.Sdump(result), spew.Sdump(want))
-	}
-}
-
-var serverPropertiesWantResp = `{
-  "server-name": "samplestack",
-  "group-name": "Default",
-  "server-type": "http",
-  "enabled": true,
-  "root": "/",
-  "port": 8006,
-  "webDAV": false,
-  "execute": true,
-  "display-last-login": false,
-  "address": "0.0.0.0",
-  "backlog": 512,
-  "threads": 32,
-  "request-timeout": 30,
-  "keep-alive-timeout": 5,
-  "session-timeout": 3600,
-  "max-time-limit": 3600,
-  "default-time-limit": 600,
-  "max-inference-size": 500,
-  "default-inference-size": 100,
-  "static-expires": 3600,
-  "pre-commit-trigger-depth": 1000,
-  "pre-commit-trigger-limit": 10000,
-  "collation": "http://marklogic.com/collation/",
-  "authentication": "digest",
-  "internal-security": true,
-  "concurrent-request-limit": 0,
-  "compute-content-length": true,
-  "log-errors": false,
-  "debug-allow": true,
-  "profile-allow": true,
-  "default-xquery-version": "1.0-ml",
-  "multi-version-concurrency-control": "contemporaneous",
-  "distribute-timestamps": "fast",
-  "output-sgml-character-entities": "none",
-  "output-encoding": "UTF-8",
-  "output-method": "default",
-  "output-byte-order-mark": "default",
-  "output-cdata-section-namespace-uri": "",
-  "output-cdata-section-localname": "",
-  "output-doctype-public": "",
-  "output-doctype-system": "",
-  "output-escape-uri-attributes": "default",
-  "output-include-content-type": "default",
-  "output-indent": "default",
-  "output-indent-untyped": "default",
-  "output-media-type": "",
-  "output-normalization-form": "none",
-  "output-omit-xml-declaration": "default",
-  "output-standalone": "omit",
-  "output-undeclare-prefixes": "default",
-  "output-version": "",
-  "output-include-default-attributes": "default",
-  "default-error-format": "json",
-  "error-handler": "/MarkLogic/rest-api/error-handler.xqy",
-  "url-rewriter": "/MarkLogic/rest-api/rewriter.xml",
-  "rewrite-resolves-globally": true,
-  "ssl-certificate-template": 0,
-  "ssl-allow-sslv3": true,
-  "ssl-allow-tls": true,
-  "ssl-hostname": "",
-  "ssl-ciphers": "ALL:!LOW:@STRENGTH",
-  "ssl-require-client-certificate": true,
-  "content-database": "samplestack",
-  "modules-database": "samplestack-modules",
-  "default-user": "nobody"
-}`
-
-func TestServerProperties(t *testing.T) {
-	client, server := testManagementClient(serverPropertiesWantResp)
-	defer server.Close()
-	propertiesHandle := ServerPropertiesHandle{Format: JSON}
-	client.GetServerProperties("Documents", "Default", &propertiesHandle)
-	want := normalizeSpace(serverPropertiesWantResp)
-	result := normalizeSpace(propertiesHandle.Serialized())
-	if !reflect.DeepEqual(want, result) {
-		t.Errorf("Server Properties Results = %+v, Want = %+v", spew.Sdump(result), spew.Sdump(want))
 	}
 }

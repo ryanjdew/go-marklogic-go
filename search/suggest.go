@@ -1,12 +1,14 @@
-package goMarklogicGo
+package search
 
 import (
 	"bytes"
 	"encoding/json"
 	"encoding/xml"
-	"io/ioutil"
 	"net/http"
 	"strconv"
+
+	clients "github.com/ryanjdew/go-marklogic-go/clients"
+	handle "github.com/ryanjdew/go-marklogic-go/handle"
 )
 
 // SuggestionsResponse represents the search Suggestions from MarkLogic
@@ -32,7 +34,7 @@ func (srh *SuggestionsResponseHandle) GetFormat() int {
 func (srh *SuggestionsResponseHandle) Encode(bytes []byte) {
 	srh.bytes = bytes
 	srh.suggestionsResponse = &SuggestionsResponse{}
-	if srh.GetFormat() == JSON {
+	if srh.GetFormat() == handle.JSON {
 		json.Unmarshal(bytes, &srh.suggestionsResponse)
 	} else {
 		xml.Unmarshal(bytes, &srh.suggestionsResponse)
@@ -43,7 +45,7 @@ func (srh *SuggestionsResponseHandle) Encode(bytes []byte) {
 func (srh *SuggestionsResponseHandle) Decode(suggestionsResponse interface{}) {
 	srh.suggestionsResponse = suggestionsResponse.(*SuggestionsResponse)
 	buf := new(bytes.Buffer)
-	if srh.GetFormat() == JSON {
+	if srh.GetFormat() == handle.JSON {
 		enc := json.NewEncoder(buf)
 		enc.Encode(srh.suggestionsResponse)
 	} else {
@@ -61,7 +63,7 @@ func (srh *SuggestionsResponseHandle) Get() *SuggestionsResponse {
 // Serialized returns string of XML or JSON
 func (srh *SuggestionsResponseHandle) Serialized() string {
 	buf := new(bytes.Buffer)
-	if srh.GetFormat() == JSON {
+	if srh.GetFormat() == handle.JSON {
 		enc := json.NewEncoder(buf)
 		enc.Encode(srh.suggestionsResponse)
 	} else {
@@ -72,14 +74,9 @@ func (srh *SuggestionsResponseHandle) Serialized() string {
 	return string(srh.bytes)
 }
 
-// StructuredSuggestions searches with a structured query
-func (c *Client) StructuredSuggestions(query Handle, partialQ string, limit int64, options string, response Handle) error {
-	var reqType string
-	if response.GetFormat() == JSON {
-		reqType = "json"
-	} else {
-		reqType = "xml"
-	}
+// StructuredSuggestions suggests query text based off of a structured query
+func StructuredSuggestions(c *clients.Client, query handle.Handle, partialQ string, limit int64, options string, response handle.Handle) error {
+	reqType := handle.FormatEnumToString(query.GetFormat())
 	buf := new(bytes.Buffer)
 	buf.Write([]byte(query.Serialized()))
 	url := c.Base() + "/suggest?format=" + reqType + "&limit=" + strconv.FormatInt(limit, 10)
@@ -90,14 +87,6 @@ func (c *Client) StructuredSuggestions(query Handle, partialQ string, limit int6
 	if err != nil {
 		return err
 	}
-	applyAuth(c, req)
 	req.Header.Add("Content-Type", "application/"+reqType)
-	resp, err := c.HTTPClient().Do(req)
-	if err != nil {
-		return err
-	}
-	defer resp.Body.Close()
-	contents, err := ioutil.ReadAll(resp.Body)
-	response.Encode(contents)
-	return err
+	return clients.Execute(c, req, response)
 }

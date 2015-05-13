@@ -1,4 +1,4 @@
-package goMarklogicGo
+package clients
 
 import (
 	"testing"

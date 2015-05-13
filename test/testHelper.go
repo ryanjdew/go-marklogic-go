@@ -1,4 +1,4 @@
-package goMarklogicGo
+package test
 
 import (
 	"fmt"
@@ -6,29 +6,34 @@ import (
 	"net/http/httptest"
 	"regexp"
 	"strings"
+
+	clients "github.com/ryanjdew/go-marklogic-go/clients"
 )
 
-func testClient(resp string) (*Client, *httptest.Server) {
+// Client is exported for testing subpackages
+func Client(resp string) (*clients.Client, *httptest.Server) {
 	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprintln(w, resp)
 	})
 	server := httptest.NewServer(handler)
-	client, _ := NewClient("localhost", 8000, "admin", "admin", BasicAuth)
-	client.setBase(server.URL)
+	client, _ := clients.NewClient("localhost", 8000, "admin", "admin", clients.BasicAuth)
+	client.SetBase(server.URL)
 	return client, server
 }
 
-func testManagementClient(resp string) (*ManagementClient, *httptest.Server) {
+// ManagementClient is exported for testing subpackages
+func ManagementClient(resp string) (*clients.ManagementClient, *httptest.Server) {
 	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprintln(w, resp)
 	})
 	server := httptest.NewServer(handler)
-	client, _ := NewManagementClient("localhost", "admin", "admin", BasicAuth)
-	client.setBase(server.URL)
+	client, _ := clients.NewManagementClient("localhost", "admin", "admin", clients.BasicAuth)
+	client.SetBase(server.URL)
 	return client, server
 }
 
-func normalizeSpace(str string) string {
+//NormalizeSpace is a function that takes whitespace out of the equation for comparing strings
+func NormalizeSpace(str string) string {
 	reSpace := regexp.MustCompile("\\s+")
 	normalizedSpace := string(reSpace.ReplaceAllString(str, ` `))
 	reBrackets := regexp.MustCompile("(\\}|\\{|\"|,|:|\\])\\s+(,|\\[|\\}|\")")
