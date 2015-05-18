@@ -2,8 +2,10 @@ package goMarklogicGo
 
 import (
 	clients "github.com/ryanjdew/go-marklogic-go/clients"
-	handle "github.com/ryanjdew/go-marklogic-go/handle"
+	"github.com/ryanjdew/go-marklogic-go/config"
+	"github.com/ryanjdew/go-marklogic-go/documents"
 	search "github.com/ryanjdew/go-marklogic-go/search"
+	"github.com/ryanjdew/go-marklogic-go/semantics"
 )
 
 // Authentication options
@@ -22,20 +24,26 @@ func NewClient(host string, port int64, username string, password string, authTy
 	return convertToClient(client), err
 }
 
-// Search with text value
-func (c *Client) Search(text string, start int64, pageLength int64, response handle.Handle) error {
-	return search.Search(convertToSubClient(c), text, start, pageLength, response)
+// Config service
+func (c *Client) Config() *config.Service {
+	return config.NewService(convertToSubClient(c))
 }
 
-// StructuredSearch searches with a structured query
-func (c *Client) StructuredSearch(query handle.Handle, start int64, pageLength int64, response handle.Handle) error {
-	return search.StructuredSearch(convertToSubClient(c), query, start, pageLength, response)
+// Documents service
+func (c *Client) Documents() *documents.Service {
+	return documents.NewService(convertToSubClient(c))
 }
 
-// StructuredSuggestions suggests query text based off of a structured query
-func (c *Client) StructuredSuggestions(query handle.Handle, partialQ string, limit int64, options string, response handle.Handle) error {
-	return search.StructuredSuggestions(convertToSubClient(c), query, partialQ, limit, options, response)
+// Search service
+func (c *Client) Search() *search.Service {
+	return search.NewService(convertToSubClient(c))
 }
+
+// Semantics service
+func (c *Client) Semantics() *semantics.Service {
+	return semantics.NewService(convertToSubClient(c))
+}
+
 func convertToSubClient(c *Client) *clients.Client {
 	converted := clients.Client(*c)
 	return &converted

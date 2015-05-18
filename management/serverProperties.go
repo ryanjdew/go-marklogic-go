@@ -4,10 +4,10 @@ import (
 	"bytes"
 	"encoding/json"
 	"encoding/xml"
-	"net/http"
 
 	clients "github.com/ryanjdew/go-marklogic-go/clients"
 	handle "github.com/ryanjdew/go-marklogic-go/handle"
+	"github.com/ryanjdew/go-marklogic-go/util"
 )
 
 // ServerProperties represents the properties of a MarkLogic AppServer
@@ -81,24 +81,27 @@ type ServerProperties struct {
 }
 
 // SetServerProperties sets the database properties
-func SetServerProperties(mc *clients.ManagementClient, serverName string, propertiesHandle handle.Handle) error {
-	reqType := handle.FormatEnumToString(propertiesHandle.GetFormat())
-	buf := new(bytes.Buffer)
-	buf.Write([]byte(propertiesHandle.Serialized()))
-	req, _ := http.NewRequest("PUT", mc.Base()+"/servers/"+serverName+"/properties?format="+reqType, buf)
-	req.Header.Add("Content-Type", "application/"+reqType)
-	return clients.Execute(mc, req, propertiesHandle)
-}
-
-// GetServerProperties sets the database properties
-func GetServerProperties(mc *clients.ManagementClient, serverName string, groupID string, propertiesHandle handle.Handle) error {
-	reqType := handle.FormatEnumToString(propertiesHandle.GetFormat())
+func SetServerProperties(mc *clients.ManagementClient, serverName string, groupID string, properties handle.Handle, response handle.Handle) error {
 	if groupID == "" {
 		groupID = "Default"
 	}
-	req, _ := http.NewRequest("GET", mc.Base()+"/servers/"+serverName+"/properties?format="+reqType+"&group-id="+groupID, nil)
-	req.Header.Add("Content-Type", "application/"+reqType)
-	return clients.Execute(mc, req, propertiesHandle)
+	req, err := util.BuildRequestFromHandle(mc, "GET", "/servers/"+serverName+"/properties?group-id="+groupID, properties)
+	if err != nil {
+		return err
+	}
+	return clients.Execute(mc, req, response)
+}
+
+// GetServerProperties sets the database properties
+func GetServerProperties(mc *clients.ManagementClient, serverName string, groupID string, properties handle.Handle) error {
+	if groupID == "" {
+		groupID = "Default"
+	}
+	req, err := util.BuildRequestFromHandle(mc, "GET", "/servers/"+serverName+"/propertie?group-id="+groupID, nil)
+	if err != nil {
+		return err
+	}
+	return clients.Execute(mc, req, properties)
 }
 
 // ServerPropertiesHandle is a handle that places the results into

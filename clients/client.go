@@ -110,8 +110,8 @@ func applyAuth(c RESTClient, req *http.Request) {
 // response Handle
 func Execute(c RESTClient, req *http.Request, responseHandle handle.Handle) error {
 	applyAuth(c, req)
-	respType := handle.FormatEnumToString(responseHandle.GetFormat())
-	req.Header.Add("Accept", "application/"+respType)
+	respType := handle.FormatEnumToMimeType(responseHandle.GetFormat())
+	req.Header.Add("Accept", respType)
 	resp, err := c.HTTPClient().Do(req)
 	if err != nil {
 		return err

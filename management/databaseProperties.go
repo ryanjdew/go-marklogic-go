@@ -4,10 +4,10 @@ import (
 	"bytes"
 	"encoding/json"
 	"encoding/xml"
-	"net/http"
 
 	clients "github.com/ryanjdew/go-marklogic-go/clients"
 	handle "github.com/ryanjdew/go-marklogic-go/handle"
+	"github.com/ryanjdew/go-marklogic-go/util"
 )
 
 // DatabaseProperties represents the properties of a MarkLogic Database
@@ -170,19 +170,19 @@ type RangeFieldIndex struct {
 
 // SetDatabaseProperties sets the database properties
 func SetDatabaseProperties(mc *clients.ManagementClient, databaseName string, propertiesHandle handle.Handle) error {
-	reqType := handle.FormatEnumToString(propertiesHandle.GetFormat())
-	buf := new(bytes.Buffer)
-	buf.Write([]byte(propertiesHandle.Serialized()))
-	req, _ := http.NewRequest("PUT", mc.Base()+"/databases/"+databaseName+"/properties?format="+reqType, buf)
-	req.Header.Add("Content-Type", "application/"+reqType)
+	req, err := util.BuildRequestFromHandle(mc, "PUT", "/databases/"+databaseName+"/properties", propertiesHandle)
+	if err != nil {
+		return err
+	}
 	return clients.Execute(mc, req, propertiesHandle)
 }
 
 // GetDatabaseProperties sets the database properties
 func GetDatabaseProperties(mc *clients.ManagementClient, databaseName string, propertiesHandle handle.Handle) error {
-	reqType := handle.FormatEnumToString(propertiesHandle.GetFormat())
-	req, _ := http.NewRequest("GET", mc.Base()+"/databases/"+databaseName+"/properties?format="+reqType, nil)
-	req.Header.Add("Content-Type", "application/"+reqType)
+	req, err := util.BuildRequestFromHandle(mc, "GET", "/databases/"+databaseName+"/properties", nil)
+	if err != nil {
+		return err
+	}
 	return clients.Execute(mc, req, propertiesHandle)
 }
 

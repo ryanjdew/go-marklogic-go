@@ -4,11 +4,11 @@ import (
 	"bytes"
 	"encoding/json"
 	"encoding/xml"
-	"net/http"
 	"strconv"
 
 	clients "github.com/ryanjdew/go-marklogic-go/clients"
 	handle "github.com/ryanjdew/go-marklogic-go/handle"
+	"github.com/ryanjdew/go-marklogic-go/util"
 )
 
 // SuggestionsResponse represents the search Suggestions from MarkLogic
@@ -76,17 +76,13 @@ func (srh *SuggestionsResponseHandle) Serialized() string {
 
 // StructuredSuggestions suggests query text based off of a structured query
 func StructuredSuggestions(c *clients.Client, query handle.Handle, partialQ string, limit int64, options string, response handle.Handle) error {
-	reqType := handle.FormatEnumToString(query.GetFormat())
-	buf := new(bytes.Buffer)
-	buf.Write([]byte(query.Serialized()))
-	url := c.Base() + "/suggest?format=" + reqType + "&limit=" + strconv.FormatInt(limit, 10)
+	uri := "/suggest?limit=" + strconv.FormatInt(limit, 10)
 	if options != "" {
-		url = url + "&options=" + options
+		uri = uri + "&options=" + options
 	}
-	req, err := http.NewRequest("POST", url, buf)
+	req, err := util.BuildRequestFromHandle(c, "POST", uri, query)
 	if err != nil {
 		return err
 	}
-	req.Header.Add("Content-Type", "application/"+reqType)
 	return clients.Execute(c, req, response)
 }

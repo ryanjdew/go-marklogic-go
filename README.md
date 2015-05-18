@@ -28,7 +28,7 @@ import (
 	search "github.com/ryanjdew/go-marklogic-go/search"
 )
 func main() {
-  client, _ := marklogic.NewClient("localhost", 8050, "admin", "admin", marklogic.DigestAuth)
+  db, _ := marklogic.NewClient("localhost", 8050, "admin", "admin", marklogic.DigestAuth)
   query := search.Query{Format: handle.XML}
   query.Queries = []interface{}{
     search.TermQuery{
@@ -38,7 +38,7 @@ func main() {
   qh := search.QueryHandle{}
   qh.Decode(query)
   respHandle := search.ResponseHandle{}
-  err = client.StructuredSearch(&qh, 1, 10, &respHandle)
+  err = db.Search().StructuredSearch(&qh, 1, 10, &respHandle)
   resp := respHandle.Get()
   fmt.Print(respHandle.Serialized())
 }

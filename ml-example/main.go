@@ -52,12 +52,12 @@ func main() {
 	fmt.Print("decoded query:\n")
 	fmt.Print(spew.Sdump(qh.Serialized()))
 	respHandle := search.ResponseHandle{}
-	err = client.StructuredSearch(&qh, 1, 10, &respHandle)
+	err = client.Search().StructuredSearch(&qh, 1, 10, &respHandle)
 	resp := respHandle.Get()
 	fmt.Print("decoded response:\n")
 	fmt.Print(spew.Sdump(resp))
 	sugRespHandle := search.SuggestionsResponseHandle{}
-	err = client.StructuredSuggestions(&qh, queryStr, 10, "", &sugRespHandle)
+	err = client.Search().StructuredSuggestions(&qh, queryStr, 10, "", &sugRespHandle)
 	sugResp := sugRespHandle.Serialized()
 	fmt.Print("decoded response:\n")
 	fmt.Print(spew.Sdump(sugResp))

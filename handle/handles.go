@@ -4,15 +4,18 @@ package goMarklogicGo
 const (
 	XML = iota
 	JSON
+	MIXED
 )
 
-// FormatEnumToString converts a format enum to a string value for the REST API
-func FormatEnumToString(formatEnum int) string {
+// FormatEnumToMimeType converts a format enum to a mime/type value for the REST API
+func FormatEnumToMimeType(formatEnum int) string {
 	var formatStr string
 	if formatEnum == JSON {
-		formatStr = "json"
+		formatStr = "application/json"
+	} else if formatEnum == MIXED {
+		formatStr = "multipart/mixed"
 	} else {
-		formatStr = "xml"
+		formatStr = "application/xml"
 	}
 	return formatStr
 }

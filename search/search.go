@@ -4,11 +4,11 @@ import (
 	"bytes"
 	"encoding/json"
 	"encoding/xml"
-	"net/http"
 	"strconv"
 
 	clients "github.com/ryanjdew/go-marklogic-go/clients"
 	handle "github.com/ryanjdew/go-marklogic-go/handle"
+	"github.com/ryanjdew/go-marklogic-go/util"
 )
 
 // ResponseHandle is a handle that places the results into
@@ -118,25 +118,19 @@ type FacetValue struct {
 
 // Search with text value
 func Search(c *clients.Client, text string, start int64, pageLength int64, response handle.Handle) error {
-	reqType := handle.FormatEnumToString(response.GetFormat())
-	req, err := http.NewRequest("GET", c.Base()+"/search?q="+text+"&format="+reqType+"&start="+strconv.FormatInt(start, 10)+"&pageLength="+strconv.FormatInt(pageLength, 10), nil)
+	req, err := util.BuildRequestFromHandle(c, "GET", "/search?q="+text+"&start="+strconv.FormatInt(start, 10)+"&pageLength="+strconv.FormatInt(pageLength, 10), nil)
 	if err != nil {
 		return err
 	}
-	req.Header.Add("Content-Type", "application/"+reqType)
 	return clients.Execute(c, req, response)
 }
 
 // StructuredSearch searches with a structured query
 func StructuredSearch(c *clients.Client, query handle.Handle, start int64, pageLength int64, response handle.Handle) error {
-	reqType := handle.FormatEnumToString(query.GetFormat())
-	buf := new(bytes.Buffer)
-	buf.Write([]byte(query.Serialized()))
-	req, err := http.NewRequest("POST", c.Base()+"/search?format="+reqType+"&start="+strconv.FormatInt(start, 10)+"&pageLength="+strconv.FormatInt(pageLength, 10), buf)
+	req, err := util.BuildRequestFromHandle(c, "POST", "/search?start="+strconv.FormatInt(start, 10)+"&pageLength="+strconv.FormatInt(pageLength, 10), query)
 	if err != nil {
 		return err
 	}
-	req.Header.Add("Content-Type", "application/"+reqType)
 	return clients.Execute(c, req, response)
 }
 
