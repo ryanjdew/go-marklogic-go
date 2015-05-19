@@ -1,6 +1,7 @@
 package documents
 
 import (
+	"io"
 	"net/http"
 
 	"github.com/ryanjdew/go-marklogic-go/clients"
@@ -8,8 +9,25 @@ import (
 	util "github.com/ryanjdew/go-marklogic-go/util"
 )
 
+// DocumentDescription describes a document to write
+type DocumentDescription struct {
+	URI         string
+	Content     io.ReadWriter
+	Collections []string
+	Permissions map[string]string
+	Properties  map[string]string
+}
+
+func toURIs(docs []DocumentDescription) []string {
+	uris := []string{}
+	for _, doc := range docs {
+		uris = append(uris, doc.URI)
+	}
+	return uris
+}
+
 func read(c *clients.Client, uris []string, categories []string, transform *util.Transform, response handle.Handle) error {
-	params := buildParameters(uris, categories, nil, transform)
+	params := buildParameters(uris, categories, nil, nil, nil, transform)
 	req, err := http.NewRequest("GET", c.Base()+"/documents"+params, nil)
 	if err != nil {
 		return err
@@ -17,20 +35,28 @@ func read(c *clients.Client, uris []string, categories []string, transform *util
 	return clients.Execute(c, req, response)
 }
 
-func write(c *clients.Client, uri string, document handle.Handle, collections []string, transform *util.Transform, response handle.Handle) error {
-	params := buildParameters([]string{uri}, nil, collections, transform)
-	req, err := util.BuildRequestFromHandle(c, "PUT", "/documents"+params, document)
-	if err != nil {
-		return err
+func write(c *clients.Client, documents []DocumentDescription, transform *util.Transform, response handle.Handle) error {
+	for _, doc := range documents {
+		params := buildParameters([]string{doc.URI}, nil, doc.Collections, doc.Permissions, doc.Properties, transform)
+		req, err := http.NewRequest("PUT", c.Base()+"/documents"+params, doc.Content)
+		if err != nil {
+			return err
+		}
+		err = clients.Execute(c, req, response)
+		if err != nil {
+			return err
+		}
 	}
-	return clients.Execute(c, req, response)
+	return nil
 }
 
-func buildParameters(uris []string, categories []string, collections []string, transform *util.Transform) string {
+func buildParameters(uris []string, categories []string, collections []string, permissions map[string]string, properties map[string]string, transform *util.Transform) string {
 	params := "?"
 	params = util.RepeatingParameters(params, "uri", uris)
 	params = util.RepeatingParameters(params, "category", categories)
 	params = util.RepeatingParameters(params, "collection", collections)
+	params = util.MappedParameters(params, "perm", permissions)
+	params = util.MappedParameters(params, "prop", properties)
 	if transform != nil {
 		params = params + transform.ToParameters()
 	}

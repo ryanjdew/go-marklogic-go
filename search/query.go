@@ -14,8 +14,8 @@ var mapperFunction = func(str string) interface{} {
 // QueryHandle is a handle that places the results into
 // a Query struct
 type QueryHandle struct {
+	*bytes.Buffer
 	Format int
-	bytes  []byte
 	query  Query
 }
 
@@ -24,9 +24,17 @@ func (qh *QueryHandle) GetFormat() int {
 	return qh.Format
 }
 
+func (qh *QueryHandle) resetBuffer() {
+	if qh.Buffer == nil {
+		qh.Buffer = new(bytes.Buffer)
+	}
+	qh.Reset()
+}
+
 // Encode returns Query struct that represents XML or JSON
 func (qh *QueryHandle) Encode(bytes []byte) {
-	qh.bytes = bytes
+	qh.resetBuffer()
+	qh.Write(bytes)
 	qh.query = Query{}
 	if qh.GetFormat() == handle.JSON {
 		unwrapped, _ := unwrapJSON(bytes, mapperFunction)
@@ -38,14 +46,15 @@ func (qh *QueryHandle) Encode(bytes []byte) {
 
 // Decode returns []byte of XML or JSON that represents the Query struct
 func (qh *QueryHandle) Decode(query interface{}) {
+	var readBytes []byte
 	qh.query = query.(Query)
-	buf := new(bytes.Buffer)
+	qh.resetBuffer()
 	if qh.GetFormat() == handle.JSON {
-		qh.bytes, _ = wrapJSON(qh.query)
+		readBytes, _ = wrapJSON(qh.query)
+		qh.Write(readBytes)
 	} else {
-		enc := xml.NewEncoder(buf)
+		enc := xml.NewEncoder(qh)
 		enc.Encode(qh.query)
-		qh.bytes = buf.Bytes()
 	}
 }
 
@@ -57,7 +66,7 @@ func (qh *QueryHandle) Get() *Query {
 // Serialized returns string of XML or JSON
 func (qh *QueryHandle) Serialized() string {
 	qh.Decode(qh.query)
-	return string(qh.bytes)
+	return qh.String()
 }
 
 // Query represents http://docs.marklogic.com/guide/search-dev/structured-query#id_85307

@@ -1,5 +1,10 @@
 package goMarklogicGo
 
+import (
+	"bytes"
+	"io"
+)
+
 // Format options
 const (
 	XML = iota
@@ -22,6 +27,7 @@ func FormatEnumToMimeType(formatEnum int) string {
 
 // Handle interface
 type Handle interface {
+	io.ReadWriter
 	GetFormat() int
 	Encode([]byte)
 	Decode(interface{})
@@ -30,8 +36,8 @@ type Handle interface {
 
 // RawHandle returns the raw string results of JSON or XML
 type RawHandle struct {
+	*bytes.Buffer
 	Format int
-	bytes  []byte
 }
 
 // GetFormat returns int that represents XML or JSON
@@ -39,9 +45,17 @@ func (r *RawHandle) GetFormat() int {
 	return r.Format
 }
 
+func (r *RawHandle) resetBuffer() {
+	if r.Buffer == nil {
+		r.Buffer = new(bytes.Buffer)
+	}
+	r.Reset()
+}
+
 // Encode returns the bytes that represent XML or JSON
 func (r *RawHandle) Encode(bytes []byte) {
-	r.bytes = bytes
+	r.resetBuffer()
+	r.Write(bytes)
 }
 
 // Decode returns the bytes that represent XML or JSON
@@ -51,7 +65,7 @@ func (r *RawHandle) Decode(bytes interface{}) {
 
 // Get returns string of XML or JSON
 func (r *RawHandle) Get() string {
-	return string(r.bytes)
+	return r.String()
 }
 
 // Serialized returns string of XML or JSON
@@ -61,8 +75,8 @@ func (r *RawHandle) Serialized() string {
 
 // MapHandle returns the raw string results of JSON or XML
 type MapHandle struct {
+	*bytes.Buffer
 	Format  int
-	bytes   []byte
 	mapItem *map[string]interface{}
 }
 
@@ -71,9 +85,17 @@ func (m *MapHandle) GetFormat() int {
 	return m.Format
 }
 
+func (m *MapHandle) resetBuffer() {
+	if m.Buffer == nil {
+		m.Buffer = new(bytes.Buffer)
+	}
+	m.Reset()
+}
+
 // Encode returns the bytes that represent XML or JSON
 func (m *MapHandle) Encode(bytes []byte) {
-	m.bytes = bytes
+	m.resetBuffer()
+	m.Write(bytes)
 }
 
 // Decode returns the bytes that represent XML or JSON
@@ -89,5 +111,5 @@ func (m *MapHandle) Get() *map[string]interface{} {
 
 // Serialized returns string of XML or JSON
 func (m *MapHandle) Serialized() string {
-	return string(m.bytes)
+	return m.String()
 }

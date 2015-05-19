@@ -107,8 +107,8 @@ func GetServerProperties(mc *clients.ManagementClient, serverName string, groupI
 // ServerPropertiesHandle is a handle that places the results into
 // a ServerProperties struct
 type ServerPropertiesHandle struct {
+	*bytes.Buffer
 	Format           int
-	bytes            []byte
 	serverProperties ServerProperties
 }
 
@@ -117,9 +117,17 @@ func (sh *ServerPropertiesHandle) GetFormat() int {
 	return sh.Format
 }
 
+func (sh *ServerPropertiesHandle) resetBuffer() {
+	if sh.Buffer == nil {
+		sh.Buffer = new(bytes.Buffer)
+	}
+	sh.Reset()
+}
+
 // Encode returns Query struct that represents XML or JSON
 func (sh *ServerPropertiesHandle) Encode(bytes []byte) {
-	sh.bytes = bytes
+	sh.resetBuffer()
+	sh.Write(bytes)
 	sh.serverProperties = ServerProperties{}
 	if sh.GetFormat() == handle.JSON {
 		json.Unmarshal(bytes, &sh.serverProperties)
@@ -131,15 +139,14 @@ func (sh *ServerPropertiesHandle) Encode(bytes []byte) {
 // Decode returns []byte of XML or JSON that represents the Query struct
 func (sh *ServerPropertiesHandle) Decode(serverProperties interface{}) {
 	sh.serverProperties = serverProperties.(ServerProperties)
-	buf := new(bytes.Buffer)
+	sh.resetBuffer()
 	if sh.GetFormat() == handle.JSON {
-		enc := json.NewEncoder(buf)
+		enc := json.NewEncoder(sh)
 		enc.Encode(sh.serverProperties)
 	} else {
-		enc := xml.NewEncoder(buf)
+		enc := xml.NewEncoder(sh)
 		enc.Encode(sh.serverProperties)
 	}
-	sh.bytes = buf.Bytes()
 }
 
 // Get returns string of XML or JSON
@@ -150,5 +157,5 @@ func (sh *ServerPropertiesHandle) Get() ServerProperties {
 // Serialized returns string of XML or JSON
 func (sh *ServerPropertiesHandle) Serialized() string {
 	sh.Decode(sh.serverProperties)
-	return string(sh.bytes)
+	return sh.String()
 }

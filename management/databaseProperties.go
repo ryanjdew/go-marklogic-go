@@ -189,8 +189,8 @@ func GetDatabaseProperties(mc *clients.ManagementClient, databaseName string, pr
 // DatabasePropertiesHandle is a handle that places the results into
 // a DatabaseProperties struct
 type DatabasePropertiesHandle struct {
+	*bytes.Buffer
 	Format             int
-	bytes              []byte
 	databaseProperties DatabaseProperties
 }
 
@@ -199,9 +199,17 @@ func (dh *DatabasePropertiesHandle) GetFormat() int {
 	return dh.Format
 }
 
+func (dh *DatabasePropertiesHandle) resetBuffer() {
+	if dh.Buffer == nil {
+		dh.Buffer = new(bytes.Buffer)
+	}
+	dh.Reset()
+}
+
 // Encode returns Query struct that represents XML or JSON
 func (dh *DatabasePropertiesHandle) Encode(bytes []byte) {
-	dh.bytes = bytes
+	dh.resetBuffer()
+	dh.Write(bytes)
 	dh.databaseProperties = DatabaseProperties{}
 	if dh.GetFormat() == handle.JSON {
 		json.Unmarshal(bytes, &dh.databaseProperties)
@@ -213,15 +221,14 @@ func (dh *DatabasePropertiesHandle) Encode(bytes []byte) {
 // Decode returns []byte of XML or JSON that represents the Query struct
 func (dh *DatabasePropertiesHandle) Decode(databaseProperties interface{}) {
 	dh.databaseProperties = databaseProperties.(DatabaseProperties)
-	buf := new(bytes.Buffer)
+	dh.resetBuffer()
 	if dh.GetFormat() == handle.JSON {
-		enc := json.NewEncoder(buf)
+		enc := json.NewEncoder(dh)
 		enc.Encode(dh.databaseProperties)
 	} else {
-		enc := xml.NewEncoder(buf)
+		enc := xml.NewEncoder(dh)
 		enc.Encode(dh.databaseProperties)
 	}
-	dh.bytes = buf.Bytes()
 }
 
 // Get returns string of XML or JSON
@@ -232,5 +239,5 @@ func (dh *DatabasePropertiesHandle) Get() DatabaseProperties {
 // Serialized returns string of XML or JSON
 func (dh *DatabasePropertiesHandle) Serialized() string {
 	dh.Decode(dh.databaseProperties)
-	return string(dh.bytes)
+	return dh.String()
 }

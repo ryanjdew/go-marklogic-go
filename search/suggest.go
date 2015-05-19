@@ -20,8 +20,8 @@ type SuggestionsResponse struct {
 // SuggestionsResponseHandle is a handle that places the results into
 // a Query struct
 type SuggestionsResponseHandle struct {
+	*bytes.Buffer
 	Format              int
-	bytes               []byte
 	suggestionsResponse *SuggestionsResponse
 }
 
@@ -30,9 +30,17 @@ func (srh *SuggestionsResponseHandle) GetFormat() int {
 	return srh.Format
 }
 
+func (srh *SuggestionsResponseHandle) resetBuffer() {
+	if srh.Buffer == nil {
+		srh.Buffer = new(bytes.Buffer)
+	}
+	srh.Reset()
+}
+
 // Encode returns Query struct that represents XML or JSON
 func (srh *SuggestionsResponseHandle) Encode(bytes []byte) {
-	srh.bytes = bytes
+	srh.resetBuffer()
+	srh.Write(bytes)
 	srh.suggestionsResponse = &SuggestionsResponse{}
 	if srh.GetFormat() == handle.JSON {
 		json.Unmarshal(bytes, &srh.suggestionsResponse)
@@ -44,15 +52,14 @@ func (srh *SuggestionsResponseHandle) Encode(bytes []byte) {
 // Decode returns []byte of XML or JSON that represents the Query struct
 func (srh *SuggestionsResponseHandle) Decode(suggestionsResponse interface{}) {
 	srh.suggestionsResponse = suggestionsResponse.(*SuggestionsResponse)
-	buf := new(bytes.Buffer)
+	srh.resetBuffer()
 	if srh.GetFormat() == handle.JSON {
-		enc := json.NewEncoder(buf)
+		enc := json.NewEncoder(srh.Buffer)
 		enc.Encode(srh.suggestionsResponse)
 	} else {
-		enc := xml.NewEncoder(buf)
+		enc := xml.NewEncoder(srh.Buffer)
 		enc.Encode(srh.suggestionsResponse)
 	}
-	srh.bytes = buf.Bytes()
 }
 
 // Get returns string of XML or JSON
@@ -62,16 +69,8 @@ func (srh *SuggestionsResponseHandle) Get() *SuggestionsResponse {
 
 // Serialized returns string of XML or JSON
 func (srh *SuggestionsResponseHandle) Serialized() string {
-	buf := new(bytes.Buffer)
-	if srh.GetFormat() == handle.JSON {
-		enc := json.NewEncoder(buf)
-		enc.Encode(srh.suggestionsResponse)
-	} else {
-		enc := xml.NewEncoder(buf)
-		enc.Encode(srh.suggestionsResponse)
-	}
-	srh.bytes = buf.Bytes()
-	return string(srh.bytes)
+	srh.Decode(srh.suggestionsResponse)
+	return srh.String()
 }
 
 // StructuredSuggestions suggests query text based off of a structured query

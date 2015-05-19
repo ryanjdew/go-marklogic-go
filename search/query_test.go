@@ -1,9 +1,11 @@
 package search
 
 import (
+	"reflect"
 	"strings"
 	"testing"
 
+	"github.com/davecgh/go-spew/spew"
 	handle "github.com/ryanjdew/go-marklogic-go/handle"
 )
 
@@ -25,6 +27,8 @@ func TestXMLQueryDecode(t *testing.T) {
 	result := qh.Serialized()
 	if want != result {
 		t.Errorf("Query Results = %+v, Want = %+v", result, want)
+	} else if !reflect.DeepEqual(&query, qh.Get()) {
+		t.Errorf("Query Results = %+v, Want = %+v", spew.Sdump(result), spew.Sdump(want))
 	}
 }
 

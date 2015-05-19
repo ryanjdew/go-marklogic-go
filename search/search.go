@@ -14,8 +14,8 @@ import (
 // ResponseHandle is a handle that places the results into
 // a Response struct
 type ResponseHandle struct {
+	*bytes.Buffer
 	Format   int
-	bytes    []byte
 	response Response
 }
 
@@ -24,9 +24,17 @@ func (rh *ResponseHandle) GetFormat() int {
 	return rh.Format
 }
 
+func (rh *ResponseHandle) resetBuffer() {
+	if rh.Buffer == nil {
+		rh.Buffer = new(bytes.Buffer)
+	}
+	rh.Reset()
+}
+
 // Encode returns Response struct that represents XML or JSON
 func (rh *ResponseHandle) Encode(bytes []byte) {
-	rh.bytes = bytes
+	rh.resetBuffer()
+	rh.Write(bytes)
 	rh.response = Response{}
 	if rh.GetFormat() == handle.JSON {
 		json.Unmarshal(bytes, &rh.response)
@@ -38,15 +46,14 @@ func (rh *ResponseHandle) Encode(bytes []byte) {
 // Decode returns []byte of XML or JSON that represents the Response struct
 func (rh *ResponseHandle) Decode(response interface{}) {
 	rh.response = response.(Response)
-	buf := new(bytes.Buffer)
+	rh.resetBuffer()
 	if rh.GetFormat() == handle.JSON {
-		enc := json.NewEncoder(buf)
+		enc := json.NewEncoder(rh.Buffer)
 		enc.Encode(&rh.response)
 	} else {
-		enc := xml.NewEncoder(buf)
+		enc := xml.NewEncoder(rh.Buffer)
 		enc.Encode(&rh.response)
 	}
-	rh.bytes = buf.Bytes()
 }
 
 // Get returns string of XML or JSON
@@ -57,7 +64,7 @@ func (rh *ResponseHandle) Get() *Response {
 // Serialized returns string of XML or JSON
 func (rh *ResponseHandle) Serialized() string {
 	rh.Decode(rh.response)
-	return string(rh.bytes)
+	return rh.String()
 }
 
 // Response represents a response from the search API
