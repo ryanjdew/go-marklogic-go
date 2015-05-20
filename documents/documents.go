@@ -36,18 +36,26 @@ func read(c *clients.Client, uris []string, categories []string, transform *util
 }
 
 func write(c *clients.Client, documents []DocumentDescription, transform *util.Transform, response handle.Handle) error {
+	channel := make(chan error)
+	var err error
 	for _, doc := range documents {
-		params := buildParameters([]string{doc.URI}, nil, doc.Collections, doc.Permissions, doc.Properties, transform)
-		req, err := http.NewRequest("PUT", c.Base()+"/documents"+params, doc.Content)
-		if err != nil {
-			return err
-		}
-		err = clients.Execute(c, req, response)
-		if err != nil {
-			return err
+		go func(doc DocumentDescription) {
+			params := buildParameters([]string{doc.URI}, nil, doc.Collections, doc.Permissions, doc.Properties, transform)
+			req, err := http.NewRequest("PUT", c.Base()+"/documents"+params, doc.Content)
+			if err == nil {
+				err = clients.Execute(c, req, response)
+			}
+			channel <- err
+		}(doc)
+	}
+	for _ = range documents {
+		if err == nil {
+			err = <-channel
+		} else {
+			<-channel
 		}
 	}
-	return nil
+	return err
 }
 
 func buildParameters(uris []string, categories []string, collections []string, permissions map[string]string, properties map[string]string, transform *util.Transform) string {
