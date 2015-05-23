@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"encoding/xml"
+	"net/http"
 	"strconv"
 
 	clients "github.com/ryanjdew/go-marklogic-go/clients"
@@ -31,8 +32,8 @@ func (rh *ResponseHandle) resetBuffer() {
 	rh.Reset()
 }
 
-// Encode returns Response struct that represents XML or JSON
-func (rh *ResponseHandle) Encode(bytes []byte) {
+// Deserialize returns Response struct that represents XML or JSON
+func (rh *ResponseHandle) Deserialize(bytes []byte) {
 	rh.resetBuffer()
 	rh.Write(bytes)
 	rh.response = Response{}
@@ -41,6 +42,11 @@ func (rh *ResponseHandle) Encode(bytes []byte) {
 	} else {
 		xml.Unmarshal(bytes, &rh.response)
 	}
+}
+
+// AcceptResponse handles an *http.Response
+func (rh *ResponseHandle) AcceptResponse(resp *http.Response) error {
+	return handle.CommonHandleAcceptResponse(rh, resp)
 }
 
 // Decode returns []byte of XML or JSON that represents the Response struct
@@ -124,21 +130,21 @@ type FacetValue struct {
 }
 
 // Search with text value
-func Search(c *clients.Client, text string, start int64, pageLength int64, response handle.Handle) error {
+func Search(c *clients.Client, text string, start int64, pageLength int64, response handle.ResponseHandle) error {
 	req, err := util.BuildRequestFromHandle(c, "GET", "/search?q="+text+"&start="+strconv.FormatInt(start, 10)+"&pageLength="+strconv.FormatInt(pageLength, 10), nil)
 	if err != nil {
 		return err
 	}
-	return clients.Execute(c, req, response)
+	return util.Execute(c, req, response)
 }
 
 // StructuredSearch searches with a structured query
-func StructuredSearch(c *clients.Client, query handle.Handle, start int64, pageLength int64, response handle.Handle) error {
+func StructuredSearch(c *clients.Client, query handle.Handle, start int64, pageLength int64, response handle.ResponseHandle) error {
 	req, err := util.BuildRequestFromHandle(c, "POST", "/search?start="+strconv.FormatInt(start, 10)+"&pageLength="+strconv.FormatInt(pageLength, 10), query)
 	if err != nil {
 		return err
 	}
-	return clients.Execute(c, req, response)
+	return util.Execute(c, req, response)
 }
 
 //UnmarshalXML for Match struct in a special way to handle highlighting matching text

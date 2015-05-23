@@ -16,6 +16,8 @@ type DocumentDescription struct {
 	Collections []string
 	Permissions map[string]string
 	Properties  map[string]string
+	Quality     int
+	VersionID   int
 }
 
 func toURIs(docs []DocumentDescription) []string {
@@ -26,16 +28,16 @@ func toURIs(docs []DocumentDescription) []string {
 	return uris
 }
 
-func read(c *clients.Client, uris []string, categories []string, transform *util.Transform, response handle.Handle) error {
+func read(c *clients.Client, uris []string, categories []string, transform *util.Transform, response handle.ResponseHandle) error {
 	params := buildParameters(uris, categories, nil, nil, nil, transform)
 	req, err := http.NewRequest("GET", c.Base()+"/documents"+params, nil)
 	if err != nil {
 		return err
 	}
-	return clients.Execute(c, req, response)
+	return util.Execute(c, req, response)
 }
 
-func write(c *clients.Client, documents []DocumentDescription, transform *util.Transform, response handle.Handle) error {
+func write(c *clients.Client, documents []DocumentDescription, transform *util.Transform, response handle.ResponseHandle) error {
 	channel := make(chan error)
 	var err error
 	for _, doc := range documents {
@@ -43,7 +45,7 @@ func write(c *clients.Client, documents []DocumentDescription, transform *util.T
 			params := buildParameters([]string{doc.URI}, nil, doc.Collections, doc.Permissions, doc.Properties, transform)
 			req, err := http.NewRequest("PUT", c.Base()+"/documents"+params, doc.Content)
 			if err == nil {
-				err = clients.Execute(c, req, response)
+				err = util.Execute(c, req, response)
 			}
 			channel <- err
 		}(doc)

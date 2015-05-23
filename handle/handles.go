@@ -3,6 +3,8 @@ package goMarklogicGo
 import (
 	"bytes"
 	"io"
+	"io/ioutil"
+	"net/http"
 )
 
 // Format options
@@ -29,9 +31,15 @@ func FormatEnumToMimeType(formatEnum int) string {
 type Handle interface {
 	io.ReadWriter
 	GetFormat() int
-	Encode([]byte)
+	Deserialize([]byte)
 	Decode(interface{})
 	Serialized() string
+}
+
+// ResponseHandle interface
+type ResponseHandle interface {
+	Handle
+	AcceptResponse(*http.Response) error
 }
 
 // RawHandle returns the raw string results of JSON or XML
@@ -52,15 +60,20 @@ func (r *RawHandle) resetBuffer() {
 	r.Reset()
 }
 
-// Encode returns the bytes that represent XML or JSON
-func (r *RawHandle) Encode(bytes []byte) {
+// Deserialize returns the bytes that represent XML or JSON
+func (r *RawHandle) Deserialize(bytes []byte) {
 	r.resetBuffer()
 	r.Write(bytes)
 }
 
+// AcceptResponse handles an *http.Response
+func (r *RawHandle) AcceptResponse(resp *http.Response) error {
+	return CommonHandleAcceptResponse(r, resp)
+}
+
 // Decode returns the bytes that represent XML or JSON
 func (r *RawHandle) Decode(bytes interface{}) {
-	r.Encode(bytes.([]byte))
+	r.Deserialize(bytes.([]byte))
 }
 
 // Get returns string of XML or JSON
@@ -92,16 +105,20 @@ func (m *MapHandle) resetBuffer() {
 	m.Reset()
 }
 
-// Encode returns the bytes that represent XML or JSON
-func (m *MapHandle) Encode(bytes []byte) {
+// Deserialize returns the bytes that represent XML or JSON
+func (m *MapHandle) Deserialize(bytes []byte) {
 	m.resetBuffer()
 	m.Write(bytes)
+}
+
+// AcceptResponse handles an *http.Response
+func (m *MapHandle) AcceptResponse(resp *http.Response) error {
+	return CommonHandleAcceptResponse(m, resp)
 }
 
 // Decode returns the bytes that represent XML or JSON
 func (m *MapHandle) Decode(mapItem interface{}) {
 	m.mapItem = mapItem.(*map[string]interface{})
-
 }
 
 // Get returns string of XML or JSON
@@ -112,4 +129,12 @@ func (m *MapHandle) Get() *map[string]interface{} {
 // Serialized returns string of XML or JSON
 func (m *MapHandle) Serialized() string {
 	return m.String()
+}
+
+// CommonHandleAcceptResponse handles an HTTP response
+func CommonHandleAcceptResponse(genericHandle Handle, response *http.Response) error {
+	defer response.Body.Close()
+	contents, err := ioutil.ReadAll(response.Body)
+	genericHandle.Deserialize(contents)
+	return err
 }

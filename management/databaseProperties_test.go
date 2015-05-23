@@ -7,6 +7,7 @@ import (
 	"github.com/davecgh/go-spew/spew"
 	handle "github.com/ryanjdew/go-marklogic-go/handle"
 	test "github.com/ryanjdew/go-marklogic-go/test"
+	textHelper "github.com/ryanjdew/go-marklogic-go/test/text"
 )
 
 var dbPropertiesWantResp = `{
@@ -148,8 +149,8 @@ func TestDatabaseProperties(t *testing.T) {
 	defer server.Close()
 	propertiesHandle := DatabasePropertiesHandle{Format: handle.JSON}
 	GetDatabaseProperties(client, "Documents", &propertiesHandle)
-	want := test.NormalizeSpace(dbPropertiesWantResp)
-	result := test.NormalizeSpace(propertiesHandle.Serialized())
+	want := textHelper.NormalizeSpace(dbPropertiesWantResp)
+	result := textHelper.NormalizeSpace(propertiesHandle.Serialized())
 	if !reflect.DeepEqual(want, result) {
 		t.Errorf("DB Properties Results = %+v, Want = %+v", spew.Sdump(result), spew.Sdump(want))
 	}

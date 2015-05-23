@@ -31,8 +31,8 @@ func (qh *QueryHandle) resetBuffer() {
 	qh.Reset()
 }
 
-// Encode returns Query struct that represents XML or JSON
-func (qh *QueryHandle) Encode(bytes []byte) {
+// Deserialize returns Query struct that represents XML or JSON
+func (qh *QueryHandle) Deserialize(bytes []byte) {
 	qh.resetBuffer()
 	qh.Write(bytes)
 	qh.query = Query{}

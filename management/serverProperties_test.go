@@ -7,6 +7,7 @@ import (
 	"github.com/davecgh/go-spew/spew"
 	handle "github.com/ryanjdew/go-marklogic-go/handle"
 	test "github.com/ryanjdew/go-marklogic-go/test"
+	textHelper "github.com/ryanjdew/go-marklogic-go/test/text"
 )
 
 var serverPropertiesWantResp = `{
@@ -82,8 +83,8 @@ func TestServerProperties(t *testing.T) {
 	defer server.Close()
 	propertiesHandle := ServerPropertiesHandle{Format: handle.JSON}
 	GetServerProperties(client, "Documents", "Default", &propertiesHandle)
-	want := test.NormalizeSpace(serverPropertiesWantResp)
-	result := test.NormalizeSpace(propertiesHandle.Serialized())
+	want := textHelper.NormalizeSpace(serverPropertiesWantResp)
+	result := textHelper.NormalizeSpace(propertiesHandle.Serialized())
 	if !reflect.DeepEqual(want, result) {
 		t.Errorf("Server Properties Results = %+v, Want = %+v", spew.Sdump(result), spew.Sdump(want))
 	}

@@ -47,3 +47,16 @@ func BuildRequestFromHandle(c clients.RESTClient, method string, uri string, req
 	}
 	return req, err
 }
+
+// Execute uses a client to run a request and places the results in the
+// response Handle
+func Execute(c clients.RESTClient, req *http.Request, responseHandle handle.ResponseHandle) error {
+	clients.ApplyAuth(c, req)
+	respType := handle.FormatEnumToMimeType(responseHandle.GetFormat())
+	req.Header.Add("Accept", respType)
+	resp, err := c.HTTPClient().Do(req)
+	if err != nil {
+		return err
+	}
+	return responseHandle.AcceptResponse(resp)
+}

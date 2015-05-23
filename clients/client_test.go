@@ -1,8 +1,6 @@
 package clients
 
-import (
-	"testing"
-)
+import "testing"
 
 func TestConnection(t *testing.T) {
 	expectedBase := "http://localhost:8000/v1"

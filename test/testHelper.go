@@ -4,8 +4,6 @@ import (
 	"fmt"
 	"net/http"
 	"net/http/httptest"
-	"regexp"
-	"strings"
 
 	clients "github.com/ryanjdew/go-marklogic-go/clients"
 )
@@ -30,15 +28,4 @@ func ManagementClient(resp string) (*clients.ManagementClient, *httptest.Server)
 	client, _ := clients.NewManagementClient("localhost", "admin", "admin", clients.BasicAuth)
 	client.SetBase(server.URL)
 	return client, server
-}
-
-//NormalizeSpace is a function that takes whitespace out of the equation for comparing strings
-func NormalizeSpace(str string) string {
-	reSpace := regexp.MustCompile("\\s+")
-	normalizedSpace := string(reSpace.ReplaceAllString(str, ` `))
-	reBrackets := regexp.MustCompile("(\\}|\\{|\"|,|:|\\])\\s+(,|\\[|\\}|\")")
-	adjustBrackets := string(reBrackets.ReplaceAllString(normalizedSpace, `$1$2`))
-	reProp := regexp.MustCompile("(\\}|,|:)\\s+([^\\s])")
-	adjustProperties := string(reProp.ReplaceAllString(adjustBrackets, `$1$2`))
-	return strings.TrimSpace(adjustProperties)
 }

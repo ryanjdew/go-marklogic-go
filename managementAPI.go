@@ -16,12 +16,12 @@ func NewManagementClient(host string, username string, password string, authType
 }
 
 // SetDatabaseProperties sets the database properties
-func (mc *ManagementClient) SetDatabaseProperties(databaseName string, propertiesHandle handle.Handle) error {
+func (mc *ManagementClient) SetDatabaseProperties(databaseName string, propertiesHandle handle.ResponseHandle) error {
 	return management.SetDatabaseProperties(convertToSubManageClient(mc), databaseName, propertiesHandle)
 }
 
 // GetDatabaseProperties sets the database properties
-func (mc *ManagementClient) GetDatabaseProperties(databaseName string, propertiesHandle handle.Handle) error {
+func (mc *ManagementClient) GetDatabaseProperties(databaseName string, propertiesHandle handle.ResponseHandle) error {
 	return management.GetDatabaseProperties(convertToSubManageClient(mc), databaseName, propertiesHandle)
 }
 

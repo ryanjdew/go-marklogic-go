@@ -1,12 +1,10 @@
 package clients
 
 import (
-	"io/ioutil"
 	"net/http"
 	"net/url"
 	"strconv"
 
-	handle "github.com/ryanjdew/go-marklogic-go/handle"
 	digestAuth "github.com/ryanjdew/http-digest-auth-client"
 )
 
@@ -96,28 +94,12 @@ func (bc *BasicClient) DigestHeaders() *digestAuth.DigestHeaders {
 	return bc.digestHeaders
 }
 
-// applyAuth adds the neccessary headers for authentication
-func applyAuth(c RESTClient, req *http.Request) {
+// ApplyAuth adds the neccessary headers for authentication
+func ApplyAuth(c RESTClient, req *http.Request) {
 	pwd, _ := c.Userinfo().Password()
 	if c.AuthType() == BasicAuth {
 		req.SetBasicAuth(c.Userinfo().Username(), pwd)
 	} else if c.AuthType() == DigestAuth {
 		c.DigestHeaders().ApplyAuth(req)
 	}
-}
-
-// Execute uses a client to run a request and places the results in the
-// response Handle
-func Execute(c RESTClient, req *http.Request, responseHandle handle.Handle) error {
-	applyAuth(c, req)
-	respType := handle.FormatEnumToMimeType(responseHandle.GetFormat())
-	req.Header.Add("Accept", respType)
-	resp, err := c.HTTPClient().Do(req)
-	if err != nil {
-		return err
-	}
-	defer resp.Body.Close()
-	contents, err := ioutil.ReadAll(resp.Body)
-	responseHandle.Encode(contents)
-	return err
 }

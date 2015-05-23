@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"encoding/xml"
+	"net/http"
 	"strconv"
 
 	clients "github.com/ryanjdew/go-marklogic-go/clients"
@@ -37,8 +38,8 @@ func (srh *SuggestionsResponseHandle) resetBuffer() {
 	srh.Reset()
 }
 
-// Encode returns Query struct that represents XML or JSON
-func (srh *SuggestionsResponseHandle) Encode(bytes []byte) {
+// Deserialize returns Query struct that represents XML or JSON
+func (srh *SuggestionsResponseHandle) Deserialize(bytes []byte) {
 	srh.resetBuffer()
 	srh.Write(bytes)
 	srh.suggestionsResponse = &SuggestionsResponse{}
@@ -47,6 +48,11 @@ func (srh *SuggestionsResponseHandle) Encode(bytes []byte) {
 	} else {
 		xml.Unmarshal(bytes, &srh.suggestionsResponse)
 	}
+}
+
+// AcceptResponse handles an *http.Response
+func (srh *SuggestionsResponseHandle) AcceptResponse(resp *http.Response) error {
+	return handle.CommonHandleAcceptResponse(srh, resp)
 }
 
 // Decode returns []byte of XML or JSON that represents the Query struct
@@ -74,7 +80,7 @@ func (srh *SuggestionsResponseHandle) Serialized() string {
 }
 
 // StructuredSuggestions suggests query text based off of a structured query
-func StructuredSuggestions(c *clients.Client, query handle.Handle, partialQ string, limit int64, options string, response handle.Handle) error {
+func StructuredSuggestions(c *clients.Client, query handle.Handle, partialQ string, limit int64, options string, response handle.ResponseHandle) error {
 	uri := "/suggest?limit=" + strconv.FormatInt(limit, 10)
 	if options != "" {
 		uri = uri + "&options=" + options
@@ -83,5 +89,5 @@ func StructuredSuggestions(c *clients.Client, query handle.Handle, partialQ stri
 	if err != nil {
 		return err
 	}
-	return clients.Execute(c, req, response)
+	return util.Execute(c, req, response)
 }

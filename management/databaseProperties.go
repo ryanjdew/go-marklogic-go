@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"encoding/xml"
+	"net/http"
 
 	clients "github.com/ryanjdew/go-marklogic-go/clients"
 	handle "github.com/ryanjdew/go-marklogic-go/handle"
@@ -169,21 +170,21 @@ type RangeFieldIndex struct {
 }
 
 // SetDatabaseProperties sets the database properties
-func SetDatabaseProperties(mc *clients.ManagementClient, databaseName string, propertiesHandle handle.Handle) error {
+func SetDatabaseProperties(mc *clients.ManagementClient, databaseName string, propertiesHandle handle.ResponseHandle) error {
 	req, err := util.BuildRequestFromHandle(mc, "PUT", "/databases/"+databaseName+"/properties", propertiesHandle)
 	if err != nil {
 		return err
 	}
-	return clients.Execute(mc, req, propertiesHandle)
+	return util.Execute(mc, req, propertiesHandle)
 }
 
 // GetDatabaseProperties sets the database properties
-func GetDatabaseProperties(mc *clients.ManagementClient, databaseName string, propertiesHandle handle.Handle) error {
+func GetDatabaseProperties(mc *clients.ManagementClient, databaseName string, propertiesHandle handle.ResponseHandle) error {
 	req, err := util.BuildRequestFromHandle(mc, "GET", "/databases/"+databaseName+"/properties", nil)
 	if err != nil {
 		return err
 	}
-	return clients.Execute(mc, req, propertiesHandle)
+	return util.Execute(mc, req, propertiesHandle)
 }
 
 // DatabasePropertiesHandle is a handle that places the results into
@@ -206,8 +207,8 @@ func (dh *DatabasePropertiesHandle) resetBuffer() {
 	dh.Reset()
 }
 
-// Encode returns Query struct that represents XML or JSON
-func (dh *DatabasePropertiesHandle) Encode(bytes []byte) {
+// Deserialize returns Query struct that represents XML or JSON
+func (dh *DatabasePropertiesHandle) Deserialize(bytes []byte) {
 	dh.resetBuffer()
 	dh.Write(bytes)
 	dh.databaseProperties = DatabaseProperties{}
@@ -216,6 +217,11 @@ func (dh *DatabasePropertiesHandle) Encode(bytes []byte) {
 	} else {
 		xml.Unmarshal(bytes, &dh.databaseProperties)
 	}
+}
+
+// AcceptResponse handles an *http.Response
+func (dh *DatabasePropertiesHandle) AcceptResponse(resp *http.Response) error {
+	return handle.CommonHandleAcceptResponse(dh, resp)
 }
 
 // Decode returns []byte of XML or JSON that represents the Query struct

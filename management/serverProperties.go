@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"encoding/xml"
+	"net/http"
 
 	clients "github.com/ryanjdew/go-marklogic-go/clients"
 	handle "github.com/ryanjdew/go-marklogic-go/handle"
@@ -81,7 +82,7 @@ type ServerProperties struct {
 }
 
 // SetServerProperties sets the database properties
-func SetServerProperties(mc *clients.ManagementClient, serverName string, groupID string, properties handle.Handle, response handle.Handle) error {
+func SetServerProperties(mc *clients.ManagementClient, serverName string, groupID string, properties handle.Handle, response handle.ResponseHandle) error {
 	if groupID == "" {
 		groupID = "Default"
 	}
@@ -89,11 +90,11 @@ func SetServerProperties(mc *clients.ManagementClient, serverName string, groupI
 	if err != nil {
 		return err
 	}
-	return clients.Execute(mc, req, response)
+	return util.Execute(mc, req, response)
 }
 
 // GetServerProperties sets the database properties
-func GetServerProperties(mc *clients.ManagementClient, serverName string, groupID string, properties handle.Handle) error {
+func GetServerProperties(mc *clients.ManagementClient, serverName string, groupID string, properties handle.ResponseHandle) error {
 	if groupID == "" {
 		groupID = "Default"
 	}
@@ -101,7 +102,7 @@ func GetServerProperties(mc *clients.ManagementClient, serverName string, groupI
 	if err != nil {
 		return err
 	}
-	return clients.Execute(mc, req, properties)
+	return util.Execute(mc, req, properties)
 }
 
 // ServerPropertiesHandle is a handle that places the results into
@@ -124,8 +125,8 @@ func (sh *ServerPropertiesHandle) resetBuffer() {
 	sh.Reset()
 }
 
-// Encode returns Query struct that represents XML or JSON
-func (sh *ServerPropertiesHandle) Encode(bytes []byte) {
+// Deserialize returns Query struct that represents XML or JSON
+func (sh *ServerPropertiesHandle) Deserialize(bytes []byte) {
 	sh.resetBuffer()
 	sh.Write(bytes)
 	sh.serverProperties = ServerProperties{}
@@ -134,6 +135,11 @@ func (sh *ServerPropertiesHandle) Encode(bytes []byte) {
 	} else {
 		xml.Unmarshal(bytes, &sh.serverProperties)
 	}
+}
+
+// AcceptResponse handles an *http.Response
+func (sh *ServerPropertiesHandle) AcceptResponse(resp *http.Response) error {
+	return handle.CommonHandleAcceptResponse(sh, resp)
 }
 
 // Decode returns []byte of XML or JSON that represents the Query struct
