@@ -55,8 +55,8 @@ func (srh *SuggestionsResponseHandle) AcceptResponse(resp *http.Response) error 
 	return handle.CommonHandleAcceptResponse(srh, resp)
 }
 
-// Decode returns []byte of XML or JSON that represents the Query struct
-func (srh *SuggestionsResponseHandle) Decode(suggestionsResponse interface{}) {
+// Serialize returns []byte of XML or JSON that represents the Query struct
+func (srh *SuggestionsResponseHandle) Serialize(suggestionsResponse interface{}) {
 	srh.suggestionsResponse = suggestionsResponse.(*SuggestionsResponse)
 	srh.resetBuffer()
 	if srh.GetFormat() == handle.JSON {
@@ -75,7 +75,7 @@ func (srh *SuggestionsResponseHandle) Get() *SuggestionsResponse {
 
 // Serialized returns string of XML or JSON
 func (srh *SuggestionsResponseHandle) Serialized() string {
-	srh.Decode(srh.suggestionsResponse)
+	srh.Serialize(srh.suggestionsResponse)
 	return srh.String()
 }
 

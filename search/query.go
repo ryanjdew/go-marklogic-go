@@ -44,8 +44,8 @@ func (qh *QueryHandle) Deserialize(bytes []byte) {
 	}
 }
 
-// Decode returns []byte of XML or JSON that represents the Query struct
-func (qh *QueryHandle) Decode(query interface{}) {
+// Serialize returns []byte of XML or JSON that represents the Query struct
+func (qh *QueryHandle) Serialize(query interface{}) {
 	var readBytes []byte
 	qh.query = query.(Query)
 	qh.resetBuffer()
@@ -65,7 +65,7 @@ func (qh *QueryHandle) Get() *Query {
 
 // Serialized returns string of XML or JSON
 func (qh *QueryHandle) Serialized() string {
-	qh.Decode(qh.query)
+	qh.Serialize(qh.query)
 	return qh.String()
 }
 
@@ -383,14 +383,14 @@ type GeoPathQuery struct {
 
 // UnmarshalXML Query converts to XML
 func (q *Query) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
-	queries, err2 := decodeXMLWithQueries(d, start)
+	queries, err2 := SerializeXMLWithQueries(d, start)
 	q.Queries = queries
 	return err2
 }
 
 // UnmarshalXML OrQuery converts to XML
 func (q *OrQuery) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
-	queries, err2 := decodeXMLWithQueries(d, start)
+	queries, err2 := SerializeXMLWithQueries(d, start)
 	q.Queries = queries
 	return err2
 }
@@ -405,28 +405,28 @@ func (q *AndQuery) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
 		return err
 	}
 	q.Ordered = fake.Ordered
-	queries, err2 := decodeXMLWithQueries(d, start)
+	queries, err2 := SerializeXMLWithQueries(d, start)
 	q.Queries = queries
 	return err2
 }
 
 // UnmarshalXML PositiveQuery converts to XML
 func (q *PositiveQuery) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
-	queries, err2 := decodeXMLWithQueries(d, start)
+	queries, err2 := SerializeXMLWithQueries(d, start)
 	q.Queries = queries
 	return err2
 }
 
 // UnmarshalXML NegativeQuery converts to XML
 func (q *NegativeQuery) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
-	queries, err2 := decodeXMLWithQueries(d, start)
+	queries, err2 := SerializeXMLWithQueries(d, start)
 	q.Queries = queries
 	return err2
 }
 
 // UnmarshalXML NotQuery converts to XML
 func (q *NotQuery) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
-	queries, err2 := decodeXMLWithQueries(d, start)
+	queries, err2 := SerializeXMLWithQueries(d, start)
 	q.Queries = queries
 	return err2
 }
@@ -443,28 +443,28 @@ func (q *NearQuery) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
 	q.Ordered = fake.Ordered
 	q.Distance = fake.Distance
 	q.DistanceWeight = fake.DistanceWeight
-	queries, err2 := decodeXMLWithQueries(d, start)
+	queries, err2 := SerializeXMLWithQueries(d, start)
 	q.Queries = queries
 	return err2
 }
 
 // UnmarshalXML MatchingQuery converts to XML
 func (q *MatchingQuery) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
-	queries, err2 := decodeXMLWithQueries(d, start)
+	queries, err2 := SerializeXMLWithQueries(d, start)
 	q.Queries = queries
 	return err2
 }
 
 // UnmarshalXML BoostingQuery converts to XML
 func (q *BoostingQuery) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
-	queries, err2 := decodeXMLWithQueries(d, start)
+	queries, err2 := SerializeXMLWithQueries(d, start)
 	q.Queries = queries
 	return err2
 }
 
 // UnmarshalXML PropertiesQuery converts to XML
 func (q *PropertiesQuery) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
-	queries, err2 := decodeXMLWithQueries(d, start)
+	queries, err2 := SerializeXMLWithQueries(d, start)
 	q.Queries = queries
 	return err2
 }
@@ -481,27 +481,27 @@ func (q *ContainerQuery) UnmarshalXML(d *xml.Decoder, start xml.StartElement) er
 	q.Element = fake.Element
 	q.JSONKey = fake.JSONKey
 	q.FragmentScope = fake.FragmentScope
-	queries, err2 := decodeXMLWithQueries(d, start)
+	queries, err2 := SerializeXMLWithQueries(d, start)
 	q.Queries = queries
 	return err2
 }
 
 // UnmarshalXML DocumentFragmentQuery converts to XML
 func (q *DocumentFragmentQuery) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
-	queries, err2 := decodeXMLWithQueries(d, start)
+	queries, err2 := SerializeXMLWithQueries(d, start)
 	q.Queries = queries
 	return err2
 }
 
 // UnmarshalXML LocksQuery converts to XML
 func (q *LocksQuery) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
-	queries, err2 := decodeXMLWithQueries(d, start)
+	queries, err2 := SerializeXMLWithQueries(d, start)
 	q.Queries = queries
 	return err2
 }
 
-// decodeXMLWithQueries decodes text into Query struct
-func decodeXMLWithQueries(d *xml.Decoder, start xml.StartElement) ([]interface{}, error) {
+// SerializeXMLWithQueries Serializes text into Query struct
+func SerializeXMLWithQueries(d *xml.Decoder, start xml.StartElement) ([]interface{}, error) {
 	var queries []interface{}
 	for {
 		if token, err := d.Token(); (err == nil) && (token != nil) {

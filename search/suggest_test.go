@@ -40,7 +40,7 @@ func TestSuggestionXML(t *testing.T) {
 			},
 		}
 	qh := QueryHandle{}
-	qh.Decode(query)
+	qh.Serialize(query)
 	err := StructuredSuggestions(client, &qh, "data", 10, "all", &respHandle)
 	resp := respHandle.Get()
 	if err != nil {
@@ -68,7 +68,7 @@ func TestSuggestionJSON(t *testing.T) {
 			},
 		}
 	qh := QueryHandle{}
-	qh.Decode(query)
+	qh.Serialize(query)
 	err := StructuredSuggestions(client, &qh, "data", 10, "all", &respHandle)
 	resp := respHandle.Get()
 	if err != nil {

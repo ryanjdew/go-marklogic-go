@@ -19,12 +19,12 @@ func listExtensions(c *clients.Client, directory string, response handle.Respons
 }
 
 // DeleteExtensions shows all the installed REST extensions
-func deleteExtensions(c *clients.Client, directory string, response handle.ResponseHandle) error {
+func deleteExtensions(c *clients.Client, directory string) error {
 	req, err := util.BuildRequestFromHandle(c, "DELETE", "/ext"+directory, nil)
 	if err != nil {
 		return err
 	}
-	return util.Execute(c, req, response)
+	return util.Execute(c, req, nil)
 }
 
 // createExtension shows all the installed REST extensions

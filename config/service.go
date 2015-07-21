@@ -25,8 +25,8 @@ func (s *Service) ListExtensions(directory string, response handle.ResponseHandl
 }
 
 // DeleteExtensions removes all the installed REST extensions under the provided path
-func (s *Service) DeleteExtensions(directory string, response handle.ResponseHandle) error {
-	return deleteExtensions(s.client, directory, response)
+func (s *Service) DeleteExtensions(directory string) error {
+	return deleteExtensions(s.client, directory)
 }
 
 // CreateExtension shows all the installed REST extensions

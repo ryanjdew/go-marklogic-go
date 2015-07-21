@@ -36,7 +36,7 @@ func main() {
     },
   }
   qh := search.QueryHandle{}
-  qh.Decode(query)
+  qh.Serialize(query)
   respHandle := search.ResponseHandle{}
   err = db.Search().StructuredSearch(&qh, 1, 10, &respHandle)
   resp := respHandle.Get()

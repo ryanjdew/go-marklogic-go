@@ -32,7 +32,7 @@ type Handle interface {
 	io.ReadWriter
 	GetFormat() int
 	Deserialize([]byte)
-	Decode(interface{})
+	Serialize(interface{})
 	Serialized() string
 }
 
@@ -71,8 +71,8 @@ func (r *RawHandle) AcceptResponse(resp *http.Response) error {
 	return CommonHandleAcceptResponse(r, resp)
 }
 
-// Decode returns the bytes that represent XML or JSON
-func (r *RawHandle) Decode(bytes interface{}) {
+// Serialize returns the bytes that represent XML or JSON
+func (r *RawHandle) Serialize(bytes interface{}) {
 	r.Deserialize(bytes.([]byte))
 }
 
@@ -116,8 +116,8 @@ func (m *MapHandle) AcceptResponse(resp *http.Response) error {
 	return CommonHandleAcceptResponse(m, resp)
 }
 
-// Decode returns the bytes that represent XML or JSON
-func (m *MapHandle) Decode(mapItem interface{}) {
+// Serialize returns the bytes that represent XML or JSON
+func (m *MapHandle) Serialize(mapItem interface{}) {
 	m.mapItem = mapItem.(*map[string]interface{})
 }
 

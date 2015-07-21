@@ -142,8 +142,8 @@ func (sh *ServerPropertiesHandle) AcceptResponse(resp *http.Response) error {
 	return handle.CommonHandleAcceptResponse(sh, resp)
 }
 
-// Decode returns []byte of XML or JSON that represents the Query struct
-func (sh *ServerPropertiesHandle) Decode(serverProperties interface{}) {
+// Serialize returns []byte of XML or JSON that represents the Query struct
+func (sh *ServerPropertiesHandle) Serialize(serverProperties interface{}) {
 	sh.serverProperties = serverProperties.(ServerProperties)
 	sh.resetBuffer()
 	if sh.GetFormat() == handle.JSON {
@@ -162,6 +162,6 @@ func (sh *ServerPropertiesHandle) Get() ServerProperties {
 
 // Serialized returns string of XML or JSON
 func (sh *ServerPropertiesHandle) Serialized() string {
-	sh.Decode(sh.serverProperties)
+	sh.Serialize(sh.serverProperties)
 	return sh.String()
 }

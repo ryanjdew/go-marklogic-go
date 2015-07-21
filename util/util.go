@@ -1,6 +1,7 @@
 package util
 
 import (
+	"fmt"
 	"net/http"
 	"net/url"
 
@@ -52,11 +53,20 @@ func BuildRequestFromHandle(c clients.RESTClient, method string, uri string, req
 // response Handle
 func Execute(c clients.RESTClient, req *http.Request, responseHandle handle.ResponseHandle) error {
 	clients.ApplyAuth(c, req)
-	respType := handle.FormatEnumToMimeType(responseHandle.GetFormat())
+	respHandleNotNil := responseHandle != nil
+	var respType string
+	if respHandleNotNil {
+		respType = handle.FormatEnumToMimeType(responseHandle.GetFormat())
+	}
 	req.Header.Add("Accept", respType)
 	resp, err := c.HTTPClient().Do(req)
 	if err != nil {
 		return err
+	} else if resp.StatusCode >= 400 {
+		return fmt.Errorf("HTTP call returned status %v", resp.StatusCode)
 	}
-	return responseHandle.AcceptResponse(resp)
+	if respHandleNotNil {
+		return responseHandle.AcceptResponse(resp)
+	}
+	return nil
 }

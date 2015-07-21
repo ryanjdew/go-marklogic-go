@@ -49,8 +49,8 @@ func (rh *ResponseHandle) AcceptResponse(resp *http.Response) error {
 	return handle.CommonHandleAcceptResponse(rh, resp)
 }
 
-// Decode returns []byte of XML or JSON that represents the Response struct
-func (rh *ResponseHandle) Decode(response interface{}) {
+// Serialize returns []byte of XML or JSON that represents the Response struct
+func (rh *ResponseHandle) Serialize(response interface{}) {
 	rh.response = response.(Response)
 	rh.resetBuffer()
 	if rh.GetFormat() == handle.JSON {
@@ -69,7 +69,7 @@ func (rh *ResponseHandle) Get() *Response {
 
 // Serialized returns string of XML or JSON
 func (rh *ResponseHandle) Serialized() string {
-	rh.Decode(rh.response)
+	rh.Serialize(rh.response)
 	return rh.String()
 }
 

@@ -224,8 +224,8 @@ func (dh *DatabasePropertiesHandle) AcceptResponse(resp *http.Response) error {
 	return handle.CommonHandleAcceptResponse(dh, resp)
 }
 
-// Decode returns []byte of XML or JSON that represents the Query struct
-func (dh *DatabasePropertiesHandle) Decode(databaseProperties interface{}) {
+// Serialize returns []byte of XML or JSON that represents the Query struct
+func (dh *DatabasePropertiesHandle) Serialize(databaseProperties interface{}) {
 	dh.databaseProperties = databaseProperties.(DatabaseProperties)
 	dh.resetBuffer()
 	if dh.GetFormat() == handle.JSON {
@@ -244,6 +244,6 @@ func (dh *DatabasePropertiesHandle) Get() DatabaseProperties {
 
 // Serialized returns string of XML or JSON
 func (dh *DatabasePropertiesHandle) Serialized() string {
-	dh.Decode(dh.databaseProperties)
+	dh.Serialize(dh.databaseProperties)
 	return dh.String()
 }

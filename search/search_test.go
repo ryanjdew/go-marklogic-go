@@ -149,7 +149,7 @@ func TestSearch(t *testing.T) {
 			},
 		}
 	qh := QueryHandle{}
-	qh.Decode(query)
+	qh.Serialize(query)
 	err = StructuredSearch(client, &qh, 1, 10, &respHandle)
 	resp = respHandle.Get()
 	if err != nil {
