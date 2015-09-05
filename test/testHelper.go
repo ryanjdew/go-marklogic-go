@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 
-	clients "github.com/ryanjdew/go-marklogic-go/clients"
+	clients "github.com/rlouapre/go-marklogic-go/clients"
 )
 
 // Client is exported for testing subpackages
@@ -26,6 +26,17 @@ func ManagementClient(resp string) (*clients.ManagementClient, *httptest.Server)
 	})
 	server := httptest.NewServer(handler)
 	client, _ := clients.NewManagementClient("localhost", "admin", "admin", clients.BasicAuth)
+	client.SetBase(server.URL)
+	return client, server
+}
+
+// AdminClient is exported for testing subpackages
+func AdminClient(resp string) (*clients.AdminClient, *httptest.Server) {
+	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		fmt.Fprintln(w, resp)
+	})
+	server := httptest.NewServer(handler)
+	client, _ := clients.NewAdminClient("localhost", "admin", "admin", clients.BasicAuth)
 	client.SetBase(server.URL)
 	return client, server
 }
