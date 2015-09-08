@@ -14,7 +14,7 @@ func Client(resp string) (*clients.Client, *httptest.Server) {
 		fmt.Fprintln(w, resp)
 	})
 	server := httptest.NewServer(handler)
-	client, _ := clients.NewClient("localhost", 8000, "admin", "admin", clients.BasicAuth)
+	client, _ := clients.NewClient(&clients.Connection{Host: "localhost", Port: 8000, Username: "admin", Password: "admin", AuthenticationType: clients.BasicAuth})
 	client.SetBase(server.URL)
 	return client, server
 }
@@ -25,7 +25,7 @@ func ManagementClient(resp string) (*clients.ManagementClient, *httptest.Server)
 		fmt.Fprintln(w, resp)
 	})
 	server := httptest.NewServer(handler)
-	client, _ := clients.NewManagementClient("localhost", "admin", "admin", clients.BasicAuth)
+	client, _ := clients.NewManagementClient(&clients.Connection{Host: "localhost", Username: "admin", Password: "admin", AuthenticationType: clients.BasicAuth})
 	client.SetBase(server.URL)
 	return client, server
 }
@@ -36,7 +36,7 @@ func AdminClient(resp string) (*clients.AdminClient, *httptest.Server) {
 		fmt.Fprintln(w, resp)
 	})
 	server := httptest.NewServer(handler)
-	client, _ := clients.NewAdminClient("localhost", "admin", "admin", clients.BasicAuth)
+	client, _ := clients.NewAdminClient(&clients.Connection{Host: "localhost", Username: "admin", Password: "admin", AuthenticationType: clients.BasicAuth})
 	client.SetBase(server.URL)
 	return client, server
 }

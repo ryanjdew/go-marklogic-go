@@ -1,6 +1,7 @@
 package admin
 
 import (
+	_ "encoding/xml"
 	"reflect"
 	"strings"
 	"testing"
@@ -11,19 +12,19 @@ import (
 )
 
 func TestXMLInitializePropertiesSerialize(t *testing.T) {
-	want := "<init xmlns=\"http://marklogic.com/manage\"><license-key xmlns=\"http://marklogic.com/manage\">1234-5678-90AB</license-key><licensee xmlns=\"http://marklogic.com/manage\">Your Licensee</licensee></init>"
+	want := `<init xmlns="http://marklogic.com/manage"><license-key>1234-5678-90AB</license-key><licensee>Your Licensee</licensee></init>`
 	initializeProperties :=
 		InitializeProperties{
 			LicenseKey: "1234-5678-90AB",
 			Licensee:   "Your Licensee",
 		}
-	qh := AdminHandle{}
+	qh := InitHandle{}
 	qh.Serialize(initializeProperties)
 	result := qh.Serialized()
 	if want != result {
-		t.Errorf("InitializeProperties Results = %+v, Want = %+v", result, want)
+		t.Errorf("Not equal - InitializeProperties Results = %+v, Want = %+v", result, want)
 	} else if !reflect.DeepEqual(&initializeProperties, qh.Get()) {
-		t.Errorf("InitializeProperties Results = %+v, Want = %+v", spew.Sdump(result), spew.Sdump(want))
+		t.Errorf("Not deep equal - InitializeProperties Results = %+v, Want = %+v", spew.Sdump(result), spew.Sdump(want))
 	}
 }
 
@@ -34,7 +35,7 @@ func TestJsonInitializePropertiesSerialize(t *testing.T) {
 			LicenseKey: "1234-5678-90AB",
 			Licensee:   "Your Licensee",
 		}
-	qh := AdminHandle{Format: handle.JSON}
+	qh := InitHandle{Format: handle.JSON}
 	qh.Serialize(initializeProperties)
 	result := strings.TrimSpace(qh.Serialized())
 	if want != result {
