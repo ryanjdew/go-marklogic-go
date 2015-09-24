@@ -15,32 +15,48 @@ const (
 	None
 )
 
+type Connection struct {
+	Host               string
+	Port               int64
+	Username           string
+	Password           string
+	AuthenticationType int
+}
+
 // Client is used for connecting to the MarkLogic REST API.
 type Client struct {
 	*BasicClient
 }
 
-// NewClient creates the Client struct used for searching, etc.
-func NewClient(host string, port int64, username string, password string, authType int) (*Client, error) {
-	base := "http://" + host + ":" + strconv.FormatInt(port, 10) + "/v1"
+func ClientBuilder(connection *Connection, base string) (*BasicClient, error) {
 	httpClient := &http.Client{}
-	var client *Client
+	var basicClient *BasicClient
 	var digestHeaders *digestAuth.DigestHeaders
 	var err error
-	if authType == DigestAuth {
+	if connection.AuthenticationType == DigestAuth {
 		digestHeaders = &digestAuth.DigestHeaders{}
-		digestHeaders, err = digestHeaders.Auth(username, password, base+"/config/resources?format=xml")
+		digestHeaders, err = digestHeaders.Auth(connection.Username, connection.Password, base+"/config/resources?format=xml")
 	}
 	if err == nil {
-		client = &Client{
+		basicClient =
 			&BasicClient{
 				base:          base,
-				userinfo:      url.UserPassword(username, password),
-				authType:      authType,
+				userinfo:      url.UserPassword(connection.Username, connection.Password),
+				authType:      connection.AuthenticationType,
 				httpClient:    httpClient,
 				digestHeaders: digestHeaders,
-			},
-		}
+			}
+	}
+	return basicClient, err
+}
+
+// NewClient creates the Client struct used for searching, etc.
+func NewClient(connection *Connection /*host string, port int64, username string, password string, authType int*/) (*Client, error) {
+	var client *Client
+	base := "http://" + connection.Host + ":" + strconv.FormatInt(connection.Port, 10) + "/v1"
+	basicClient, err := ClientBuilder(connection, base)
+	if err == nil {
+		client = &Client{basicClient}
 	}
 	return client, err
 }

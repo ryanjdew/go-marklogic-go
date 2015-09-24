@@ -12,6 +12,7 @@ const (
 	XML = iota
 	JSON
 	MIXED
+	TEXTPLAIN
 )
 
 // FormatEnumToMimeType converts a format enum to a mime/type value for the REST API
@@ -21,6 +22,8 @@ func FormatEnumToMimeType(formatEnum int) string {
 		formatStr = "application/json"
 	} else if formatEnum == MIXED {
 		formatStr = "multipart/mixed"
+	} else if formatEnum == TEXTPLAIN {
+		formatStr = "text/plain"
 	} else {
 		formatStr = "application/xml"
 	}
