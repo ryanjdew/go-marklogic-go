@@ -6,8 +6,8 @@ import (
 	"testing"
 
 	"github.com/davecgh/go-spew/spew"
-	_ "github.com/rlouapre/go-marklogic-go/test"
 	handle "github.com/ryanjdew/go-marklogic-go/handle"
+	_ "github.com/ryanjdew/go-marklogic-go/test"
 )
 
 func TestXMLInstanceAdminRequestSerialize(t *testing.T) {

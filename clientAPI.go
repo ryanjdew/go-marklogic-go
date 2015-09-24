@@ -20,7 +20,7 @@ type Client clients.Client
 
 // NewClient creates the Client struct used for searching, etc.
 func NewClient(host string, port int64, username string, password string, authType int) (*Client, error) {
-	client, err := clients.NewClient(host, port, username, password, authType)
+	client, err := clients.NewClient(&clients.Connection{Host: host, Port: port, Username: username, Password: password, AuthenticationType: authType})
 	return convertToClient(client), err
 }
 

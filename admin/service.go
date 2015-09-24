@@ -1,7 +1,7 @@
 package admin
 
 import (
-	"github.com/rlouapre/go-marklogic-go/clients"
+	"github.com/ryanjdew/go-marklogic-go/clients"
 	handle "github.com/ryanjdew/go-marklogic-go/handle"
 )
 

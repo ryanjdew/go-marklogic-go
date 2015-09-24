@@ -11,7 +11,7 @@ type ManagementClient clients.ManagementClient
 
 // NewManagementClient creates the Client struct used for managing databases, etc.
 func NewManagementClient(host string, username string, password string, authType int) (*ManagementClient, error) {
-	client, err := clients.NewManagementClient(host, username, password, authType)
+	client, err := clients.NewManagementClient(&clients.Connection{Host: host, Username: username, Password: password, AuthenticationType: authType})
 	return convertToManageClient(client), err
 }
 

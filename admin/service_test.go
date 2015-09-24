@@ -6,8 +6,8 @@ import (
 	"testing"
 
 	"github.com/davecgh/go-spew/spew"
-	test "github.com/rlouapre/go-marklogic-go/test"
 	handle "github.com/ryanjdew/go-marklogic-go/handle"
+	test "github.com/ryanjdew/go-marklogic-go/test"
 )
 
 var instanceAdminResponse = `<restart xmlns="http://marklogic.com/manage"><last-startup host-id="13544732455686476949">2013-04-01T10:35:19.09913-07:00</last-startup><link><kindref>timestamp</kindref><uriref>/admin/v1/timestamp</uriref></link><message>Check for new timestamp to verify host restart.</message></restart>`

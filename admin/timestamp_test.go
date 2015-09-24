@@ -3,7 +3,7 @@ package admin
 import (
 	"testing"
 
-	handle "github.com/rlouapre/go-marklogic-go/handle"
+	handle "github.com/ryanjdew/go-marklogic-go/handle"
 )
 
 func TestTimestampResponseHandleDeserialize(t *testing.T) {
