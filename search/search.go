@@ -12,6 +12,10 @@ import (
 	"github.com/ryanjdew/go-marklogic-go/util"
 )
 
+const (
+	searchNamespace = "http://marklogic.com/appservices/search"
+)
+
 // ResponseHandle is a handle that places the results into
 // a Response struct
 type ResponseHandle struct {
@@ -165,12 +169,12 @@ func (m *Match) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
 				d.DecodeElement(&content, &e)
 				text := Text{
 					Text:            content,
-					HighlightedText: e.Name.Space == "http://marklogic.com/appservices/search" && e.Name.Local == "highlight",
+					HighlightedText: e.Name.Space == searchNamespace && e.Name.Local == "highlight",
 				}
 				m.Text = append(m.Text, text)
 			case xml.EndElement:
 				e := xml.EndElement(t)
-				if e.Name.Space == "http://marklogic.com/appservices/search" && e.Name.Local == "match" {
+				if e.Name.Space == searchNamespace && e.Name.Local == "match" {
 					return nil
 				}
 			case xml.CharData:

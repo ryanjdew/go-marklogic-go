@@ -17,16 +17,16 @@ func TestInstanceAdmin(t *testing.T) {
 	defer server.Close()
 	want :=
 		RestartResponse{
-			XMLName: xml.Name{"http://marklogic.com/manage", "restart"},
+			XMLName: xml.Name{Space: "http://marklogic.com/manage", Local: "restart"},
 			LastStartup: LastStartupElement{
-				XMLName: xml.Name{"http://marklogic.com/manage", "last-startup"},
+				XMLName: xml.Name{Space: "http://marklogic.com/manage", Local: "last-startup"},
 				Value:   "2013-04-01T10:35:19.09913-07:00",
-				HostId:  "13544732455686476949",
+				HostID:  "13544732455686476949",
 			},
 			Link: LinkElement{
-				XMLName: xml.Name{"http://marklogic.com/manage", "link"},
+				XMLName: xml.Name{Space: "http://marklogic.com/manage", Local: "link"},
 				KindRef: "timestamp",
-				UriRef:  "/admin/v1/timestamp",
+				URIRef:  "/admin/v1/timestamp",
 			},
 			Message: "Check for new timestamp to verify host restart.",
 		}
@@ -54,16 +54,16 @@ func TestInit(t *testing.T) {
 	defer server.Close()
 	want :=
 		RestartResponse{
-			XMLName: xml.Name{"http://marklogic.com/manage", "restart"},
+			XMLName: xml.Name{Space: "http://marklogic.com/manage", Local: "restart"},
 			LastStartup: LastStartupElement{
-				XMLName: xml.Name{"http://marklogic.com/manage", "last-startup"},
+				XMLName: xml.Name{Space: "http://marklogic.com/manage", Local: "last-startup"},
 				Value:   "2013-05-15T09:01:43.019261-07:00",
-				HostId:  "13544732455686476949",
+				HostID:  "13544732455686476949",
 			},
 			Link: LinkElement{
-				XMLName: xml.Name{"http://marklogic.com/manage", "link"},
+				XMLName: xml.Name{Space: "http://marklogic.com/manage", Local: "link"},
 				KindRef: "timestamp",
-				UriRef:  "/admin/v1/timestamp",
+				URIRef:  "/admin/v1/timestamp",
 			},
 			Message: "Check for new timestamp to verify host restart.",
 		}

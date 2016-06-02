@@ -2,10 +2,7 @@ package admin
 
 import (
 	"bytes"
-	_ "encoding/json"
-	_ "encoding/xml"
 	"net/http"
-	_ "strconv"
 
 	clients "github.com/ryanjdew/go-marklogic-go/clients"
 	handle "github.com/ryanjdew/go-marklogic-go/handle"

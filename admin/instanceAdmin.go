@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"encoding/xml"
 	"net/http"
-	_ "strconv"
 
 	clients "github.com/ryanjdew/go-marklogic-go/clients"
 	handle "github.com/ryanjdew/go-marklogic-go/handle"
@@ -20,7 +19,7 @@ type InstanceAdminRequest struct {
 	Realm    string   `xml:"realm" json:"realm"`
 }
 
-// RawHandle returns the raw string results of JSON or XML
+// InstanceAdminHandle returns the raw string results of JSON or XML
 type InstanceAdminHandle struct {
 	*bytes.Buffer
 	Format  int

@@ -15,6 +15,7 @@ const (
 	None
 )
 
+// Connection contains the information needed for a proper MarkLogic connection
 type Connection struct {
 	Host               string
 	Port               int64
@@ -28,6 +29,7 @@ type Client struct {
 	*BasicClient
 }
 
+//ClientBuilder is a factory for MarkLogic clients
 func ClientBuilder(connection *Connection, base string) (*BasicClient, error) {
 	httpClient := &http.Client{}
 	var basicClient *BasicClient

@@ -39,7 +39,7 @@ func read(c *clients.Client, uris []string, categories []string, transform *util
 
 func write(c *clients.Client, documents []DocumentDescription, transform *util.Transform, response handle.ResponseHandle) error {
 	channel := make(chan error)
-	var err error
+	var errReturn error
 	for _, doc := range documents {
 		go func(doc DocumentDescription) {
 			params := buildParameters([]string{doc.URI}, nil, doc.Collections, doc.Permissions, doc.Properties, transform)
@@ -51,13 +51,13 @@ func write(c *clients.Client, documents []DocumentDescription, transform *util.T
 		}(doc)
 	}
 	for _ = range documents {
-		if err == nil {
-			err = <-channel
+		if errReturn == nil {
+			errReturn = <-channel
 		} else {
 			<-channel
 		}
 	}
-	return err
+	return errReturn
 }
 
 func buildParameters(uris []string, categories []string, collections []string, permissions map[string]string, properties map[string]string, transform *util.Transform) string {

@@ -17,10 +17,12 @@ func NewService(client *clients.AdminClient) *Service {
 	}
 }
 
+// Init MarkLogic instance
 func (s *Service) Init(license handle.Handle, response handle.ResponseHandle) error {
 	return initialize(s.client, license, response)
 }
 
+// InstanceAdmin install the admin username and password, and initialize the security database and objects.
 func (s *Service) InstanceAdmin(username string, password string, realm string, response handle.ResponseHandle) error {
 	return instanceAdmin(s.client, username, password, realm, response)
 }

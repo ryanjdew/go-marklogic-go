@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"encoding/xml"
 	"net/http"
-	_ "strconv"
 
 	clients "github.com/ryanjdew/go-marklogic-go/clients"
 	handle "github.com/ryanjdew/go-marklogic-go/handle"
@@ -19,7 +18,7 @@ type InitializeProperties struct {
 	Licensee   string   `xml:"licensee" json:"licensee"`
 }
 
-// RawHandle returns the raw string results of JSON or XML
+// InitHandle returns the raw string results of JSON or XML
 type InitHandle struct {
 	*bytes.Buffer
 	Format               int
@@ -87,7 +86,7 @@ func (rh *RestartResponseHandle) Serialized() string {
 	return rh.String()
 }
 
-// Response represents a response from /admin/v1/init API
+// RestartResponse represents a response from /admin/v1/init API
 type RestartResponse struct {
 	XMLName     xml.Name           `xml:"http://marklogic.com/manage restart" json:"-"`
 	LastStartup LastStartupElement `xml:"last-startup" json:"last-startup,omitempty"`
@@ -95,16 +94,18 @@ type RestartResponse struct {
 	Message     string             `xml:"message" json:"link,omitempty"`
 }
 
+// LastStartupElement represents MarkLogic last startup information
 type LastStartupElement struct {
 	XMLName xml.Name `xml:"last-startup" json:"-"`
 	Value   string   `xml:",chardata"`
-	HostId  string   `xml:"host-id,attr"`
+	HostID  string   `xml:"host-id,attr"`
 }
 
+// LinkElement represents link information
 type LinkElement struct {
 	XMLName xml.Name `xml:"link" json:"-"`
 	KindRef string   `xml:"kindref"`
-	UriRef  string   `xml:"uriref"`
+	URIRef  string   `xml:"uriref"`
 }
 
 // GetFormat returns int that represents XML or JSON

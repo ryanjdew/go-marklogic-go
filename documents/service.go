@@ -18,10 +18,12 @@ func NewService(client *clients.Client) *Service {
 	}
 }
 
+// Read documents
 func (s *Service) Read(uris []string, categories []string, transform *util.Transform, response handle.ResponseHandle) error {
 	return read(s.client, uris, categories, transform, response)
 }
 
+// Write documents according to the DocumentDescription slice passed
 func (s *Service) Write(documents []DocumentDescription, transform *util.Transform, response handle.ResponseHandle) error {
 	return write(s.client, documents, transform, response)
 }
