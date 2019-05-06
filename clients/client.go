@@ -22,6 +22,7 @@ type Connection struct {
 	Username           string
 	Password           string
 	AuthenticationType int
+	Database           string
 }
 
 // Client is used for connecting to the MarkLogic REST API.
@@ -47,15 +48,16 @@ func ClientBuilder(connection *Connection, base string) (*BasicClient, error) {
 				authType:      connection.AuthenticationType,
 				httpClient:    httpClient,
 				digestHeaders: digestHeaders,
+				database:      connection.Database,
 			}
 	}
 	return basicClient, err
 }
 
 // NewClient creates the Client struct used for searching, etc.
-func NewClient(connection *Connection /*host string, port int64, username string, password string, authType int*/) (*Client, error) {
+func NewClient(connection *Connection /*host string, port int64, username string, password string, authType int, database string*/) (*Client, error) {
 	var client *Client
-	base := "http://" + connection.Host + ":" + strconv.FormatInt(connection.Port, 10) + "/v1"
+	base := "http://" + connection.Host + ":" + strconv.FormatInt(connection.Port, 10) + "/LATEST"
 	basicClient, err := ClientBuilder(connection, base)
 	if err == nil {
 		client = &Client{basicClient}
@@ -79,6 +81,7 @@ type BasicClient struct {
 	authType      int
 	httpClient    *http.Client
 	digestHeaders *digestAuth.DigestHeaders
+	database      string
 }
 
 // Base provides the base of the REST calls that will be made

@@ -3,7 +3,7 @@ package clients
 import "testing"
 
 func TestConnection(t *testing.T) {
-	expectedBase := "http://localhost:8000/v1"
+	expectedBase := "http://localhost:8000/LATEST"
 	// Using BASIC_AUTH, so it doesn't start authenitcation
 	// client, err := NewClient("localhost", 8000, "admin", "admin", BasicAuth)
 	client, err := NewClient(&Connection{Host: "localhost", Port: 8000, Username: "admin", Password: "admin", AuthenticationType: BasicAuth})

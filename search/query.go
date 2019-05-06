@@ -69,6 +69,15 @@ func (qh *QueryHandle) Serialized() string {
 	return qh.String()
 }
 
+// CombinedQuery represents https://docs.marklogic.com/guide/rest-dev/search#id_69918
+type CombinedQuery struct {
+	XMLName         xml.Name `xml:"http://marklogic.com/appservices/search search" json:"search"`
+	StructuredQuery Query    `xml:"http://marklogic.com/appservices/search query" json:"query,omitempty"`
+	QText           []string `xml:"http://marklogic.com/appservices/search qtext" json:"qtext,omitempty"`
+	SPARQL          string   `xml:"http://marklogic.com/appservices/search sparql" json:"sparql,omitempty"`
+	// TODO: Options SearchOptions
+}
+
 // Query represents http://docs.marklogic.com/guide/search-dev/structured-query#id_85307
 type Query struct {
 	XMLName xml.Name      `xml:"http://marklogic.com/appservices/search query" json:"-"`

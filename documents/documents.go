@@ -50,7 +50,7 @@ func write(c *clients.Client, documents []DocumentDescription, transform *util.T
 			channel <- err
 		}(doc)
 	}
-	for _ = range documents {
+	for range documents {
 		if errReturn == nil {
 			errReturn = <-channel
 		} else {

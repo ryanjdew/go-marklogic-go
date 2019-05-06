@@ -1,9 +1,11 @@
 package goMarklogicGo
 
 import (
+	"github.com/ryanjdew/go-marklogic-go/alert"
 	clients "github.com/ryanjdew/go-marklogic-go/clients"
 	"github.com/ryanjdew/go-marklogic-go/config"
 	"github.com/ryanjdew/go-marklogic-go/documents"
+	rowsManagement "github.com/ryanjdew/go-marklogic-go/rows-management"
 	search "github.com/ryanjdew/go-marklogic-go/search"
 	"github.com/ryanjdew/go-marklogic-go/semantics"
 )
@@ -18,10 +20,23 @@ const (
 // Client is used for connecting to the MarkLogic REST API.
 type Client clients.Client
 
+// Connection is used for defining the connection to the MarkLogic REST API.
+type Connection clients.Connection
+
 // NewClient creates the Client struct used for searching, etc.
 func NewClient(host string, port int64, username string, password string, authType int) (*Client, error) {
-	client, err := clients.NewClient(&clients.Connection{Host: host, Port: port, Username: username, Password: password, AuthenticationType: authType})
+	return New(&Connection{Host: host, Port: port, Username: username, Password: password, AuthenticationType: authType})
+}
+
+// New creates the Client struct used for searching, etc.
+func New(config *Connection) (*Client, error) {
+	client, err := clients.NewClient(convertToSubConnection(config))
 	return convertToClient(client), err
+}
+
+// Alerting service
+func (c *Client) Alerting() *alert.Service {
+	return alert.NewService(convertToSubClient(c))
 }
 
 // Config service
@@ -32,6 +47,11 @@ func (c *Client) Config() *config.Service {
 // Documents service
 func (c *Client) Documents() *documents.Service {
 	return documents.NewService(convertToSubClient(c))
+}
+
+// RowsManagement service
+func (c *Client) RowsManagement() *rowsManagement.Service {
+	return rowsManagement.NewService(convertToSubClient(c))
 }
 
 // Search service
@@ -51,5 +71,10 @@ func convertToSubClient(c *Client) *clients.Client {
 
 func convertToClient(c *clients.Client) *Client {
 	converted := Client(*c)
+	return &converted
+}
+
+func convertToSubConnection(c *Connection) *clients.Connection {
+	converted := clients.Connection(*c)
 	return &converted
 }
