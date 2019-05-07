@@ -15,7 +15,7 @@ XML data. JSON data. Semantic data.
 
 Status
 =========
-[![GoDoc](https://godoc.org/github.com/ryanjdew/go-marklogic-go?status.svg)](https://godoc.org/github.com/ryanjdew/go-marklogic-go) [![Build Status](https://drone.io/github.com/ryanjdew/go-marklogic-go/status.png)](https://drone.io/github.com/ryanjdew/go-marklogic-go/latest)
+[![GoDoc](https://godoc.org/github.com/ryanjdew/go-marklogic-go?status.svg)](https://godoc.org/github.com/ryanjdew/go-marklogic-go) [![Build Status](https://cloud.drone.io/api/badges/ryanjdew/go-marklogic-go/status.svg)](https://cloud.drone.io/ryanjdew/go-marklogic-go)
 
 Sample Code
 =========

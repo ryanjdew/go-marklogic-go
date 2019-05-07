@@ -1,10 +1,6 @@
 kind: pipeline
 name: default
 
-workspace:
-  base: /go
-  path: src/github.com/ryanjdew/go-marklogic-go
-
 steps:
 - name: test
   image: golang
