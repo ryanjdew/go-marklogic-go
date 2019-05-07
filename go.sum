@@ -1,0 +1,4 @@
+github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c=
+github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
+github.com/ryanjdew/http-digest-auth-client v0.0.0-20151218182924-11e29e9c592d h1:vN6FrAmP4N5SB4+0oS8nGMrU4mar8U5Lb3xe6mlKaOU=
+github.com/ryanjdew/http-digest-auth-client v0.0.0-20151218182924-11e29e9c592d/go.mod h1:LWSKJLdMrIfcHENNbhqOtpEC1+fs9dbi3+h7ASxRggU=
