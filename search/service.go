@@ -31,3 +31,8 @@ func (s *Service) StructuredSearch(query handle.Handle, start int64, pageLength 
 func (s *Service) StructuredSuggestions(query handle.Handle, partialQ string, limit int64, options string, response handle.ResponseHandle) error {
 	return StructuredSuggestions(s.client, query, partialQ, limit, options, response)
 }
+
+// Delete documents that match specified collection, directory, etc.
+func (s *Service) Delete(parameters map[string]string, response handle.ResponseHandle) error {
+	return Delete(s.client, parameters, response)
+}

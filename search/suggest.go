@@ -24,6 +24,7 @@ type SuggestionsResponseHandle struct {
 	*bytes.Buffer
 	Format              int
 	suggestionsResponse *SuggestionsResponse
+	timestamp           string
 }
 
 // GetFormat returns int that represents XML or JSON
@@ -77,6 +78,16 @@ func (srh *SuggestionsResponseHandle) Get() *SuggestionsResponse {
 func (srh *SuggestionsResponseHandle) Serialized() string {
 	srh.Serialize(srh.suggestionsResponse)
 	return srh.String()
+}
+
+// SetTimestamp sets the timestamp
+func (srh *SuggestionsResponseHandle) SetTimestamp(timestamp string) {
+	srh.timestamp = timestamp
+}
+
+// Timestamp retieves a timestamp
+func (srh *SuggestionsResponseHandle) Timestamp() string {
+	return srh.timestamp
 }
 
 // StructuredSuggestions suggests query text based off of a structured query

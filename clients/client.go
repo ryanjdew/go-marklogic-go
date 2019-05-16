@@ -115,6 +115,11 @@ func (bc *BasicClient) DigestHeaders() *digestAuth.DigestHeaders {
 	return bc.digestHeaders
 }
 
+// Database returns the database the client is targeting
+func (bc *BasicClient) Database() string {
+	return bc.database
+}
+
 // ApplyAuth adds the neccessary headers for authentication
 func ApplyAuth(c RESTClient, req *http.Request) {
 	pwd, _ := c.Userinfo().Password()

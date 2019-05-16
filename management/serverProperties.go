@@ -111,6 +111,7 @@ type ServerPropertiesHandle struct {
 	*bytes.Buffer
 	Format           int
 	serverProperties ServerProperties
+	timestamp        string
 }
 
 // GetFormat returns int that represents XML or JSON
@@ -164,4 +165,14 @@ func (sh *ServerPropertiesHandle) Get() ServerProperties {
 func (sh *ServerPropertiesHandle) Serialized() string {
 	sh.Serialize(sh.serverProperties)
 	return sh.String()
+}
+
+// SetTimestamp sets the timestamp
+func (sh *ServerPropertiesHandle) SetTimestamp(timestamp string) {
+	sh.timestamp = timestamp
+}
+
+// Timestamp retieves a timestamp
+func (sh *ServerPropertiesHandle) Timestamp() string {
+	return sh.timestamp
 }

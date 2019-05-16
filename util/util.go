@@ -2,6 +2,7 @@ package util
 
 import (
 	"fmt"
+	"io/ioutil"
 	"net/http"
 	"net/url"
 
@@ -62,11 +63,15 @@ func Execute(c clients.RESTClient, req *http.Request, responseHandle handle.Resp
 	resp, err := c.HTTPClient().Do(req)
 	if err != nil {
 		return err
-	} else if resp.StatusCode >= 400 {
+	}
+	if resp.StatusCode >= 400 {
 		return fmt.Errorf("HTTP call returned status %v", resp.StatusCode)
 	}
 	if respHandleNotNil {
 		return responseHandle.AcceptResponse(resp)
+	} else {
+		ioutil.ReadAll(resp.Body)
+		resp.Body.Close()
 	}
 	return nil
 }

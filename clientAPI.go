@@ -4,6 +4,7 @@ import (
 	"github.com/ryanjdew/go-marklogic-go/alert"
 	clients "github.com/ryanjdew/go-marklogic-go/clients"
 	"github.com/ryanjdew/go-marklogic-go/config"
+	dataMovement "github.com/ryanjdew/go-marklogic-go/data-movement"
 	"github.com/ryanjdew/go-marklogic-go/documents"
 	rowsManagement "github.com/ryanjdew/go-marklogic-go/rows-management"
 	search "github.com/ryanjdew/go-marklogic-go/search"
@@ -42,6 +43,11 @@ func (c *Client) Alerting() *alert.Service {
 // Config service
 func (c *Client) Config() *config.Service {
 	return config.NewService(convertToSubClient(c))
+}
+
+// DataMovement service
+func (c *Client) DataMovement() *dataMovement.Service {
+	return dataMovement.NewService(convertToSubClient(c))
 }
 
 // Documents service

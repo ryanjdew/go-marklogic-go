@@ -15,8 +15,9 @@ var mapperFunction = func(str string) interface{} {
 // a Query struct
 type QueryHandle struct {
 	*bytes.Buffer
-	Format int
-	query  Query
+	Format    int
+	Query     Query
+	timestamp string
 }
 
 // GetFormat returns int that represents XML or JSON
@@ -35,38 +36,55 @@ func (qh *QueryHandle) resetBuffer() {
 func (qh *QueryHandle) Deserialize(bytes []byte) {
 	qh.resetBuffer()
 	qh.Write(bytes)
-	qh.query = Query{}
+	qh.Query = Query{}
 	if qh.GetFormat() == handle.JSON {
 		unwrapped, _ := unwrapJSON(bytes, mapperFunction)
-		qh.query = unwrapped.(Query)
+		qh.Query = unwrapped.(Query)
 	} else {
-		xml.Unmarshal(bytes, &qh.query)
+		xml.Unmarshal(bytes, &qh.Query)
 	}
 }
 
 // Serialize returns []byte of XML or JSON that represents the Query struct
 func (qh *QueryHandle) Serialize(query interface{}) {
-	var readBytes []byte
-	qh.query = query.(Query)
+	qh.Query = query.(Query)
 	qh.resetBuffer()
 	if qh.GetFormat() == handle.JSON {
-		readBytes, _ = wrapJSON(qh.query)
+		readBytes, _ := wrapJSON(qh.Query)
 		qh.Write(readBytes)
 	} else {
 		enc := xml.NewEncoder(qh)
-		enc.Encode(qh.query)
+		enc.Encode(qh.Query)
 	}
+}
+
+// Read bytes
+func (qh *QueryHandle) Read(bytes []byte) (n int, err error) {
+	if qh.Buffer == nil {
+		qh.Serialize(qh.Query)
+	}
+	return qh.Buffer.Read(bytes)
 }
 
 // Get returns string of XML or JSON
 func (qh *QueryHandle) Get() *Query {
-	return &qh.query
+	return &qh.Query
 }
 
 // Serialized returns string of XML or JSON
 func (qh *QueryHandle) Serialized() string {
-	qh.Serialize(qh.query)
+	qh.Serialize(qh.Query)
 	return qh.String()
+}
+
+// SetTimestamp sets the timestamp
+func (qh *QueryHandle) SetTimestamp(timestamp string) {
+	qh.timestamp = timestamp
+}
+
+// Timestamp retieves a timestamp
+func (qh *QueryHandle) Timestamp() string {
+	return qh.timestamp
 }
 
 // CombinedQuery represents https://docs.marklogic.com/guide/rest-dev/search#id_69918
@@ -81,7 +99,6 @@ type CombinedQuery struct {
 // Query represents http://docs.marklogic.com/guide/search-dev/structured-query#id_85307
 type Query struct {
 	XMLName xml.Name      `xml:"http://marklogic.com/appservices/search query" json:"-"`
-	Format  int           `xml:"-" json:"-"`
 	Queries []interface{} `xml:",any" json:"queries"`
 }
 

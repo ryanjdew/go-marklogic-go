@@ -23,14 +23,16 @@ type InitHandle struct {
 	*bytes.Buffer
 	Format               int
 	initializeProperties InitializeProperties
+	timestamp            string
 }
 
 // RestartResponseHandle is a handle that places the results into
 // a Response struct
 type RestartResponseHandle struct {
 	*bytes.Buffer
-	Format   int
-	response RestartResponse
+	Format    int
+	response  RestartResponse
+	timestamp string
 }
 
 // GetFormat returns int that represents XML or JSON
@@ -86,12 +88,23 @@ func (rh *RestartResponseHandle) Serialized() string {
 	return rh.String()
 }
 
+// SetTimestamp sets the timestamp
+func (rh *RestartResponseHandle) SetTimestamp(timestamp string) {
+	rh.timestamp = timestamp
+}
+
+// Timestamp retieves a timestamp
+func (rh *RestartResponseHandle) Timestamp() string {
+	return rh.timestamp
+}
+
 // RestartResponse represents a response from /admin/v1/init API
 type RestartResponse struct {
 	XMLName     xml.Name           `xml:"http://marklogic.com/manage restart" json:"-"`
 	LastStartup LastStartupElement `xml:"last-startup" json:"last-startup,omitempty"`
 	Link        LinkElement        `xml:"link" json:"link,omitempty"`
 	Message     string             `xml:"message" json:"link,omitempty"`
+	timestamp   string
 }
 
 // LastStartupElement represents MarkLogic last startup information
@@ -159,6 +172,16 @@ func (rh *InitHandle) Get() *InitializeProperties {
 func (rh *InitHandle) Serialized() string {
 	rh.Serialize(rh.initializeProperties)
 	return rh.String()
+}
+
+// SetTimestamp sets the timestamp
+func (rh *InitHandle) SetTimestamp(timestamp string) {
+	rh.timestamp = timestamp
+}
+
+// Timestamp retieves a timestamp
+func (rh *InitHandle) Timestamp() string {
+	return rh.timestamp
 }
 
 // Initialize MarkLogic instance

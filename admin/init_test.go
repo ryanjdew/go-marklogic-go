@@ -18,7 +18,7 @@ func TestXMLInitializePropertiesSerialize(t *testing.T) {
 			LicenseKey: "1234-5678-90AB",
 			Licensee:   "Your Licensee",
 		}
-	qh := InitHandle{}
+	qh := InitHandle{Format: handle.XML}
 	qh.Serialize(initializeProperties)
 	result := qh.Serialized()
 	if want != result {

@@ -22,7 +22,7 @@ func TestXMLQuerySerialize(t *testing.T) {
 				},
 			},
 		}
-	qh := QueryHandle{}
+	qh := QueryHandle{Format: handle.XML}
 	qh.Serialize(query)
 	result := qh.Serialized()
 	if want != result {
@@ -34,7 +34,7 @@ func TestXMLQuerySerialize(t *testing.T) {
 
 func TestXMLQueryEncode(t *testing.T) {
 	want := "<query xmlns=\"http://marklogic.com/appservices/search\"><term-query xmlns=\"http://marklogic.com/appservices/search\"><text xmlns=\"http://marklogic.com/appservices/search\">data</text></term-query></query>"
-	qh := QueryHandle{}
+	qh := QueryHandle{Format: handle.XML}
 	qh.Deserialize([]byte(want))
 	result := qh.Serialized()
 	if want != result {

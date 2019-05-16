@@ -40,14 +40,14 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	query := search.Query{Format: handle.XML}
+	query := search.Query{}
 	query.Queries = []interface{}{
 		search.TermQuery{
 			Terms: []string{queryStr},
 		},
 	}
 
-	qh := search.QueryHandle{}
+	qh := search.QueryHandle{Format: handle.XML}
 	qh.Serialize(query)
 	fmt.Print("Serialized query:\n")
 	fmt.Print(spew.Sdump(qh.Serialized()))

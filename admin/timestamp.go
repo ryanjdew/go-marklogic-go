@@ -68,6 +68,16 @@ func (rh *TimestampResponseHandle) Serialized() string {
 	return rh.String()
 }
 
+// SetTimestamp sets the timestamp
+func (rh *TimestampResponseHandle) SetTimestamp(timestamp string) {
+	rh.timestamp = timestamp
+}
+
+// Timestamp retieves a timestamp
+func (rh *TimestampResponseHandle) Timestamp() string {
+	return rh.timestamp
+}
+
 // Verify that MarkLogic Server is up and accepting requests.
 // https://docs.marklogic.com/REST/GET/admin/v1/timestamp
 func timestamp(ac *clients.AdminClient, response handle.ResponseHandle) error {

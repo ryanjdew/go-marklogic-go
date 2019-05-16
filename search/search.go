@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"encoding/xml"
 	"net/http"
+	"net/url"
 	"strconv"
 
 	clients "github.com/ryanjdew/go-marklogic-go/clients"
@@ -20,8 +21,9 @@ const (
 // a Response struct
 type ResponseHandle struct {
 	*bytes.Buffer
-	Format   int
-	response Response
+	Format    int
+	response  Response
+	timestamp string
 }
 
 // GetFormat returns int that represents XML or JSON
@@ -75,6 +77,16 @@ func (rh *ResponseHandle) Get() *Response {
 func (rh *ResponseHandle) Serialized() string {
 	rh.Serialize(rh.response)
 	return rh.String()
+}
+
+// SetTimestamp sets the timestamp
+func (rh *ResponseHandle) SetTimestamp(timestamp string) {
+	rh.timestamp = timestamp
+}
+
+// Timestamp retieves a timestamp
+func (rh *ResponseHandle) Timestamp() string {
+	return rh.timestamp
 }
 
 // Response represents a response from the search API
@@ -136,6 +148,19 @@ type FacetValue struct {
 // Search with text value
 func Search(c *clients.Client, text string, start int64, pageLength int64, response handle.ResponseHandle) error {
 	req, err := util.BuildRequestFromHandle(c, "GET", "/search?q="+text+"&start="+strconv.FormatInt(start, 10)+"&pageLength="+strconv.FormatInt(pageLength, 10), nil)
+	if err != nil {
+		return err
+	}
+	return util.Execute(c, req, response)
+}
+
+// Delete documents that match specified collection, directory, etc.
+func Delete(c *clients.Client, parameters map[string]string, response handle.ResponseHandle) error {
+	params := util.MappedParameters("?", "", parameters)
+	if c.BasicClient.Database() != "" {
+		params = params + "&database=" + url.QueryEscape(c.BasicClient.Database())
+	}
+	req, err := util.BuildRequestFromHandle(c, "DELETE", "/search"+params, nil)
 	if err != nil {
 		return err
 	}

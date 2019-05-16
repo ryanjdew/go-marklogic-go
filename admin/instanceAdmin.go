@@ -22,8 +22,9 @@ type InstanceAdminRequest struct {
 // InstanceAdminHandle returns the raw string results of JSON or XML
 type InstanceAdminHandle struct {
 	*bytes.Buffer
-	Format  int
-	request InstanceAdminRequest
+	Format    int
+	request   InstanceAdminRequest
+	timestamp string
 }
 
 // GetFormat returns int that represents XML or JSON
@@ -77,6 +78,16 @@ func (rh *InstanceAdminHandle) Get() *InstanceAdminRequest {
 func (rh *InstanceAdminHandle) Serialized() string {
 	rh.Serialize(rh.request)
 	return rh.String()
+}
+
+// SetTimestamp sets the timestamp
+func (rh *InstanceAdminHandle) SetTimestamp(timestamp string) {
+	rh.timestamp = timestamp
+}
+
+// Timestamp retieves a timestamp
+func (rh *InstanceAdminHandle) Timestamp() string {
+	return rh.timestamp
 }
 
 // Install the admin username and password, and initialize the security database and objects.

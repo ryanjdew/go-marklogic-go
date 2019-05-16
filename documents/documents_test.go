@@ -1,6 +1,7 @@
 package documents
 
 import (
+	"strings"
 	"testing"
 
 	"github.com/davecgh/go-spew/spew"
@@ -29,6 +30,23 @@ func TestBuildParameters(t *testing.T) {
 		},
 		transform,
 	)
+	if want != result {
+		t.Errorf("Build Parameters Results = %+v, Want = %+v", spew.Sdump(result), spew.Sdump(want))
+	}
+}
+
+func TestMetadataSerialize(t *testing.T) {
+	want := `{"collections":["col1"],"permissions":[{"role-name":"rest-writer","capabilities":["update"]},{"role-name":"rest-reader","capabilities":["read"]}],"properties":{"custom-prop":"some property value"},"metadataValues":{"MetaData1":"metadata"},"quality":1}`
+	metadataHandle := &MetadataHandle{
+		metadata: Metadata{
+			Collections:    []string{"col1"},
+			Permissions:    []Permission{Permission{RoleName: "rest-writer", Capability: []string{"update"}}, Permission{RoleName: "rest-reader", Capability: []string{"read"}}},
+			Properties:     map[string]string{"custom-prop": "some property value"},
+			Quality:        1,
+			MetadataValues: map[string]string{"MetaData1": "metadata"},
+		},
+	}
+	result := strings.Trim(metadataHandle.Serialized(), "\n")
 	if want != result {
 		t.Errorf("Build Parameters Results = %+v, Want = %+v", spew.Sdump(result), spew.Sdump(want))
 	}

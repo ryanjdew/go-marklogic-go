@@ -193,6 +193,7 @@ type DatabasePropertiesHandle struct {
 	*bytes.Buffer
 	Format             int
 	databaseProperties DatabaseProperties
+	timestamp          string
 }
 
 // GetFormat returns int that represents XML or JSON
@@ -246,4 +247,14 @@ func (dh *DatabasePropertiesHandle) Get() DatabaseProperties {
 func (dh *DatabasePropertiesHandle) Serialized() string {
 	dh.Serialize(dh.databaseProperties)
 	return dh.String()
+}
+
+// SetTimestamp sets the timestamp
+func (dh *DatabasePropertiesHandle) SetTimestamp(timestamp string) {
+	dh.timestamp = timestamp
+}
+
+// Timestamp retieves a timestamp
+func (dh *DatabasePropertiesHandle) Timestamp() string {
+	return dh.timestamp
 }

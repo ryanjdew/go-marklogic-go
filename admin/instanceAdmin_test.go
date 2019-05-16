@@ -18,7 +18,7 @@ func TestXMLInstanceAdminRequestSerialize(t *testing.T) {
 			Password: "password",
 			Realm:    "public",
 		}
-	qh := InstanceAdminHandle{}
+	qh := InstanceAdminHandle{Format: handle.XML}
 	qh.Serialize(request)
 	result := qh.Serialized()
 	if want != result {

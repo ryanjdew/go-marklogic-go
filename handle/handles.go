@@ -9,8 +9,8 @@ import (
 
 // Format options
 const (
-	XML = iota
-	JSON
+	JSON = iota
+	XML
 	MIXED
 	TEXTPLAIN
 )
@@ -37,6 +37,8 @@ type Handle interface {
 	Deserialize([]byte)
 	Serialize(interface{})
 	Serialized() string
+	SetTimestamp(string)
+	Timestamp() string
 }
 
 // ResponseHandle interface
@@ -48,7 +50,8 @@ type ResponseHandle interface {
 // RawHandle returns the raw string results of JSON or XML
 type RawHandle struct {
 	*bytes.Buffer
-	Format int
+	timestamp string
+	Format    int
 }
 
 // GetFormat returns int that represents XML or JSON
@@ -89,11 +92,22 @@ func (r *RawHandle) Serialized() string {
 	return r.Get()
 }
 
+// SetTimestamp sets the timestamp
+func (r *RawHandle) SetTimestamp(timestamp string) {
+	r.timestamp = timestamp
+}
+
+// Timestamp retieves a timestamp
+func (r *RawHandle) Timestamp() string {
+	return r.timestamp
+}
+
 // MapHandle returns the raw string results of JSON or XML
 type MapHandle struct {
 	*bytes.Buffer
-	Format  int
-	mapItem *map[string]interface{}
+	Format    int
+	timestamp string
+	mapItem   *map[string]interface{}
 }
 
 // GetFormat returns int that represents XML or JSON
@@ -134,10 +148,21 @@ func (m *MapHandle) Serialized() string {
 	return m.String()
 }
 
+// SetTimestamp sets the timestamp
+func (m *MapHandle) SetTimestamp(timestamp string) {
+	m.timestamp = timestamp
+}
+
+// Timestamp retieves a timestamp
+func (m *MapHandle) Timestamp() string {
+	return m.timestamp
+}
+
 // CommonHandleAcceptResponse handles an HTTP response
 func CommonHandleAcceptResponse(genericHandle Handle, response *http.Response) error {
 	defer response.Body.Close()
 	contents, err := ioutil.ReadAll(response.Body)
 	genericHandle.Deserialize(contents)
+	genericHandle.SetTimestamp(response.Header.Get("ML-Effective-Timestamp"))
 	return err
 }
