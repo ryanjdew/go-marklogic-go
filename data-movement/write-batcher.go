@@ -2,33 +2,32 @@ package dataMovement
 
 import (
 	"sync"
+	"time"
 
 	"github.com/ryanjdew/go-marklogic-go/clients"
 	"github.com/ryanjdew/go-marklogic-go/documents"
 	handle "github.com/ryanjdew/go-marklogic-go/handle"
+	"github.com/ryanjdew/go-marklogic-go/util"
 )
 
 // WriteBatcher writes documents in bulk
 type WriteBatcher struct {
-	client           *clients.Client
-	documentsService *documents.Service
-	clients          []*clients.Client
-	batchSize        uint16
-	threadCount      uint8
-	writeChannel     <-chan *documents.DocumentDescription
-	timestamp        string
-	listeners        []chan<- *WriteBatch
-	waitGroup        *sync.WaitGroup
+	client                 *clients.Client
+	documentsServiceByHost map[string]*documents.Service
+	clientsByHost          map[string]*clients.Client
+	batchSize              uint16
+	threadCount            uint8
+	writeChannel           <-chan *documents.DocumentDescription
+	timestamp              string
+	listeners              []chan<- *WriteBatch
+	waitGroup              *sync.WaitGroup
+	forestInfo             []ForestInfo
+	transform              *util.Transform
 }
 
 // BatchSize is the number documents we'll create in a single batch
 func (wbr *WriteBatcher) BatchSize() uint16 {
 	return wbr.batchSize
-}
-
-// DocumentsService used to write the documents
-func (wbr *WriteBatcher) DocumentsService() *documents.Service {
-	return wbr.documentsService
 }
 
 // ThreadCount is the number threads we'll create
@@ -58,6 +57,12 @@ func (wbr *WriteBatcher) WithBatchSize(batchSize uint16) *WriteBatcher {
 	return wbr
 }
 
+// WithTransform transform to apply to the documents
+func (wbr *WriteBatcher) WithTransform(transform *util.Transform) *WriteBatcher {
+	wbr.transform = transform
+	return wbr
+}
+
 // WithWriteChannel add a channel od documents to write
 func (wbr *WriteBatcher) WithWriteChannel(writeChannel <-chan *documents.DocumentDescription) *WriteBatcher {
 	wbr.writeChannel = writeChannel
@@ -83,11 +88,33 @@ func (wbr *WriteBatcher) RemoveListener(listener chan<- *WriteBatch) *WriteBatch
 
 // Run the WriteBatcher
 func (wbr *WriteBatcher) Run() *WriteBatcher {
+	hosts := make([]string, len(wbr.documentsServiceByHost))
+	for host := range wbr.documentsServiceByHost {
+		hosts = append(hosts, host)
+	}
 	threadCount := int(wbr.ThreadCount())
 	wbr.waitGroup = &sync.WaitGroup{}
+	forestLength := len(wbr.forestInfo)
+	hostLength := len(hosts)
+	distributeByForest := threadCount >= forestLength
+	roundRobinCounter := 0
+	var roundRobinLength int
+	if distributeByForest {
+		roundRobinLength = forestLength
+	} else {
+		roundRobinLength = hostLength
+	}
 	for i := 0; i < threadCount; i++ {
 		wbr.waitGroup.Add(1)
-		go runWriteThread(wbr, wbr.WriteChannel())
+		var selectedHost string
+		if distributeByForest {
+			selectedHost = wbr.forestInfo[roundRobinCounter].PreferredHost()
+		} else {
+			selectedHost = hosts[roundRobinCounter]
+		}
+		documentsService := wbr.documentsServiceByHost[selectedHost]
+		go runWriteThread(wbr, wbr.WriteChannel(), documentsService)
+		roundRobinCounter = (roundRobinCounter + 1) % roundRobinLength
 	}
 	return wbr
 }
@@ -98,7 +125,7 @@ func (wbr *WriteBatcher) Wait() *WriteBatcher {
 	return wbr
 }
 
-func runWriteThread(writeBatcher *WriteBatcher, writeChannel <-chan *documents.DocumentDescription) {
+func runWriteThread(writeBatcher *WriteBatcher, writeChannel <-chan *documents.DocumentDescription, documentsService *documents.Service) {
 	listeners := writeBatcher.listeners
 	batchSizeInt := int(writeBatcher.BatchSize())
 	wg := writeBatcher.waitGroup
@@ -107,7 +134,7 @@ func runWriteThread(writeBatcher *WriteBatcher, writeChannel <-chan *documents.D
 	for {
 		if writeBatch == nil {
 			writeBatch = &WriteBatch{
-				documentsService:     writeBatcher.DocumentsService(),
+				documentsService:     documentsService,
 				documentDescriptions: make([]*documents.DocumentDescription, 0, batchSizeInt),
 			}
 		}
@@ -116,24 +143,26 @@ func runWriteThread(writeBatcher *WriteBatcher, writeChannel <-chan *documents.D
 			if writeDoc != nil {
 				writeBatch.documentDescriptions = append(writeBatch.documentDescriptions, writeDoc)
 				if len(writeBatch.documentDescriptions) >= batchSizeInt {
-					submitBatch(writeBatch, listeners)
+					submitBatch(writeBatch, writeBatcher.transform, listeners)
 					writeBatch = nil
 				}
 			} else if !ok && len(writeChannel) == 0 {
 				if len(writeBatch.documentDescriptions) > 0 {
-					submitBatch(writeBatch, listeners)
+					submitBatch(writeBatch, writeBatcher.transform, listeners)
 					writeBatch = nil
 				}
 				return
+			} else {
+				time.Sleep(time.Millisecond)
 			}
 		}
 	}
 }
 
-func submitBatch(writeBatch *WriteBatch, listeners []chan<- *WriteBatch) {
+func submitBatch(writeBatch *WriteBatch, transform *util.Transform, listeners []chan<- *WriteBatch) {
 	if len(writeBatch.DocumentDescriptions()) > 0 {
 		responseHandle := &handle.RawHandle{}
-		writeBatch.DocumentsService().WriteSet(writeBatch.DocumentDescriptions(), &documents.MetadataHandle{}, nil, responseHandle)
+		writeBatch.DocumentsService().WriteSet(writeBatch.DocumentDescriptions(), &documents.MetadataHandle{}, transform, responseHandle)
 		writeBatch.WithResponse(responseHandle)
 
 		// provide writeBatch back to listeners

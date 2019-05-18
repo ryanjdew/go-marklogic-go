@@ -43,12 +43,13 @@ func ClientBuilder(connection *Connection, base string) (*BasicClient, error) {
 	if err == nil {
 		basicClient =
 			&BasicClient{
-				base:          base,
-				userinfo:      url.UserPassword(connection.Username, connection.Password),
-				authType:      connection.AuthenticationType,
-				httpClient:    httpClient,
-				digestHeaders: digestHeaders,
-				database:      connection.Database,
+				base:           base,
+				userinfo:       url.UserPassword(connection.Username, connection.Password),
+				authType:       connection.AuthenticationType,
+				httpClient:     httpClient,
+				digestHeaders:  digestHeaders,
+				database:       connection.Database,
+				connectionInfo: connection,
 			}
 	}
 	return basicClient, err
@@ -76,12 +77,13 @@ type RESTClient interface {
 
 // BasicClient is the basic parts that compose both
 type BasicClient struct {
-	base          string
-	userinfo      *url.Userinfo
-	authType      int
-	httpClient    *http.Client
-	digestHeaders *digestAuth.DigestHeaders
-	database      string
+	base           string
+	userinfo       *url.Userinfo
+	authType       int
+	httpClient     *http.Client
+	digestHeaders  *digestAuth.DigestHeaders
+	database       string
+	connectionInfo *Connection
 }
 
 // Base provides the base of the REST calls that will be made
@@ -118,6 +120,11 @@ func (bc *BasicClient) DigestHeaders() *digestAuth.DigestHeaders {
 // Database returns the database the client is targeting
 func (bc *BasicClient) Database() string {
 	return bc.database
+}
+
+// ConnectionInfo returns the information on the connection
+func (bc *BasicClient) ConnectionInfo() *Connection {
+	return bc.connectionInfo
 }
 
 // ApplyAuth adds the neccessary headers for authentication

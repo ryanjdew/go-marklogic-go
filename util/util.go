@@ -28,11 +28,13 @@ func MappedParameters(params string, prefix string, values map[string]string) st
 		prefix = prefix + ":"
 	}
 	for key, value := range values {
-		separator := "&"
-		if params == "?" {
-			separator = ""
+		if value != "" {
+			separator := "&"
+			if params == "?" {
+				separator = ""
+			}
+			params = params + separator + prefix + key + "=" + url.QueryEscape(value)
 		}
-		params = params + separator + prefix + key + "=" + url.QueryEscape(value)
 	}
 	return params
 }
@@ -46,6 +48,8 @@ func BuildRequestFromHandle(c clients.RESTClient, method string, uri string, req
 	req, err := http.NewRequest(method, c.Base()+uri, reqHandle)
 	if err == nil && reqType != "" {
 		req.Header.Add("Content-Type", reqType)
+	} else {
+		req.Header.Add("Content-Type", "application/json")
 	}
 	return req, err
 }

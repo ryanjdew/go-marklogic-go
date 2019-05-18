@@ -13,6 +13,8 @@ const (
 	XML
 	MIXED
 	TEXTPLAIN
+	TEXT_URI_LIST
+	UNKNOWN
 )
 
 // FormatEnumToMimeType converts a format enum to a mime/type value for the REST API
@@ -24,8 +26,12 @@ func FormatEnumToMimeType(formatEnum int) string {
 		formatStr = "multipart/mixed"
 	} else if formatEnum == TEXTPLAIN {
 		formatStr = "text/plain"
-	} else {
+	} else if formatEnum == TEXT_URI_LIST {
+		formatStr = "text/uri-list"
+	} else if formatEnum == XML {
 		formatStr = "application/xml"
+	} else {
+		formatStr = "application/octet-stream"
 	}
 	return formatStr
 }
