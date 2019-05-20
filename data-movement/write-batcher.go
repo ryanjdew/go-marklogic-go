@@ -23,6 +23,7 @@ type WriteBatcher struct {
 	waitGroup              *sync.WaitGroup
 	forestInfo             []ForestInfo
 	transform              *util.Transform
+	transaction            *util.Transaction
 }
 
 // BatchSize is the number documents we'll create in a single batch
@@ -60,6 +61,12 @@ func (wbr *WriteBatcher) WithBatchSize(batchSize uint16) *WriteBatcher {
 // WithTransform transform to apply to the documents
 func (wbr *WriteBatcher) WithTransform(transform *util.Transform) *WriteBatcher {
 	wbr.transform = transform
+	return wbr
+}
+
+// WithTransaction perform writes in given transaction
+func (wbr *WriteBatcher) WithTransaction(transaction *util.Transaction) *WriteBatcher {
+	wbr.transaction = transaction
 	return wbr
 }
 
@@ -143,12 +150,12 @@ func runWriteThread(writeBatcher *WriteBatcher, writeChannel <-chan *documents.D
 			if writeDoc != nil {
 				writeBatch.documentDescriptions = append(writeBatch.documentDescriptions, writeDoc)
 				if len(writeBatch.documentDescriptions) >= batchSizeInt {
-					submitBatch(writeBatch, writeBatcher.transform, listeners)
+					submitBatch(writeBatch, writeBatcher.transform, writeBatcher.transaction, listeners)
 					writeBatch = nil
 				}
 			} else if !ok && len(writeChannel) == 0 {
 				if len(writeBatch.documentDescriptions) > 0 {
-					submitBatch(writeBatch, writeBatcher.transform, listeners)
+					submitBatch(writeBatch, writeBatcher.transform, writeBatcher.transaction, listeners)
 					writeBatch = nil
 				}
 				return
@@ -159,10 +166,10 @@ func runWriteThread(writeBatcher *WriteBatcher, writeChannel <-chan *documents.D
 	}
 }
 
-func submitBatch(writeBatch *WriteBatch, transform *util.Transform, listeners []chan<- *WriteBatch) {
+func submitBatch(writeBatch *WriteBatch, transform *util.Transform, transaction *util.Transaction, listeners []chan<- *WriteBatch) {
 	if len(writeBatch.DocumentDescriptions()) > 0 {
 		responseHandle := &handle.RawHandle{}
-		writeBatch.DocumentsService().WriteSet(writeBatch.DocumentDescriptions(), &documents.MetadataHandle{}, transform, responseHandle)
+		writeBatch.DocumentsService().WriteSet(writeBatch.DocumentDescriptions(), &documents.MetadataHandle{}, transform, transaction, responseHandle)
 		writeBatch.WithResponse(responseHandle)
 
 		// provide writeBatch back to listeners

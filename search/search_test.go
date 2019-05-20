@@ -129,7 +129,7 @@ func TestSearch(t *testing.T) {
 		}
 	// Using Basic Auth for test so initial call isn't actually made
 	respHandle := ResponseHandle{Format: handle.XML}
-	err := Search(client, "data", 1, 10, &respHandle)
+	err := Search(client, "data", 1, 10, nil, &respHandle)
 	resp := respHandle.Get()
 	if err != nil {
 		t.Errorf("Error = %v", err)
@@ -150,7 +150,7 @@ func TestSearch(t *testing.T) {
 		}
 	qh := QueryHandle{}
 	qh.Serialize(query)
-	err = StructuredSearch(client, &qh, 1, 10, &respHandle)
+	err = StructuredSearch(client, &qh, 1, 10, nil, &respHandle)
 	resp = respHandle.Get()
 	if err != nil {
 		t.Errorf("Error = %v", err)

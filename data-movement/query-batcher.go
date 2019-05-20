@@ -5,6 +5,7 @@ import (
 
 	"github.com/ryanjdew/go-marklogic-go/clients"
 	handle "github.com/ryanjdew/go-marklogic-go/handle"
+	"github.com/ryanjdew/go-marklogic-go/util"
 )
 
 // QueryBatcher reads documents in bulk
@@ -18,6 +19,7 @@ type QueryBatcher struct {
 	listeners     []chan<- *QueryBatch
 	waitGroup     *sync.WaitGroup
 	forestInfo    []ForestInfo
+	transaction   *util.Transaction
 }
 
 // BatchSize is the number documents we'll retrieve in a single batch
@@ -37,8 +39,14 @@ func (qbr *QueryBatcher) WithBatchSize(batchSize uint16) *QueryBatcher {
 }
 
 // WithQuery add a query
-func (qbr *QueryBatcher) WithQuery(listener chan *QueryBatch) *QueryBatcher {
-	qbr.listeners = append(qbr.listeners, listener)
+func (qbr *QueryBatcher) WithQuery(query handle.Handle) *QueryBatcher {
+	qbr.query = query
+	return qbr
+}
+
+// WithTransaction add a transaction
+func (qbr *QueryBatcher) WithTransaction(transaction *util.Transaction) *QueryBatcher {
+	qbr.transaction = transaction
 	return qbr
 }
 
@@ -84,7 +92,7 @@ func runReadThread(queryBatcher *QueryBatcher, forest ForestInfo) {
 	defer wg.Done()
 	for {
 		urisHandle := &URIsHandle{timestamp: queryBatcher.timestamp}
-		getURIs(forestClient, queryBatcher.query, forest.Name, "", 0, after, uint(batchSize), urisHandle)
+		getURIs(forestClient, queryBatcher.query, forest.Name, queryBatcher.transaction, 0, after, uint(batchSize), urisHandle)
 		if queryBatcher.timestamp == "" {
 			queryBatcher.mutex.Lock()
 			if queryBatcher.timestamp == "" {

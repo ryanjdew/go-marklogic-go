@@ -25,7 +25,7 @@ func dataMovement() *dataMovementMod.Service {
 }
 
 func clearDocs() error {
-	return search().Delete(map[string]string{}, &handle.RawHandle{})
+	return search().Delete(map[string]string{}, nil, &handle.RawHandle{})
 }
 
 func collectionCount(collection string) int64 {
@@ -35,6 +35,6 @@ func collectionCount(collection string) int64 {
 			Queries: []interface{}{searchMod.CollectionQuery{URIs: []string{collection}}},
 		},
 	}
-	search().StructuredSearch(structuredQuery, 1, 0, resp)
+	search().StructuredSearch(structuredQuery, 1, 0, nil, resp)
 	return resp.Get().Total
 }

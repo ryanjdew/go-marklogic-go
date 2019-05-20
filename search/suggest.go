@@ -96,6 +96,7 @@ func StructuredSuggestions(c *clients.Client, query handle.Handle, partialQ stri
 	if options != "" {
 		uri = uri + "&options=" + options
 	}
+	uri = util.AddDatabaseParam(uri, c)
 	req, err := util.BuildRequestFromHandle(c, "POST", uri, query)
 	if err != nil {
 		return err

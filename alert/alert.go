@@ -30,6 +30,7 @@ type RuleMetadata struct {
 
 func matchDocument(c *clients.Client, documentDescription documents.DocumentDescription, params map[string]string, response handle.ResponseHandle) error {
 	paramsStr := util.MappedParameters("?", "", params)
+	paramsStr = util.AddDatabaseParam(paramsStr, c)
 	req, err := http.NewRequest("POST", c.Base()+"/alert"+paramsStr, documentDescription.Content)
 	if err != nil {
 		return err
@@ -39,6 +40,7 @@ func matchDocument(c *clients.Client, documentDescription documents.DocumentDesc
 
 func matchQuery(c *clients.Client, query handle.Handle, params map[string]string, response handle.ResponseHandle) error {
 	paramsStr := util.MappedParameters("?", "", params)
+	paramsStr = util.AddDatabaseParam(paramsStr, c)
 	req, err := util.BuildRequestFromHandle(c, "POST", c.Base()+"/alert"+paramsStr, query)
 	if err != nil {
 		return err
@@ -48,6 +50,7 @@ func matchQuery(c *clients.Client, query handle.Handle, params map[string]string
 
 func listRules(c *clients.Client, params map[string]string, response handle.ResponseHandle) error {
 	paramsStr := util.MappedParameters("?", "", params)
+	paramsStr = util.AddDatabaseParam(paramsStr, c)
 	req, err := http.NewRequest("GET", c.Base()+"/alert/rules"+paramsStr, nil)
 	if err != nil {
 		return err
@@ -57,6 +60,7 @@ func listRules(c *clients.Client, params map[string]string, response handle.Resp
 
 func getRule(c *clients.Client, ruleName string, params map[string]string, response handle.ResponseHandle) error {
 	paramsStr := util.MappedParameters("?", "", params)
+	paramsStr = util.AddDatabaseParam(paramsStr, c)
 	req, err := http.NewRequest("GET", c.Base()+"/alert/rules"+ruleName+paramsStr, nil)
 	if err != nil {
 		return err
@@ -66,6 +70,7 @@ func getRule(c *clients.Client, ruleName string, params map[string]string, respo
 
 func addRule(c *clients.Client, ruleName string, rule handle.Handle, params map[string]string, response handle.ResponseHandle) error {
 	paramsStr := util.MappedParameters("?", "", params)
+	paramsStr = util.AddDatabaseParam(paramsStr, c)
 	req, err := util.BuildRequestFromHandle(c, "PUT", "/alert/rules/"+ruleName+paramsStr, rule)
 	if err != nil {
 		return err
@@ -75,6 +80,7 @@ func addRule(c *clients.Client, ruleName string, rule handle.Handle, params map[
 
 func removeRule(c *clients.Client, ruleName string, params map[string]string, response handle.ResponseHandle) error {
 	paramsStr := util.MappedParameters("?", "", params)
+	paramsStr = util.AddDatabaseParam(paramsStr, c)
 	req, err := http.NewRequest("DELETE", c.Base()+"/alert/rules/"+ruleName+paramsStr, nil)
 	if err != nil {
 		return err

@@ -52,12 +52,12 @@ func main() {
 	fmt.Print("Serialized query:\n")
 	fmt.Print(spew.Sdump(qh.Serialized()))
 	respHandle := search.ResponseHandle{}
-	_ = client.Search().StructuredSearch(&qh, 1, 10, &respHandle)
+	_ = client.Search().StructuredSearch(&qh, 1, 10, nil, &respHandle)
 	resp := respHandle.Get()
 	fmt.Print("Serialized response:\n")
 	fmt.Print(spew.Sdump(resp))
 	sugRespHandle := search.SuggestionsResponseHandle{}
-	_ = client.Search().StructuredSuggestions(&qh, queryStr, 10, "", &sugRespHandle)
+	_ = client.Search().StructuredSuggestions(&qh, queryStr, 10, "", nil, &sugRespHandle)
 	sugResp := sugRespHandle.Serialized()
 	fmt.Print("Serialized response:\n")
 	fmt.Print(spew.Sdump(sugResp))

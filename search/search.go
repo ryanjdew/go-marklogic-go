@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"encoding/xml"
 	"net/http"
-	"net/url"
 	"strconv"
 
 	clients "github.com/ryanjdew/go-marklogic-go/clients"
@@ -146,8 +145,11 @@ type FacetValue struct {
 }
 
 // Search with text value
-func Search(c *clients.Client, text string, start int64, pageLength int64, response handle.ResponseHandle) error {
-	req, err := util.BuildRequestFromHandle(c, "GET", "/search?q="+text+"&start="+strconv.FormatInt(start, 10)+"&pageLength="+strconv.FormatInt(pageLength, 10), nil)
+func Search(c *clients.Client, text string, start int64, pageLength int64, transaction *util.Transaction, response handle.ResponseHandle) error {
+	params := "?q=" + text + "&start=" + strconv.FormatInt(start, 10) + "&pageLength=" + strconv.FormatInt(pageLength, 10)
+	params = util.AddDatabaseParam(params, c)
+	params = util.AddTransactionParam(params, transaction)
+	req, err := util.BuildRequestFromHandle(c, "GET", "/search"+params, nil)
 	if err != nil {
 		return err
 	}
@@ -155,11 +157,10 @@ func Search(c *clients.Client, text string, start int64, pageLength int64, respo
 }
 
 // Delete documents that match specified collection, directory, etc.
-func Delete(c *clients.Client, parameters map[string]string, response handle.ResponseHandle) error {
+func Delete(c *clients.Client, parameters map[string]string, transaction *util.Transaction, response handle.ResponseHandle) error {
 	params := util.MappedParameters("?", "", parameters)
-	if c.BasicClient.Database() != "" {
-		params = params + "&database=" + url.QueryEscape(c.BasicClient.Database())
-	}
+	params = util.AddDatabaseParam(params, c)
+	params = util.AddTransactionParam(params, transaction)
 	req, err := util.BuildRequestFromHandle(c, "DELETE", "/search"+params, nil)
 	if err != nil {
 		return err
@@ -168,8 +169,11 @@ func Delete(c *clients.Client, parameters map[string]string, response handle.Res
 }
 
 // StructuredSearch searches with a structured query
-func StructuredSearch(c *clients.Client, query handle.Handle, start int64, pageLength int64, response handle.ResponseHandle) error {
-	req, err := util.BuildRequestFromHandle(c, "POST", "/search?start="+strconv.FormatInt(start, 10)+"&pageLength="+strconv.FormatInt(pageLength, 10), query)
+func StructuredSearch(c *clients.Client, query handle.Handle, start int64, pageLength int64, transaction *util.Transaction, response handle.ResponseHandle) error {
+	params := "?start=" + strconv.FormatInt(start, 10) + "&pageLength=" + strconv.FormatInt(pageLength, 10)
+	params = util.AddDatabaseParam(params, c)
+	params = util.AddTransactionParam(params, transaction)
+	req, err := util.BuildRequestFromHandle(c, "POST", "/search"+params, query)
 	if err != nil {
 		return err
 	}

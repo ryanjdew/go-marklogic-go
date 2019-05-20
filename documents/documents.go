@@ -36,8 +36,10 @@ func toURIs(docs []*DocumentDescription) []string {
 	return uris
 }
 
-func read(c *clients.Client, uris []string, categories []string, transform *util.Transform, response handle.ResponseHandle) error {
+func read(c *clients.Client, uris []string, categories []string, transform *util.Transform, transaction *util.Transaction, response handle.ResponseHandle) error {
 	params := buildParameters(uris, categories, nil, nil, nil, transform)
+	params = util.AddDatabaseParam(params, c)
+	params = util.AddTransactionParam(params, transaction)
 	req, err := http.NewRequest("GET", c.Base()+"/documents"+params, nil)
 	if err != nil {
 		return err
@@ -45,13 +47,15 @@ func read(c *clients.Client, uris []string, categories []string, transform *util
 	return util.Execute(c, req, response)
 }
 
-func write(c *clients.Client, documents []*DocumentDescription, transform *util.Transform, response handle.ResponseHandle) error {
+func write(c *clients.Client, documents []*DocumentDescription, transform *util.Transform, transaction *util.Transaction, response handle.ResponseHandle) error {
 	channel := make(chan error)
 	var errReturn error
 	for _, doc := range documents {
 		go func(doc *DocumentDescription) {
 			metadata := doc.Metadata
 			params := buildParameters([]string{doc.URI}, nil, metadata.Collections, metadata.PermissionsMap(), metadata.Properties, transform)
+			params = util.AddDatabaseParam(params, c)
+			params = util.AddTransactionParam(params, transaction)
 			req, err := http.NewRequest("PUT", c.Base()+"/documents"+params, doc.Content)
 			if err == nil {
 				err = util.Execute(c, req, response)
@@ -69,13 +73,15 @@ func write(c *clients.Client, documents []*DocumentDescription, transform *util.
 	return errReturn
 }
 
-func writeSet(c *clients.Client, documents []*DocumentDescription, metadata handle.Handle, transform *util.Transform, response handle.ResponseHandle) error {
+func writeSet(c *clients.Client, documents []*DocumentDescription, metadata handle.Handle, transform *util.Transform, transaction *util.Transaction, response handle.ResponseHandle) error {
 	body := &bytes.Buffer{}
 	writer := multipart.NewWriter(body)
 	params := ""
 	if transform != nil {
 		params = "?" + transform.ToParameters()
 	}
+	params = util.AddDatabaseParam(params, c)
+	params = util.AddTransactionParam(params, transaction)
 	metaHeader := &textproto.MIMEHeader{}
 	metadataSerialized := metadata.Serialized()
 	if metadata.GetFormat() == handle.JSON {

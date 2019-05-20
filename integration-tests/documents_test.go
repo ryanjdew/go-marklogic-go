@@ -47,7 +47,7 @@ func TestWriteReadDocuments(t *testing.T) {
 		},
 	}
 	response := &handle.RawHandle{}
-	err := client.Documents().WriteSet(docSet, &documents.MetadataHandle{}, nil, response)
+	err := client.Documents().WriteSet(docSet, &documents.MetadataHandle{}, nil, nil, response)
 	if err != nil {
 		t.Errorf("Error writing documents: %+v", err)
 	}

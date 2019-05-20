@@ -14,6 +14,7 @@ const (
 	MIXED
 	TEXTPLAIN
 	TEXT_URI_LIST
+	TEXTHTML
 	UNKNOWN
 )
 
@@ -30,6 +31,8 @@ func FormatEnumToMimeType(formatEnum int) string {
 		formatStr = "text/uri-list"
 	} else if formatEnum == XML {
 		formatStr = "application/xml"
+	} else if formatEnum == TEXTHTML {
+		formatStr = "text/html"
 	} else {
 		formatStr = "application/octet-stream"
 	}

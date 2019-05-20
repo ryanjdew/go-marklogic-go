@@ -9,6 +9,7 @@ import (
 	rowsManagement "github.com/ryanjdew/go-marklogic-go/rows-management"
 	search "github.com/ryanjdew/go-marklogic-go/search"
 	"github.com/ryanjdew/go-marklogic-go/semantics"
+	"github.com/ryanjdew/go-marklogic-go/util"
 )
 
 // Authentication options
@@ -68,6 +69,11 @@ func (c *Client) Search() *search.Service {
 // Semantics service
 func (c *Client) Semantics() *semantics.Service {
 	return semantics.NewService(convertToSubClient(c))
+}
+
+// NewTransaction returns a new transaction struct
+func (c *Client) NewTransaction() *util.Transaction {
+	return &util.Transaction{}
 }
 
 func convertToSubClient(c *Client) *clients.Client {

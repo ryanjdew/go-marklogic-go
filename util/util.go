@@ -39,6 +39,33 @@ func MappedParameters(params string, prefix string, values map[string]string) st
 	return params
 }
 
+// AddDatabaseParam is a utility function for adding the database parameter
+func AddDatabaseParam(params string, client *clients.Client) string {
+	if client.Database() != "" {
+		separator := "&"
+		if params == "" {
+			separator = "?"
+		}
+		params = params + separator + "database=" + url.QueryEscape(client.Database())
+	}
+	return params
+}
+
+// AddTransactionParam is a utility function for adding a transaction parameter
+func AddTransactionParam(params string, transaction *Transaction) string {
+	if transaction != nil {
+		if transaction.ID == "" {
+			transaction.Begin()
+		}
+		separator := "&"
+		if params == "" {
+			separator = "?"
+		}
+		params = params + separator + "txid=" + url.QueryEscape(transaction.ID)
+	}
+	return params
+}
+
 // BuildRequestFromHandle builds a *http.Request based off a handle.Handle
 func BuildRequestFromHandle(c clients.RESTClient, method string, uri string, reqHandle handle.Handle) (*http.Request, error) {
 	reqType := ""

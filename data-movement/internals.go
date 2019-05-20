@@ -118,11 +118,7 @@ func (fi *ForestInfo) PreferredHost() string {
 }
 
 func getForestInfo(c *clients.Client) []ForestInfo {
-	database := c.Database()
-	params := ""
-	if database != "" {
-		params = "?database=" + database
-	}
+	params := util.AddDatabaseParam("", c)
 	req, _ := util.BuildRequestFromHandle(c, "GET", "/internal/forestinfo"+params, nil)
 	forestInfoHandle := &ForestInfoHandle{}
 	util.Execute(c, req, forestInfoHandle)
@@ -199,19 +195,15 @@ func getURIs(
 	c *clients.Client,
 	query handle.Handle,
 	forestName string,
-	transaction string,
+	transaction *util.Transaction,
 	start uint64,
 	after string,
 	pageLength uint,
 	respHandle handle.ResponseHandle) error {
-	database := c.Database()
 	params := "?"
-	if database != "" {
-		params = "?database=" + database
-	}
+
 	paramsMap := map[string]string{
 		"forest-name": forestName,
-		"txid":        transaction,
 		"after":       after,
 		"pageLength":  strconv.FormatUint(uint64(pageLength), 10),
 	}
@@ -219,6 +211,9 @@ func getURIs(
 		paramsMap["start"] = strconv.FormatUint(start, 10)
 	}
 	params = util.MappedParameters(params, "", paramsMap)
+	params = util.AddDatabaseParam(params, c)
+	params = util.AddTransactionParam(params, transaction)
+
 	req, err := util.BuildRequestFromHandle(c, "POST", "/internal/uris"+params, query)
 	if err != nil {
 		return err
