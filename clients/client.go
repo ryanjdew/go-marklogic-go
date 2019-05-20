@@ -1,3 +1,4 @@
+// Package clients provides clients for working with MarkLogic.
 package clients
 
 import (

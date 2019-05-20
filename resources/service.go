@@ -1,3 +1,4 @@
+// Package resources allows for interacting with custom REST extensions
 package resources
 
 import (
@@ -5,7 +6,7 @@ import (
 	handle "github.com/ryanjdew/go-marklogic-go/handle"
 )
 
-// Service is used for the documents service
+// Service is used for the resources service
 type Service struct {
 	client *clients.Client
 }

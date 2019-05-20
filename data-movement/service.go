@@ -1,3 +1,4 @@
+// Package dataMovement provides way to read and write in bulk
 package dataMovement
 
 import (
@@ -7,14 +8,14 @@ import (
 	"github.com/ryanjdew/go-marklogic-go/documents"
 )
 
-// Service is used for the documents service
+// Service is used for the dataMovement service
 type Service struct {
 	client        *clients.Client
 	clientsByHost map[string]*clients.Client
 	forestInfo    []ForestInfo
 }
 
-// NewService returns a new search.Service
+// NewService returns a new dataMovement.Service
 func NewService(client *clients.Client) *Service {
 	forestInfo := getForestInfo(client)
 

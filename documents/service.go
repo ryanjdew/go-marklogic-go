@@ -1,3 +1,4 @@
+// Package documents provides a way to read and write documents
 package documents
 
 import (
@@ -11,7 +12,7 @@ type Service struct {
 	client *clients.Client
 }
 
-// NewService returns a new search.Service
+// NewService returns a new documents.Service
 func NewService(client *clients.Client) *Service {
 	return &Service{
 		client: client,

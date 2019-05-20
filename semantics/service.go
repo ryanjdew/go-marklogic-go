@@ -1,3 +1,4 @@
+// Package semantics interacts with MarkLogic's semantic APIs
 package semantics
 
 import (
@@ -5,12 +6,12 @@ import (
 	handle "github.com/ryanjdew/go-marklogic-go/handle"
 )
 
-// Service is used for the documents service
+// Service is used for the semantics service
 type Service struct {
 	client *clients.Client
 }
 
-// NewService returns a new search.Service
+// NewService returns a new semantics.Service
 func NewService(client *clients.Client) *Service {
 	return &Service{
 		client: client,

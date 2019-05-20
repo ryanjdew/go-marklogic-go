@@ -1,3 +1,4 @@
+// Package alert works with the MarkLogic Alerting API
 package alert
 
 import (
@@ -6,12 +7,12 @@ import (
 	handle "github.com/ryanjdew/go-marklogic-go/handle"
 )
 
-// Service is used for the documents service
+// Service is used for the alert service
 type Service struct {
 	client *clients.Client
 }
 
-// NewService returns a new search.Service
+// NewService returns a new alert.Service
 func NewService(client *clients.Client) *Service {
 	return &Service{
 		client: client,

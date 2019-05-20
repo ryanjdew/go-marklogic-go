@@ -1,3 +1,4 @@
+// Package config can configure the MarkLogic REST server
 package config
 
 import (
@@ -12,7 +13,7 @@ type Service struct {
 	client *clients.Client
 }
 
-// NewService returns a new search.Service
+// NewService returns a new config.Service
 func NewService(client *clients.Client) *Service {
 	return &Service{
 		client: client,

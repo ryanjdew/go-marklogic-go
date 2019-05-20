@@ -1,3 +1,4 @@
+// Package admin can initialize MarkLogic instances
 package admin
 
 import (
@@ -5,12 +6,12 @@ import (
 	handle "github.com/ryanjdew/go-marklogic-go/handle"
 )
 
-// Service is used for the documents service
+// Service is used for the admin service
 type Service struct {
 	client *clients.AdminClient
 }
 
-// NewService returns a new search.Service
+// NewService returns a new admin.Service
 func NewService(client *clients.AdminClient) *Service {
 	return &Service{
 		client: client,

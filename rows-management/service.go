@@ -1,3 +1,4 @@
+// Package rowsManagement executes an Optic API plan
 package rowsManagement
 
 import (
@@ -5,12 +6,12 @@ import (
 	handle "github.com/ryanjdew/go-marklogic-go/handle"
 )
 
-// Service is used for the documents service
+// Service is used for the rowsManagement service
 type Service struct {
 	client *clients.Client
 }
 
-// NewService returns a new search.Service
+// NewService returns a new rowsManagement.Service
 func NewService(client *clients.Client) *Service {
 	return &Service{
 		client: client,

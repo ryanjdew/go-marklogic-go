@@ -1,3 +1,4 @@
+// Package search interacts with the MarkLogic search API
 package search
 
 import (
