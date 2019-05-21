@@ -29,16 +29,16 @@ import (
 )
 func main() {
   db, _ := marklogic.NewClient("localhost", 8050, "admin", "admin", marklogic.DigestAuth)
-  query := search.Query{Format: handle.XML}
+  query := search.Query{}
   query.Queries = []interface{}{
     search.TermQuery{
       Terms: []string{queryStr},
     },
   }
-  qh := search.QueryHandle{}
+  qh := search.QueryHandle{Format: handle.XML}
   qh.Serialize(query)
   respHandle := search.ResponseHandle{}
-  err = db.Search().StructuredSearch(&qh, 1, 10, &respHandle)
+  err = db.Search().StructuredSearch(&qh, 1, 10, nil, &respHandle)
   resp := respHandle.Get()
   fmt.Print(respHandle.Serialized())
 }
