@@ -1,10 +1,10 @@
-package goMarklogicGo
+package gomarklogicgo
 
 import (
 	"github.com/ryanjdew/go-marklogic-go/alert"
 	clients "github.com/ryanjdew/go-marklogic-go/clients"
 	"github.com/ryanjdew/go-marklogic-go/config"
-	dataMovement "github.com/ryanjdew/go-marklogic-go/data-movement"
+	datamovement "github.com/ryanjdew/go-marklogic-go/datamovement"
 	"github.com/ryanjdew/go-marklogic-go/documents"
 	rowsManagement "github.com/ryanjdew/go-marklogic-go/rows-management"
 	search "github.com/ryanjdew/go-marklogic-go/search"
@@ -47,8 +47,8 @@ func (c *Client) Config() *config.Service {
 }
 
 // DataMovement service
-func (c *Client) DataMovement() *dataMovement.Service {
-	return dataMovement.NewService(convertToSubClient(c))
+func (c *Client) DataMovement() *datamovement.Service {
+	return datamovement.NewService(convertToSubClient(c))
 }
 
 // Documents service

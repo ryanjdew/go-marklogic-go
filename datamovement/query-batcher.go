@@ -1,4 +1,4 @@
-package dataMovement
+package datamovement
 
 import (
 	"sync"
@@ -67,7 +67,7 @@ func (qbr *QueryBatcher) RemoveListener(listener chan *QueryBatch) *QueryBatcher
 	return qbr
 }
 
-// Run the WriteBatcher
+// Run the QueryBatcher
 func (qbr *QueryBatcher) Run() *QueryBatcher {
 	qbr.waitGroup = &sync.WaitGroup{}
 	for _, forest := range qbr.forestInfo {
@@ -77,7 +77,7 @@ func (qbr *QueryBatcher) Run() *QueryBatcher {
 	return qbr
 }
 
-// Wait on the WriteBatcher to finish
+// Wait on the QueryBatcher to finish
 func (qbr *QueryBatcher) Wait() *QueryBatcher {
 	qbr.waitGroup.Wait()
 	return qbr

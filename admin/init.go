@@ -103,7 +103,7 @@ type RestartResponse struct {
 	XMLName     xml.Name           `xml:"http://marklogic.com/manage restart" json:"-"`
 	LastStartup LastStartupElement `xml:"last-startup" json:"last-startup,omitempty"`
 	Link        LinkElement        `xml:"link" json:"link,omitempty"`
-	Message     string             `xml:"message" json:"link,omitempty"`
+	Message     string             `xml:"message" json:"message,omitempty"`
 	timestamp   string
 }
 

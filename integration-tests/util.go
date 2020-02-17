@@ -1,8 +1,8 @@
-package integrationTests
+package integrationtests
 
 import (
 	marklogic "github.com/ryanjdew/go-marklogic-go"
-	dataMovementMod "github.com/ryanjdew/go-marklogic-go/data-movement"
+	dataMovementMod "github.com/ryanjdew/go-marklogic-go/datamovement"
 	handle "github.com/ryanjdew/go-marklogic-go/handle"
 	searchMod "github.com/ryanjdew/go-marklogic-go/search"
 )

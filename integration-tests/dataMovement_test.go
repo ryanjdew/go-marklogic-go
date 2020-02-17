@@ -1,6 +1,6 @@
 // +build integration
 
-package integrationTests
+package integrationtests
 
 import (
 	"bytes"
@@ -8,7 +8,7 @@ import (
 	"sync"
 	"testing"
 
-	dataMovementMod "github.com/ryanjdew/go-marklogic-go/data-movement"
+	dataMovementMod "github.com/ryanjdew/go-marklogic-go/datamovement"
 	"github.com/ryanjdew/go-marklogic-go/documents"
 	handle "github.com/ryanjdew/go-marklogic-go/handle"
 )

@@ -1,6 +1,6 @@
 // +build integration
 
-package integrationTests
+package integrationtests
 
 import (
 	"bytes"

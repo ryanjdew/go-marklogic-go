@@ -1,4 +1,4 @@
-package dataMovement
+package datamovement
 
 import (
 	"sync"

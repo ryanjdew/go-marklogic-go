@@ -1,4 +1,4 @@
-package goMarklogicGo
+package gomarklogicgo
 
 import (
 	clients "github.com/ryanjdew/go-marklogic-go/clients"

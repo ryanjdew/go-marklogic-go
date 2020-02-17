@@ -146,7 +146,7 @@ type Field struct {
 	IncludeRoot        bool              `xml:"http://marklogic.com/manage include-root" json:"include-root"`
 	WordLexicon        []string          `xml:"http://marklogic.com/manage word-lexicon" json:"word-lexicon,omitempty"`
 	IncludedElement    []IncludedElement `xml:"http://marklogic.com/manage included-element" json:"included-element,omitempty"`
-	ExcludedElement    []IncludedElement `xml:"http://marklogic.com/manage included-element" json:"excluded-element,omitempty"`
+	ExcludedElement    []IncludedElement `xml:"http://marklogic.com/manage excluded-element" json:"excluded-element,omitempty"`
 	TokenizerOverrides string            `xml:"http://marklogic.com/manage tokenizer-overrides" json:"tokenizer-overrides"`
 }
 
