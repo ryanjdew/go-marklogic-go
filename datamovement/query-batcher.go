@@ -3,9 +3,9 @@ package datamovement
 import (
 	"sync"
 
-	"github.com/ryanjdew/go-marklogic-go/clients"
-	handle "github.com/ryanjdew/go-marklogic-go/handle"
-	"github.com/ryanjdew/go-marklogic-go/util"
+	"github.com/cchatfield/go-marklogic-go/clients"
+	handle "github.com/cchatfield/go-marklogic-go/handle"
+	"github.com/cchatfield/go-marklogic-go/util"
 )
 
 // QueryBatcher reads documents in bulk

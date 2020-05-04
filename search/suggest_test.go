@@ -5,8 +5,8 @@ import (
 	"testing"
 
 	"github.com/davecgh/go-spew/spew"
-	handle "github.com/ryanjdew/go-marklogic-go/handle"
-	"github.com/ryanjdew/go-marklogic-go/test"
+	handle "github.com/cchatfield/go-marklogic-go/handle"
+	"github.com/cchatfield/go-marklogic-go/test"
 )
 
 var exampleResponseXML = `

@@ -5,9 +5,9 @@ import (
 	"testing"
 
 	"github.com/davecgh/go-spew/spew"
-	handle "github.com/ryanjdew/go-marklogic-go/handle"
-	test "github.com/ryanjdew/go-marklogic-go/test"
-	textHelper "github.com/ryanjdew/go-marklogic-go/test/text"
+	handle "github.com/cchatfield/go-marklogic-go/handle"
+	test "github.com/cchatfield/go-marklogic-go/test"
+	textHelper "github.com/cchatfield/go-marklogic-go/test/text"
 )
 
 var serverPropertiesWantResp = `{

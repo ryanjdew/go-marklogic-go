@@ -3,9 +3,9 @@ package resources
 import (
 	"net/http"
 
-	"github.com/ryanjdew/go-marklogic-go/clients"
-	handle "github.com/ryanjdew/go-marklogic-go/handle"
-	util "github.com/ryanjdew/go-marklogic-go/util"
+	"github.com/cchatfield/go-marklogic-go/clients"
+	handle "github.com/cchatfield/go-marklogic-go/handle"
+	util "github.com/cchatfield/go-marklogic-go/util"
 )
 
 func get(c *clients.Client, resourceName string, parameters map[string]string, response handle.ResponseHandle) error {

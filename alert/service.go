@@ -2,9 +2,9 @@
 package alert
 
 import (
-	"github.com/ryanjdew/go-marklogic-go/clients"
-	"github.com/ryanjdew/go-marklogic-go/documents"
-	handle "github.com/ryanjdew/go-marklogic-go/handle"
+	"github.com/cchatfield/go-marklogic-go/clients"
+	"github.com/cchatfield/go-marklogic-go/documents"
+	handle "github.com/cchatfield/go-marklogic-go/handle"
 )
 
 // Service is used for the alert service

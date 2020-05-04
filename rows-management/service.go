@@ -2,8 +2,8 @@
 package rowsManagement
 
 import (
-	"github.com/ryanjdew/go-marklogic-go/clients"
-	handle "github.com/ryanjdew/go-marklogic-go/handle"
+	"github.com/cchatfield/go-marklogic-go/clients"
+	handle "github.com/cchatfield/go-marklogic-go/handle"
 )
 
 // Service is used for the rowsManagement service

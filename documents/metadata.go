@@ -6,7 +6,7 @@ import (
 	"encoding/xml"
 	"strings"
 
-	handle "github.com/ryanjdew/go-marklogic-go/handle"
+	handle "github.com/cchatfield/go-marklogic-go/handle"
 )
 
 // MetadataHandle describes a document to write

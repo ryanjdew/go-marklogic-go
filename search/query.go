@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"encoding/xml"
 
-	handle "github.com/ryanjdew/go-marklogic-go/handle"
+	handle "github.com/cchatfield/go-marklogic-go/handle"
 )
 
 var mapperFunction = func(str string) interface{} {

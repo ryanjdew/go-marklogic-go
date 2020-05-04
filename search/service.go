@@ -2,9 +2,9 @@
 package search
 
 import (
-	clients "github.com/ryanjdew/go-marklogic-go/clients"
-	handle "github.com/ryanjdew/go-marklogic-go/handle"
-	"github.com/ryanjdew/go-marklogic-go/util"
+	clients "github.com/cchatfield/go-marklogic-go/clients"
+	handle "github.com/cchatfield/go-marklogic-go/handle"
+	"github.com/cchatfield/go-marklogic-go/util"
 )
 
 // Service is used for the search service

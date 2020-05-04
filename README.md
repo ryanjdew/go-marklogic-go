@@ -15,7 +15,7 @@ XML data. JSON data. Semantic data.
 
 Status
 =========
-[![GoDoc](https://godoc.org/github.com/ryanjdew/go-marklogic-go?status.svg)](https://godoc.org/github.com/ryanjdew/go-marklogic-go) [![Build Status](https://cloud.drone.io/api/badges/ryanjdew/go-marklogic-go/status.svg)](https://cloud.drone.io/ryanjdew/go-marklogic-go)
+[![GoDoc](https://godoc.org/github.com/cchatfield/go-marklogic-go?status.svg)](https://godoc.org/github.com/cchatfield/go-marklogic-go) [![Build Status](https://cloud.drone.io/api/badges/cchatfield/go-marklogic-go/status.svg)](https://cloud.drone.io/cchatfield/go-marklogic-go)
 
 Sample Code
 =========
@@ -23,9 +23,9 @@ Sample Code
 ```go
 import (
 	"fmt"
-	marklogic "github.com/ryanjdew/go-marklogic-go"
-	handle "github.com/ryanjdew/go-marklogic-go/handle"
-	search "github.com/ryanjdew/go-marklogic-go/search"
+	marklogic "github.com/cchatfield/go-marklogic-go"
+	handle "github.com/cchatfield/go-marklogic-go/handle"
+	search "github.com/cchatfield/go-marklogic-go/search"
 )
 func main() {
   db, _ := marklogic.NewClient("localhost", 8050, "admin", "admin", marklogic.DigestAuth)

@@ -1,15 +1,15 @@
 package gomarklogicgo
 
 import (
-	"github.com/ryanjdew/go-marklogic-go/alert"
-	clients "github.com/ryanjdew/go-marklogic-go/clients"
-	"github.com/ryanjdew/go-marklogic-go/config"
-	datamovement "github.com/ryanjdew/go-marklogic-go/datamovement"
-	"github.com/ryanjdew/go-marklogic-go/documents"
-	rowsManagement "github.com/ryanjdew/go-marklogic-go/rows-management"
-	search "github.com/ryanjdew/go-marklogic-go/search"
-	"github.com/ryanjdew/go-marklogic-go/semantics"
-	"github.com/ryanjdew/go-marklogic-go/util"
+	"github.com/cchatfield/go-marklogic-go/alert"
+	clients "github.com/cchatfield/go-marklogic-go/clients"
+	"github.com/cchatfield/go-marklogic-go/config"
+	datamovement "github.com/cchatfield/go-marklogic-go/datamovement"
+	"github.com/cchatfield/go-marklogic-go/documents"
+	rowsManagement "github.com/cchatfield/go-marklogic-go/rows-management"
+	search "github.com/cchatfield/go-marklogic-go/search"
+	"github.com/cchatfield/go-marklogic-go/semantics"
+	"github.com/cchatfield/go-marklogic-go/util"
 )
 
 // Authentication options

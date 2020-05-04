@@ -9,9 +9,9 @@ import (
 	"net/textproto"
 	"strconv"
 
-	"github.com/ryanjdew/go-marklogic-go/clients"
-	handle "github.com/ryanjdew/go-marklogic-go/handle"
-	util "github.com/ryanjdew/go-marklogic-go/util"
+	"github.com/cchatfield/go-marklogic-go/clients"
+	handle "github.com/cchatfield/go-marklogic-go/handle"
+	util "github.com/cchatfield/go-marklogic-go/util"
 )
 
 // DocumentDescription describes a document to write

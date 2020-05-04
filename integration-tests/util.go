@@ -1,10 +1,10 @@
 package integrationtests
 
 import (
-	marklogic "github.com/ryanjdew/go-marklogic-go"
-	dataMovementMod "github.com/ryanjdew/go-marklogic-go/datamovement"
-	handle "github.com/ryanjdew/go-marklogic-go/handle"
-	searchMod "github.com/ryanjdew/go-marklogic-go/search"
+	marklogic "github.com/cchatfield/go-marklogic-go"
+	dataMovementMod "github.com/cchatfield/go-marklogic-go/datamovement"
+	handle "github.com/cchatfield/go-marklogic-go/handle"
+	searchMod "github.com/cchatfield/go-marklogic-go/search"
 )
 
 // TODO make this config

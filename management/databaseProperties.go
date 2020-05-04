@@ -6,9 +6,9 @@ import (
 	"encoding/xml"
 	"net/http"
 
-	clients "github.com/ryanjdew/go-marklogic-go/clients"
-	handle "github.com/ryanjdew/go-marklogic-go/handle"
-	"github.com/ryanjdew/go-marklogic-go/util"
+	clients "github.com/cchatfield/go-marklogic-go/clients"
+	handle "github.com/cchatfield/go-marklogic-go/handle"
+	"github.com/cchatfield/go-marklogic-go/util"
 )
 
 // DatabaseProperties represents the properties of a MarkLogic Database

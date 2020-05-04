@@ -1,9 +1,9 @@
 package gomarklogicgo
 
 import (
-	clients "github.com/ryanjdew/go-marklogic-go/clients"
-	handle "github.com/ryanjdew/go-marklogic-go/handle"
-	management "github.com/ryanjdew/go-marklogic-go/management"
+	clients "github.com/cchatfield/go-marklogic-go/clients"
+	handle "github.com/cchatfield/go-marklogic-go/handle"
+	management "github.com/cchatfield/go-marklogic-go/management"
 )
 
 // ManagementClient is used for connecting to the MarkLogic Management API.

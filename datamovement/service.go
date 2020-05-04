@@ -4,8 +4,8 @@ package datamovement
 import (
 	"sync"
 
-	"github.com/ryanjdew/go-marklogic-go/clients"
-	"github.com/ryanjdew/go-marklogic-go/documents"
+	"github.com/cchatfield/go-marklogic-go/clients"
+	"github.com/cchatfield/go-marklogic-go/documents"
 )
 
 // Service is used for the datamovement service

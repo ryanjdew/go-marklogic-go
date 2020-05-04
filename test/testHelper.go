@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 
-	clients "github.com/ryanjdew/go-marklogic-go/clients"
+	clients "github.com/cchatfield/go-marklogic-go/clients"
 )
 
 // Client is exported for testing subpackages

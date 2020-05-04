@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	"github.com/davecgh/go-spew/spew"
-	"github.com/ryanjdew/go-marklogic-go/util"
+	"github.com/cchatfield/go-marklogic-go/util"
 )
 
 func TestBuildParameters(t *testing.T) {

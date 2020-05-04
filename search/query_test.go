@@ -6,7 +6,7 @@ import (
 	"testing"
 
 	"github.com/davecgh/go-spew/spew"
-	handle "github.com/ryanjdew/go-marklogic-go/handle"
+	handle "github.com/cchatfield/go-marklogic-go/handle"
 )
 
 func TestXMLQuerySerialize(t *testing.T) {

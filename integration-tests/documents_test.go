@@ -7,8 +7,8 @@ import (
 	"os"
 	"testing"
 
-	"github.com/ryanjdew/go-marklogic-go/documents"
-	handle "github.com/ryanjdew/go-marklogic-go/handle"
+	"github.com/cchatfield/go-marklogic-go/documents"
+	handle "github.com/cchatfield/go-marklogic-go/handle"
 )
 
 func TestMain(m *testing.M) {

@@ -3,11 +3,11 @@ package alert
 import (
 	"net/http"
 
-	"github.com/ryanjdew/go-marklogic-go/clients"
-	"github.com/ryanjdew/go-marklogic-go/documents"
-	handle "github.com/ryanjdew/go-marklogic-go/handle"
-	"github.com/ryanjdew/go-marklogic-go/search"
-	util "github.com/ryanjdew/go-marklogic-go/util"
+	"github.com/cchatfield/go-marklogic-go/clients"
+	"github.com/cchatfield/go-marklogic-go/documents"
+	handle "github.com/cchatfield/go-marklogic-go/handle"
+	"github.com/cchatfield/go-marklogic-go/search"
+	util "github.com/cchatfield/go-marklogic-go/util"
 )
 
 // RulesResponse represents a response from the alert/rules API

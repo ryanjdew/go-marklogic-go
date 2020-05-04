@@ -6,9 +6,9 @@ import (
 	"log"
 
 	"github.com/davecgh/go-spew/spew"
-	marklogic "github.com/ryanjdew/go-marklogic-go"
-	handle "github.com/ryanjdew/go-marklogic-go/handle"
-	search "github.com/ryanjdew/go-marklogic-go/search"
+	marklogic "github.com/cchatfield/go-marklogic-go"
+	handle "github.com/cchatfield/go-marklogic-go/handle"
+	search "github.com/cchatfield/go-marklogic-go/search"
 )
 
 var host string

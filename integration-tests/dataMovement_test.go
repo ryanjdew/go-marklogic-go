@@ -8,9 +8,9 @@ import (
 	"sync"
 	"testing"
 
-	dataMovementMod "github.com/ryanjdew/go-marklogic-go/datamovement"
-	"github.com/ryanjdew/go-marklogic-go/documents"
-	handle "github.com/ryanjdew/go-marklogic-go/handle"
+	dataMovementMod "github.com/cchatfield/go-marklogic-go/datamovement"
+	"github.com/cchatfield/go-marklogic-go/documents"
+	handle "github.com/cchatfield/go-marklogic-go/handle"
 )
 
 var testCount int = 1000
