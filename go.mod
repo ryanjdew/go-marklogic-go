@@ -1,4 +1,4 @@
-module github.com/ryanjdew/go-marklogic-go
+module github.com/cchatfield/go-marklogic-go
 
 go 1.12
 
