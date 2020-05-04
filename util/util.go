@@ -92,6 +92,9 @@ func Execute(c clients.RESTClient, req *http.Request, responseHandle handle.Resp
 	}
 	req.Header.Add("Accept", respType)
 	resp, err := c.HTTPClient().Do(req)
+	if resp != nil {
+		defer resp.Body.Close()
+	}
 	if err != nil {
 		return err
 	}
@@ -100,9 +103,8 @@ func Execute(c clients.RESTClient, req *http.Request, responseHandle handle.Resp
 	}
 	if respHandleNotNil {
 		return responseHandle.AcceptResponse(resp)
-	} else {
-		ioutil.ReadAll(resp.Body)
-		resp.Body.Close()
 	}
+	ioutil.ReadAll(resp.Body)
+	
 	return nil
 }
