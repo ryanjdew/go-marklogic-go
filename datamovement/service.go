@@ -4,6 +4,8 @@ package datamovement
 import (
 	"sync"
 
+	"github.com/ryanjdew/go-marklogic-go/util"
+
 	"github.com/ryanjdew/go-marklogic-go/clients"
 	"github.com/ryanjdew/go-marklogic-go/documents"
 )
@@ -12,34 +14,14 @@ import (
 type Service struct {
 	client        *clients.Client
 	clientsByHost map[string]*clients.Client
-	forestInfo    []ForestInfo
+	forestInfo    []util.ForestInfo
 }
 
 // NewService returns a new datamovement.Service
 func NewService(client *clients.Client) *Service {
-	forestInfo := getForestInfo(client)
+	forestInfo := util.GetForestInfo(client)
+	clientsByHost := util.GetClientsByHost(client, forestInfo)
 
-	uniqueHosts := make(map[string]struct{})
-	for _, forest := range forestInfo {
-		uniqueHosts[forest.PreferredHost()] = struct{}{}
-	}
-
-	clientsByHost := make(map[string]*clients.Client, len(uniqueHosts))
-	connectionInfo := client.BasicClient.ConnectionInfo()
-	for host := range uniqueHosts {
-		if host == connectionInfo.Host {
-			clientsByHost[host] = client
-		} else {
-			clientsByHost[host], _ = clients.NewClient(&clients.Connection{
-				Host:               host,
-				Port:               connectionInfo.Port,
-				Username:           connectionInfo.Username,
-				Password:           connectionInfo.Password,
-				AuthenticationType: connectionInfo.AuthenticationType,
-				Database:           connectionInfo.Database,
-			})
-		}
-	}
 	return &Service{
 		client:        client,
 		clientsByHost: clientsByHost,

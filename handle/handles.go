@@ -4,7 +4,10 @@ import (
 	"bytes"
 	"io"
 	"io/ioutil"
+	"mime"
+	"mime/multipart"
 	"net/http"
+	"strings"
 )
 
 // Format options
@@ -165,6 +168,92 @@ func (m *MapHandle) SetTimestamp(timestamp string) {
 // Timestamp retieves a timestamp
 func (m *MapHandle) Timestamp() string {
 	return m.timestamp
+}
+
+// MultipartResponseHandle is a handle that places the results into
+// a Response struct
+type MultipartResponseHandle struct {
+	*bytes.Buffer
+	Format    int
+	response  [][]byte
+	timestamp string
+}
+
+// GetFormat returns int that represents XML or JSON
+func (rh *MultipartResponseHandle) GetFormat() int {
+	return MIXED
+}
+
+func (rh *MultipartResponseHandle) resetBuffer() {
+	if rh.Buffer == nil {
+		rh.Buffer = new(bytes.Buffer)
+	}
+	rh.Reset()
+}
+
+// Deserialize returns Response struct that represents XML or JSON
+func (rh *MultipartResponseHandle) Deserialize(bytes []byte) {
+	rh.resetBuffer()
+	rh.Write(bytes)
+	rh.response = append(rh.response, bytes)
+}
+
+// AcceptResponse handles an *http.Response
+func (rh *MultipartResponseHandle) AcceptResponse(resp *http.Response) error {
+	defer resp.Body.Close()
+	if resp.ContentLength == 0 {
+		return nil
+	}
+	mediaType, params, err := mime.ParseMediaType(resp.Header.Get("Content-Type"))
+	if err != nil {
+		return err
+	}
+	if strings.HasPrefix(mediaType, "multipart/") {
+		mr := multipart.NewReader(resp.Body, params["boundary"])
+		for {
+			p, err := mr.NextPart()
+			if err == io.EOF {
+				return nil
+			}
+			if err != nil {
+				return err
+			}
+			output, err := ioutil.ReadAll(p)
+			if err != nil {
+				return err
+			}
+			rh.Deserialize(output)
+			p.Close()
+		}
+	}
+	return err
+}
+
+// Serialize returns []byte of XML or JSON that represents the Response struct
+func (rh *MultipartResponseHandle) Serialize(response interface{}) {
+	rh.response = response.([][]byte)
+	rh.resetBuffer()
+}
+
+// Get returns string of XML or JSON
+func (rh *MultipartResponseHandle) Get() [][]byte {
+	return rh.response
+}
+
+// Serialized returns string of XML or JSON
+func (rh *MultipartResponseHandle) Serialized() string {
+	rh.Serialize(rh.response)
+	return rh.String()
+}
+
+// SetTimestamp sets the timestamp
+func (rh *MultipartResponseHandle) SetTimestamp(timestamp string) {
+	rh.timestamp = timestamp
+}
+
+// Timestamp retieves a timestamp
+func (rh *MultipartResponseHandle) Timestamp() string {
+	return rh.timestamp
 }
 
 // CommonHandleAcceptResponse handles an HTTP response

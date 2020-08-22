@@ -5,6 +5,7 @@ import (
 	clients "github.com/ryanjdew/go-marklogic-go/clients"
 	"github.com/ryanjdew/go-marklogic-go/config"
 	datamovement "github.com/ryanjdew/go-marklogic-go/datamovement"
+	"github.com/ryanjdew/go-marklogic-go/dataservices"
 	"github.com/ryanjdew/go-marklogic-go/documents"
 	rowsManagement "github.com/ryanjdew/go-marklogic-go/rows-management"
 	search "github.com/ryanjdew/go-marklogic-go/search"
@@ -49,6 +50,11 @@ func (c *Client) Config() *config.Service {
 // DataMovement service
 func (c *Client) DataMovement() *datamovement.Service {
 	return datamovement.NewService(convertToSubClient(c))
+}
+
+// DataServices service
+func (c *Client) DataServices() *dataservices.Service {
+	return dataservices.NewService(convertToSubClient(c))
 }
 
 // Documents service

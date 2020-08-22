@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"net/url"
 	"strconv"
+	"sync"
 
 	digestAuth "github.com/ryanjdew/http-digest-auth-client"
 )
@@ -15,6 +16,8 @@ const (
 	DigestAuth
 	None
 )
+
+var digestLock *sync.RWMutex = &sync.RWMutex{}
 
 // Connection contains the information needed for a proper MarkLogic connection
 type Connection struct {
@@ -73,6 +76,7 @@ type RESTClient interface {
 	Userinfo() *url.Userinfo
 	AuthType() int
 	HTTPClient() *http.Client
+	Do(*http.Request) (*http.Response, error)
 	DigestHeaders() *digestAuth.DigestHeaders
 }
 
@@ -128,12 +132,22 @@ func (bc *BasicClient) ConnectionInfo() *Connection {
 	return bc.connectionInfo
 }
 
+// Do makes request with HTTP Client
+func (bc *BasicClient) Do(req *http.Request) (*http.Response, error) {
+	resp, err := bc.HTTPClient().Do(req)
+	if bc.AuthType() == DigestAuth {
+		digestLock.Unlock()
+	}
+	return resp, err
+}
+
 // ApplyAuth adds the neccessary headers for authentication
 func ApplyAuth(c RESTClient, req *http.Request) {
 	pwd, _ := c.Userinfo().Password()
 	if c.AuthType() == BasicAuth {
 		req.SetBasicAuth(c.Userinfo().Username(), pwd)
 	} else if c.AuthType() == DigestAuth {
+		digestLock.Lock()
 		c.DigestHeaders().ApplyAuth(req)
 	}
 }

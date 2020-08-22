@@ -18,7 +18,7 @@ type QueryBatcher struct {
 	timestamp     string
 	listeners     []chan<- *QueryBatch
 	waitGroup     *sync.WaitGroup
-	forestInfo    []ForestInfo
+	forestInfo    []util.ForestInfo
 	transaction   *util.Transaction
 }
 
@@ -83,7 +83,7 @@ func (qbr *QueryBatcher) Wait() *QueryBatcher {
 	return qbr
 }
 
-func runReadThread(queryBatcher *QueryBatcher, forest ForestInfo) {
+func runReadThread(queryBatcher *QueryBatcher, forest util.ForestInfo) {
 	listeners := queryBatcher.listeners
 	batchSize := int(queryBatcher.BatchSize())
 	wg := queryBatcher.waitGroup
@@ -91,8 +91,9 @@ func runReadThread(queryBatcher *QueryBatcher, forest ForestInfo) {
 	after := ""
 	defer wg.Done()
 	for {
-		urisHandle := &URIsHandle{timestamp: queryBatcher.timestamp}
-		getURIs(forestClient, queryBatcher.query, forest.Name, queryBatcher.transaction, 0, after, uint(batchSize), urisHandle)
+		urisHandle := &util.URIsHandle{}
+		urisHandle.SetTimestamp(queryBatcher.timestamp)
+		util.GetURIs(forestClient, queryBatcher.query, forest.Name, queryBatcher.transaction, 0, after, uint(batchSize), urisHandle)
 		if queryBatcher.timestamp == "" {
 			queryBatcher.mutex.Lock()
 			if queryBatcher.timestamp == "" {

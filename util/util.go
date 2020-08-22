@@ -5,6 +5,8 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/url"
+	"strconv"
+	"strings"
 
 	"github.com/ryanjdew/go-marklogic-go/clients"
 	handle "github.com/ryanjdew/go-marklogic-go/handle"
@@ -91,7 +93,7 @@ func Execute(c clients.RESTClient, req *http.Request, responseHandle handle.Resp
 		respType = handle.FormatEnumToMimeType(responseHandle.GetFormat())
 	}
 	req.Header.Add("Accept", respType)
-	resp, err := c.HTTPClient().Do(req)
+	resp, err := c.Do(req)
 	if resp != nil {
 		defer resp.Body.Close()
 	}
@@ -105,6 +107,35 @@ func Execute(c clients.RESTClient, req *http.Request, responseHandle handle.Resp
 		return responseHandle.AcceptResponse(resp)
 	}
 	ioutil.ReadAll(resp.Body)
-	
+
+	return nil
+}
+
+// PostForm submits a URL encoded form TODO accept response handle
+func PostForm(c clients.RESTClient, endpoint string, reqParams map[string][]string, responseHandle handle.ResponseHandle, isDataService bool) error {
+	data := url.Values{}
+	for key, values := range reqParams {
+		for _, value := range values {
+			data.Add(key, value)
+		}
+	}
+
+	encodedData := data.Encode()
+	baseURL := c.Base()
+	if isDataService {
+		baseURL = strings.Replace(baseURL, "/LATEST", "", -1)
+	}
+	req, _ := http.NewRequest(http.MethodPost, baseURL+endpoint, strings.NewReader(encodedData)) // URL-encoded payload
+	req.Header.Add("Content-Type", "application/x-www-form-urlencoded; charset=UTF-8")
+	req.Header.Add("Content-Length", strconv.Itoa(len(encodedData)))
+
+	clients.ApplyAuth(c, req)
+	resp, err := c.Do(req)
+	if err != nil {
+		return err
+	}
+	if responseHandle != nil {
+		return responseHandle.AcceptResponse(resp)
+	}
 	return nil
 }

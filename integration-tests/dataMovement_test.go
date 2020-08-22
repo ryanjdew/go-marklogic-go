@@ -1,4 +1,4 @@
-// +build integration
+// build integration
 
 package integrationtests
 
@@ -11,6 +11,7 @@ import (
 	dataMovementMod "github.com/ryanjdew/go-marklogic-go/datamovement"
 	"github.com/ryanjdew/go-marklogic-go/documents"
 	handle "github.com/ryanjdew/go-marklogic-go/handle"
+	searchMod "github.com/ryanjdew/go-marklogic-go/search"
 )
 
 var testCount int = 1000
@@ -49,10 +50,20 @@ func TestWriteBatcher(t *testing.T) {
 	}
 }
 
-func returnURIsWithReadBatcher(t *testing.T) []string {
+func returnURIsWithReadBatcher(t *testing.T, collection string) []string {
 	uris := make([]string, 0, testCount)
 	listenerChannel := make(chan *dataMovementMod.QueryBatch, 100)
-	queryBatcher := dataMovement().QueryBatcher().WithBatchSize(100).WithListener(listenerChannel)
+	query :=
+		searchMod.Query{
+			Queries: []interface{}{
+				searchMod.CollectionQuery{
+					URIs: []string{collection},
+				},
+			},
+		}
+	qh := searchMod.QueryHandle{Format: handle.JSON}
+	qh.Serialize(query)
+	queryBatcher := dataMovement().QueryBatcher().WithQuery(&qh).WithBatchSize(100).WithListener(listenerChannel)
 	queryBatcher.Run()
 	timestamp := ""
 	wg := &sync.WaitGroup{}
@@ -83,7 +94,7 @@ func TestReadBatcher(t *testing.T) {
 	clearDocs()
 	defer clearDocs()
 	writeDocumentsWithWriteBatcher()
-	uris := returnURIsWithReadBatcher(t)
+	uris := returnURIsWithReadBatcher(t, "collection-1")
 	uriCountWant := int(testCount)
 	uriCountResult := len(uris)
 	if uriCountResult != uriCountWant {

@@ -21,7 +21,7 @@ type WriteBatcher struct {
 	timestamp              string
 	listeners              []chan<- *WriteBatch
 	waitGroup              *sync.WaitGroup
-	forestInfo             []ForestInfo
+	forestInfo             []util.ForestInfo
 	transform              *util.Transform
 	transaction            *util.Transaction
 }

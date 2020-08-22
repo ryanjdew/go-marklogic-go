@@ -89,7 +89,7 @@ func (t *Transaction) Begin() bool {
 		return false
 	}
 	clients.ApplyAuth(t.client, req)
-	resp, err := t.client.HTTPClient().Do(req)
+	resp, err := t.client.Do(req)
 	if err != nil {
 		return false
 	}

@@ -1,4 +1,4 @@
-package datamovement
+package util
 
 import (
 	"bytes"
@@ -10,7 +10,6 @@ import (
 
 	"github.com/ryanjdew/go-marklogic-go/clients"
 	handle "github.com/ryanjdew/go-marklogic-go/handle"
-	"github.com/ryanjdew/go-marklogic-go/util"
 )
 
 // ForestInfoHandle is a handle that places the results into
@@ -117,12 +116,39 @@ func (fi *ForestInfo) PreferredHost() string {
 	return fi.Host
 }
 
-func getForestInfo(c *clients.Client) []ForestInfo {
-	params := util.AddDatabaseParam("", c)
-	req, _ := util.BuildRequestFromHandle(c, "GET", "/internal/forestinfo"+params, nil)
+// GetForestInfo provides the forest information about the database
+func GetForestInfo(c *clients.Client) []ForestInfo {
+	params := AddDatabaseParam("", c)
+	req, _ := BuildRequestFromHandle(c, "GET", "/internal/forestinfo"+params, nil)
 	forestInfoHandle := &ForestInfoHandle{}
-	util.Execute(c, req, forestInfoHandle)
+	Execute(c, req, forestInfoHandle)
 	return *forestInfoHandle.Get()
+}
+
+// GetClientsByHost provides the forest information about the database
+func GetClientsByHost(client *clients.Client, forestInfo []ForestInfo) map[string]*clients.Client {
+	uniqueHosts := make(map[string]struct{})
+	connectionInfo := client.BasicClient.ConnectionInfo()
+	for _, forest := range forestInfo {
+		uniqueHosts[forest.PreferredHost()] = struct{}{}
+	}
+
+	clientsByHost := make(map[string]*clients.Client, len(uniqueHosts))
+	for host := range uniqueHosts {
+		if host == connectionInfo.Host {
+			clientsByHost[host] = client
+		} else {
+			clientsByHost[host], _ = clients.NewClient(&clients.Connection{
+				Host:               host,
+				Port:               connectionInfo.Port,
+				Username:           connectionInfo.Username,
+				Password:           connectionInfo.Password,
+				AuthenticationType: connectionInfo.AuthenticationType,
+				Database:           connectionInfo.Database,
+			})
+		}
+	}
+	return clientsByHost
 }
 
 // URIsHandle for retrieving URIs from the internal/uris endpoint
@@ -191,11 +217,12 @@ func (uh *URIsHandle) AcceptResponse(resp *http.Response) error {
 	return handle.CommonHandleAcceptResponse(uh, resp)
 }
 
-func getURIs(
+// GetURIs retrieves URIs from the internal API for the Data Movement SDK
+func GetURIs(
 	c *clients.Client,
 	query handle.Handle,
 	forestName string,
-	transaction *util.Transaction,
+	transaction *Transaction,
 	start uint64,
 	after string,
 	pageLength uint,
@@ -210,13 +237,13 @@ func getURIs(
 	if start != 0 {
 		paramsMap["start"] = strconv.FormatUint(start, 10)
 	}
-	params = util.MappedParameters(params, "", paramsMap)
-	params = util.AddDatabaseParam(params, c)
-	params = util.AddTransactionParam(params, transaction)
+	params = MappedParameters(params, "", paramsMap)
+	params = AddDatabaseParam(params, c)
+	params = AddTransactionParam(params, transaction)
 
-	req, err := util.BuildRequestFromHandle(c, "POST", "/internal/uris"+params, query)
+	req, err := BuildRequestFromHandle(c, "POST", "/internal/uris"+params, query)
 	if err != nil {
 		return err
 	}
-	return util.Execute(c, req, respHandle)
+	return Execute(c, req, respHandle)
 }
