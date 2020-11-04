@@ -49,6 +49,11 @@ func (rh *ResponseHandle) Deserialize(bytes []byte) {
 	}
 }
 
+// Deserialized returns *Response as interface{}
+func (rh *ResponseHandle) Deserialized() interface{} {
+	return &rh.response
+}
+
 // AcceptResponse handles an *http.Response
 func (rh *ResponseHandle) AcceptResponse(resp *http.Response) error {
 	return handle.CommonHandleAcceptResponse(rh, resp)
@@ -67,7 +72,7 @@ func (rh *ResponseHandle) Serialize(response interface{}) {
 	}
 }
 
-// Get returns string of XML or JSON
+// Get returns *Response
 func (rh *ResponseHandle) Get() *Response {
 	return &rh.response
 }

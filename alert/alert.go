@@ -1,6 +1,9 @@
 package alert
 
 import (
+	"bytes"
+	"encoding/json"
+	"encoding/xml"
 	"net/http"
 
 	"github.com/ryanjdew/go-marklogic-go/clients"
@@ -10,22 +13,98 @@ import (
 	util "github.com/ryanjdew/go-marklogic-go/util"
 )
 
+// RulesResponseHandle handles a response from the alert/rules API
+type RulesResponseHandle struct {
+	*bytes.Buffer
+	Format    int
+	response  RulesResponse
+	timestamp string
+}
+
+// GetFormat returns int that represents XML or JSON
+func (rh *RulesResponseHandle) GetFormat() int {
+	return rh.Format
+}
+
+func (rh *RulesResponseHandle) resetBuffer() {
+	if rh.Buffer == nil {
+		rh.Buffer = new(bytes.Buffer)
+	}
+	rh.Reset()
+}
+
+// Deserialize returns Response struct that represents XML or JSON
+func (rh *RulesResponseHandle) Deserialize(bytes []byte) {
+	rh.resetBuffer()
+	rh.Write(bytes)
+	if rh.GetFormat() == handle.JSON {
+		json.Unmarshal(bytes, rh)
+	} else {
+		xml.Unmarshal(bytes, rh)
+	}
+}
+
+// Deserialized returns deserialised RestartResponse as interface{}
+func (rh *RulesResponseHandle) Deserialized() interface{} {
+	return &rh.response
+}
+
+// AcceptResponse handles an *http.Response
+func (rh *RulesResponseHandle) AcceptResponse(resp *http.Response) error {
+	return handle.CommonHandleAcceptResponse(rh, resp)
+}
+
+// Serialize returns []byte of XML or JSON that represents the Response struct
+func (rh *RulesResponseHandle) Serialize(response interface{}) {
+	switch response.(type) {
+	case *RulesResponse:
+		rh.response = *(response.(*RulesResponse))
+	case RulesResponse:
+		rh.response = response.(RulesResponse)
+	}
+	rh.resetBuffer()
+	if rh.GetFormat() == handle.JSON {
+		enc := json.NewEncoder(rh.Buffer)
+		enc.Encode(&rh.response)
+	} else {
+		enc := xml.NewEncoder(rh.Buffer)
+		enc.Encode(&rh.response)
+	}
+}
+
+// Get returns deserialised RestartResponse
+func (rh *RulesResponseHandle) Get() *RulesResponse {
+	return &rh.response
+}
+
+// Serialized returns string of XML or JSON
+func (rh *RulesResponseHandle) Serialized() string {
+	rh.Serialize(rh.response)
+	return rh.String()
+}
+
+// SetTimestamp sets the timestamp
+func (rh *RulesResponseHandle) SetTimestamp(timestamp string) {
+	rh.timestamp = timestamp
+}
+
+// Timestamp retieves a timestamp
+func (rh *RulesResponseHandle) Timestamp() string {
+	return rh.timestamp
+}
+
 // RulesResponse represents a response from the alert/rules API
 type RulesResponse struct {
-	Rules []Rule `xml:"http://marklogic.com/rest-api rule" json:"rule,omitempty"`
+	XMLName xml.Name `xml:"http://marklogic.com/rest-api rules" json:"rules,omitempty"`
+	Rules   []Rule   `xml:"rule" json:"rule,omitempty"`
 }
 
 // Rule represents an alert rule from the alert API
 type Rule struct {
-	Name         string               `xml:"http://marklogic.com/rest-api name" json:"name,omitempty"`
-	Description  string               `xml:"http://marklogic.com/rest-api description" json:"description,omitempty"`
-	Query        search.CombinedQuery `xml:"http://marklogic.com/appservices/search search" json:"search,omitempty"`
-	RuleMetadata RuleMetadata         `xml:"http://marklogic.com/rest-api rule-metadata" json:"rule-metadata,omitempty"`
-}
-
-// RuleMetadata represents the metadata in an alert rule from the alert API
-type RuleMetadata struct {
-	Meta []interface{} `xml:",any" json:",any"`
+	Name         string                     `xml:"name" json:"name,omitempty"`
+	Description  string                     `xml:"description" json:"description,omitempty"`
+	Query        search.CombinedQuery       `xml:"http://marklogic.com/appservices/search search" json:"search,omitempty"`
+	RuleMetadata util.SerializableStringMap `xml:"rule-metadata" json:"rule-metadata,omitempty"`
 }
 
 func matchDocument(c *clients.Client, documentDescription documents.DocumentDescription, params map[string]string, response handle.ResponseHandle) error {

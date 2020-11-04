@@ -45,6 +45,11 @@ func (qh *QueryHandle) Deserialize(bytes []byte) {
 	}
 }
 
+// Deserialized returns *Query as interface{}
+func (qh *QueryHandle) Deserialized() interface{} {
+	return &qh.Query
+}
+
 // Serialize returns []byte of XML or JSON that represents the Query struct
 func (qh *QueryHandle) Serialize(query interface{}) {
 	qh.Query = query.(Query)
@@ -66,7 +71,7 @@ func (qh *QueryHandle) Read(bytes []byte) (n int, err error) {
 	return qh.Buffer.Read(bytes)
 }
 
-// Get returns string of XML or JSON
+// Get returns *Query
 func (qh *QueryHandle) Get() *Query {
 	return &qh.Query
 }

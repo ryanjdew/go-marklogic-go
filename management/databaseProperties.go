@@ -220,6 +220,11 @@ func (dh *DatabasePropertiesHandle) Deserialize(bytes []byte) {
 	}
 }
 
+// Deserialized returns DatabaseProperties as interface{}
+func (dh *DatabasePropertiesHandle) Deserialized() interface{} {
+	return dh.databaseProperties
+}
+
 // AcceptResponse handles an *http.Response
 func (dh *DatabasePropertiesHandle) AcceptResponse(resp *http.Response) error {
 	return handle.CommonHandleAcceptResponse(dh, resp)

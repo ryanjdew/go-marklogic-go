@@ -1,6 +1,7 @@
 package util
 
 import (
+	"encoding/xml"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -11,6 +12,33 @@ import (
 	"github.com/ryanjdew/go-marklogic-go/clients"
 	handle "github.com/ryanjdew/go-marklogic-go/handle"
 )
+
+// SerializableStringMap is a map[string]string which can be converted to XML.
+type SerializableStringMap map[string]string
+
+// MarshalXML marshals map[string]string into XML.
+func (s SerializableStringMap) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
+
+	tokens := []xml.Token{start}
+
+	for key, value := range s {
+		t := xml.StartElement{Name: xml.Name{"", key}}
+		tokens = append(tokens, t, xml.CharData(value), xml.EndElement{t.Name})
+	}
+
+	tokens = append(tokens, xml.EndElement{start.Name})
+
+	for _, t := range tokens {
+		if err := e.EncodeToken(t); err != nil {
+			return err
+		}
+	}
+	if err := e.Flush(); err != nil {
+		return err
+	}
+
+	return nil
+}
 
 // RepeatingParameters is a utility function for putting slices to parameters
 func RepeatingParameters(params string, valueLabel string, values []string) string {

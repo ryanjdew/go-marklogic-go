@@ -51,6 +51,11 @@ func (rh *InstanceAdminHandle) Deserialize(bytes []byte) {
 	}
 }
 
+// Deserialized returns deserialized InstanceAdminRequest as interface{}
+func (rh *InstanceAdminHandle) Deserialized() interface{} {
+	return &rh.request
+}
+
 // AcceptResponse handles an *http.Response
 func (rh *InstanceAdminHandle) AcceptResponse(resp *http.Response) error {
 	return handle.CommonHandleAcceptResponse(rh, resp)
@@ -58,7 +63,12 @@ func (rh *InstanceAdminHandle) AcceptResponse(resp *http.Response) error {
 
 // Serialize returns []byte of XML or JSON that represents the Response struct
 func (rh *InstanceAdminHandle) Serialize(response interface{}) {
-	rh.request = response.(InstanceAdminRequest)
+	switch response.(type) {
+	case *InstanceAdminRequest:
+		rh.request = *(response.(*InstanceAdminRequest))
+	case InstanceAdminRequest:
+		rh.request = response.(InstanceAdminRequest)
+	}
 	rh.resetBuffer()
 	if rh.GetFormat() == handle.JSON {
 		enc := json.NewEncoder(rh.Buffer)
@@ -69,7 +79,7 @@ func (rh *InstanceAdminHandle) Serialize(response interface{}) {
 	}
 }
 
-// Get returns string of XML or JSON
+// Get returns  returns deserialized InstanceAdminRequest
 func (rh *InstanceAdminHandle) Get() *InstanceAdminRequest {
 	return &rh.request
 }

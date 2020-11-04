@@ -38,6 +38,11 @@ func (th *ThingsHandle) Deserialize(bytes []byte) {
 	xml.Unmarshal(bytes, &th.things)
 }
 
+// Deserialized returns *Things as interface{}
+func (th *ThingsHandle) Deserialized() interface{} {
+	return &th.things
+}
+
 // AcceptResponse handles an *http.Response
 func (th *ThingsHandle) AcceptResponse(resp *http.Response) error {
 	return handle.CommonHandleAcceptResponse(th, resp)
@@ -51,7 +56,7 @@ func (th *ThingsHandle) Serialize(response interface{}) {
 	enc.Encode(&th.things)
 }
 
-// Get returns string of XML or JSON
+// Get returns *Things
 func (th *ThingsHandle) Get() *Things {
 	return &th.things
 }

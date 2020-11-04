@@ -29,7 +29,7 @@ func getTransformInfo(c *clients.Client, name string, response handle.ResponseHa
 
 // CreateTransform installs a REST service
 func createTransform(c *clients.Client, name string, resource io.Reader, extensionType string, options map[string]string, response handle.ResponseHandle) error {
-	params := mapToParams(options)
+	params := util.MappedParameters("?", "", options)
 	req, err := http.NewRequest("PUT", c.Base()+"/config/transforms/"+name+params, resource)
 	if err != nil {
 		return err

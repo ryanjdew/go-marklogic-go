@@ -45,6 +45,11 @@ func (fih *ForestInfoHandle) Deserialize(bytes []byte) {
 	}
 }
 
+// Deserialized returns *[]ForestInfo as interface{}
+func (fih *ForestInfoHandle) Deserialized() interface{} {
+	return &fih.ForestInfo
+}
+
 // Serialize returns []byte of XML or JSON that represents the Query struct
 func (fih *ForestInfoHandle) Serialize(forestInfo interface{}) {
 	fih.ForestInfo = forestInfo.([]ForestInfo)
@@ -182,6 +187,11 @@ func (uh *URIsHandle) Deserialize(bytes []byte) {
 		}
 	}
 	uh.URIs = filteredURIs
+}
+
+// Deserialized returns string array of URIs as interface{}
+func (uh *URIsHandle) Deserialized() interface{} {
+	return uh.URIs
 }
 
 // Serialize returns []byte of XML or JSON that represents the Query struct

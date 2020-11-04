@@ -29,7 +29,7 @@ func deleteExtensions(c *clients.Client, directory string) error {
 
 // createExtension shows all the installed REST extensions
 func createExtension(c *clients.Client, assetName string, resource io.Reader, extensionType string, options map[string]string, response handle.ResponseHandle) error {
-	params := mapToParams(options)
+	params := util.MappedParameters("?", "", options)
 	req, err := http.NewRequest("PUT", c.Base()+"/ext"+assetName+params, resource)
 	if err != nil {
 		return err
@@ -58,7 +58,7 @@ func getResourceInfo(c *clients.Client, name string, response handle.ResponseHan
 
 // CreateResource installs a REST service
 func createResource(c *clients.Client, name string, resource io.Reader, extensionType string, options map[string]string, response handle.ResponseHandle) error {
-	params := mapToParams(options)
+	params := util.MappedParameters("?", "", options)
 	req, err := http.NewRequest("PUT", c.Base()+"/config/resources/"+name+params, resource)
 	if err != nil {
 		return err
@@ -74,16 +74,4 @@ func deleteResource(c *clients.Client, name string, response handle.ResponseHand
 		return err
 	}
 	return util.Execute(c, req, response)
-}
-
-func mapToParams(options map[string]string) string {
-	params := "?"
-	for key, val := range options {
-		separator := "&"
-		if params == "?" {
-			separator = ""
-		}
-		params = params + separator + key + "=" + val
-	}
-	return params
 }

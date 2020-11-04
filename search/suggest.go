@@ -51,6 +51,11 @@ func (srh *SuggestionsResponseHandle) Deserialize(bytes []byte) {
 	}
 }
 
+// Deserialized returns *SuggestionsResponse as interface{}
+func (srh *SuggestionsResponseHandle) Deserialized() interface{} {
+	return srh.suggestionsResponse
+}
+
 // AcceptResponse handles an *http.Response
 func (srh *SuggestionsResponseHandle) AcceptResponse(resp *http.Response) error {
 	return handle.CommonHandleAcceptResponse(srh, resp)
@@ -69,7 +74,7 @@ func (srh *SuggestionsResponseHandle) Serialize(suggestionsResponse interface{})
 	}
 }
 
-// Get returns string of XML or JSON
+// Get returns *SuggestionsResponse
 func (srh *SuggestionsResponseHandle) Get() *SuggestionsResponse {
 	return srh.suggestionsResponse
 }
