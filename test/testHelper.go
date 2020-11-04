@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/http/httptest"
+	"reflect"
 	"testing"
 
 	"github.com/davecgh/go-spew/spew"
@@ -46,11 +47,23 @@ func AdminClient(resp string) (*clients.AdminClient, *httptest.Server) {
 }
 
 // RoundTripSerialization is a helper to simplify testing serialization/deserialization
-func RoundTripSerialization(t *testing.T, msg string, handle handle.Handle, serialization string) {
+func RoundTripSerialization(t *testing.T, msg string, deserializedInterface interface{}, handle handle.Handle, serialization string) {
+	handle.Serialize(deserializedInterface)
 	normalizedSpace := testHelper.NormalizeSpace(serialization)
-	handle.Deserialize([]byte(normalizedSpace))
 	roundTripSerialization := testHelper.NormalizeSpace(handle.Serialized())
 	if roundTripSerialization != normalizedSpace {
 		t.Errorf("Serialization of %s Results = %+v, Want = %+v", msg, spew.Sdump(roundTripSerialization), spew.Sdump(normalizedSpace))
+	}
+	handle.Deserialize([]byte(serialization))
+	roundTripDeserialization := handle.Deserialized()
+	var finalDeserialization interface{}
+	switch roundTripDeserialization.(type) {
+	case *interface{}:
+		finalDeserialization = &roundTripDeserialization
+	default:
+		finalDeserialization = roundTripDeserialization
+	}
+	if !reflect.DeepEqual(deserializedInterface, finalDeserialization) {
+		t.Errorf("Deserialization of %s Results = %+v, Want = %+v", msg, spew.Sdump(finalDeserialization), spew.Sdump(deserializedInterface))
 	}
 }

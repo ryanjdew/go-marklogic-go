@@ -1,11 +1,12 @@
 package config
 
 import (
+	"strings"
 	"testing"
 
 	handle "github.com/ryanjdew/go-marklogic-go/handle"
 	"github.com/ryanjdew/go-marklogic-go/test"
-	"github.com/ryanjdew/go-marklogic-go/test/text"
+	testHelper "github.com/ryanjdew/go-marklogic-go/test/text"
 )
 
 func TestListExtensions(t *testing.T) {
@@ -50,7 +51,7 @@ func TestListExtensions(t *testing.T) {
 }
 
 func TestDeleteExtensions(t *testing.T) {
-	want := testHelper.NormalizeSpace(``)
+	want := ""
 	client, _ := test.Client(want)
 	err := deleteExtensions(client, "/")
 	if err != nil {
@@ -59,38 +60,10 @@ func TestDeleteExtensions(t *testing.T) {
 }
 
 func TestCreateExtension(t *testing.T) {
-	want := testHelper.NormalizeSpace(`{
-  "resources": {
-    "resource": [
-      {
-        "name": "example",
-        "title": "",
-        "version": "",
-        "provider-name": "Acme Widgets",
-        "description": "",
-        "methods": {
-          "method": [
-            {
-              "parameter": [
-                {
-                  "parameter-name": "the-uri",
-                  "parameter-type": "string"
-                }
-              ],
-              "method-name": "get"
-            }
-          ]
-        },
-        "resource-source": "/v1/resources/example"
-      }
-    ]
-  }
-}`)
+	want := ""
 	client, _ := test.Client(want)
-	responseHandle := handle.MapHandle{
-		Format: handle.JSON,
-	}
-	err := listExtensions(client, "/", &responseHandle)
+	responseHandle := handle.RawHandle{}
+	err := createExtension(client, "test.json", strings.NewReader(`{ "test": true}`), "json", map[string]string{}, &responseHandle)
 	result := testHelper.NormalizeSpace(responseHandle.Serialized())
 	if err != nil {
 		t.Errorf("Error encountered: %v", err)
@@ -131,7 +104,7 @@ func TestListResources(t *testing.T) {
 	responseHandle := handle.MapHandle{
 		Format: handle.JSON,
 	}
-	err := listExtensions(client, "/", &responseHandle)
+	err := listResources(client, &responseHandle)
 	result := testHelper.NormalizeSpace(responseHandle.Serialized())
 	if err != nil {
 		t.Errorf("Error encountered: %v", err)
@@ -141,38 +114,12 @@ func TestListResources(t *testing.T) {
 }
 
 func TestGetResourceInfo(t *testing.T) {
-	want := testHelper.NormalizeSpace(`{
-  "resources": {
-    "resource": [
-      {
-        "name": "example",
-        "title": "",
-        "version": "",
-        "provider-name": "Acme Widgets",
-        "description": "",
-        "methods": {
-          "method": [
-            {
-              "parameter": [
-                {
-                  "parameter-name": "the-uri",
-                  "parameter-type": "string"
-                }
-              ],
-              "method-name": "get"
-            }
-          ]
-        },
-        "resource-source": "/v1/resources/example"
-      }
-    ]
-  }
-}`)
+	want := testHelper.NormalizeSpace(`
+  'hello world'
+  `)
 	client, _ := test.Client(want)
-	responseHandle := handle.MapHandle{
-		Format: handle.JSON,
-	}
-	err := listExtensions(client, "/", &responseHandle)
+	responseHandle := handle.RawHandle{}
+	err := getResourceInfo(client, "resource", &responseHandle)
 	result := testHelper.NormalizeSpace(responseHandle.Serialized())
 	if err != nil {
 		t.Errorf("Error encountered: %v", err)
@@ -182,38 +129,10 @@ func TestGetResourceInfo(t *testing.T) {
 }
 
 func TestCreateResource(t *testing.T) {
-	want := testHelper.NormalizeSpace(`{
-  "resources": {
-    "resource": [
-      {
-        "name": "example",
-        "title": "",
-        "version": "",
-        "provider-name": "Acme Widgets",
-        "description": "",
-        "methods": {
-          "method": [
-            {
-              "parameter": [
-                {
-                  "parameter-name": "the-uri",
-                  "parameter-type": "string"
-                }
-              ],
-              "method-name": "get"
-            }
-          ]
-        },
-        "resource-source": "/v1/resources/example"
-      }
-    ]
-  }
-}`)
+	want := ""
 	client, _ := test.Client(want)
-	responseHandle := handle.MapHandle{
-		Format: handle.JSON,
-	}
-	err := listExtensions(client, "/", &responseHandle)
+	responseHandle := handle.RawHandle{}
+	err := createResource(client, "resourceName", strings.NewReader(""), "", map[string]string{}, &responseHandle)
 	result := testHelper.NormalizeSpace(responseHandle.Serialized())
 	if err != nil {
 		t.Errorf("Error encountered: %v", err)
@@ -223,38 +142,10 @@ func TestCreateResource(t *testing.T) {
 }
 
 func TestDeleteResource(t *testing.T) {
-	want := testHelper.NormalizeSpace(`{
-  "resources": {
-    "resource": [
-      {
-        "name": "example",
-        "title": "",
-        "version": "",
-        "provider-name": "Acme Widgets",
-        "description": "",
-        "methods": {
-          "method": [
-            {
-              "parameter": [
-                {
-                  "parameter-name": "the-uri",
-                  "parameter-type": "string"
-                }
-              ],
-              "method-name": "get"
-            }
-          ]
-        },
-        "resource-source": "/v1/resources/example"
-      }
-    ]
-  }
-}`)
+	want := ""
 	client, _ := test.Client(want)
-	responseHandle := handle.MapHandle{
-		Format: handle.JSON,
-	}
-	err := listExtensions(client, "/", &responseHandle)
+	responseHandle := handle.RawHandle{}
+	err := deleteResource(client, "resourceName", &responseHandle)
 	result := testHelper.NormalizeSpace(responseHandle.Serialized())
 	if err != nil {
 		t.Errorf("Error encountered: %v", err)

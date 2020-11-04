@@ -1,6 +1,6 @@
-// build integration
+// +build integration
 
-package integrationtests
+package datamovement
 
 import (
 	"bytes"
@@ -8,17 +8,19 @@ import (
 	"sync"
 	"testing"
 
-	dataMovementMod "github.com/ryanjdew/go-marklogic-go/datamovement"
 	"github.com/ryanjdew/go-marklogic-go/documents"
 	handle "github.com/ryanjdew/go-marklogic-go/handle"
+	integrationtests "github.com/ryanjdew/go-marklogic-go/integrationtests"
 	searchMod "github.com/ryanjdew/go-marklogic-go/search"
 )
+
+var dataMovement = NewService(integrationtests.Client())
 
 var testCount int = 1000
 
 func writeDocumentsWithWriteBatcher() {
 	writeChannel := make(chan *documents.DocumentDescription, 100)
-	writeBatcher := dataMovement().WriteBatcher().WithBatchSize(250).WithWriteChannel(writeChannel)
+	writeBatcher := dataMovement.WriteBatcher().WithBatchSize(250).WithWriteChannel(writeChannel)
 	writeBatcher.Run()
 	for i := 0; i < testCount; i++ {
 		docDescription := &documents.DocumentDescription{
@@ -40,11 +42,11 @@ func writeDocumentsWithWriteBatcher() {
 }
 
 func TestWriteBatcher(t *testing.T) {
-	clearDocs()
-	defer clearDocs()
+	integrationtests.ClearDocs()
+	defer integrationtests.ClearDocs()
 	writeDocumentsWithWriteBatcher()
 	collection1CountWant := int64(testCount)
-	collection1CountResult := collectionCount("collection-1")
+	collection1CountResult := integrationtests.CollectionCount("collection-1")
 	if collection1CountResult != collection1CountWant {
 		t.Errorf("Collection Count 'collection-1' = %d, Want = %d", collection1CountResult, collection1CountWant)
 	}
@@ -52,7 +54,7 @@ func TestWriteBatcher(t *testing.T) {
 
 func returnURIsWithReadBatcher(t *testing.T, collection string) []string {
 	uris := make([]string, 0, testCount)
-	listenerChannel := make(chan *dataMovementMod.QueryBatch, 100)
+	listenerChannel := make(chan *QueryBatch, 100)
 	query :=
 		searchMod.Query{
 			Queries: []interface{}{
@@ -63,7 +65,7 @@ func returnURIsWithReadBatcher(t *testing.T, collection string) []string {
 		}
 	qh := searchMod.QueryHandle{Format: handle.JSON}
 	qh.Serialize(query)
-	queryBatcher := dataMovement().QueryBatcher().WithQuery(&qh).WithBatchSize(100).WithListener(listenerChannel)
+	queryBatcher := dataMovement.QueryBatcher().WithQuery(&qh).WithBatchSize(100).WithListener(listenerChannel)
 	queryBatcher.Run()
 	timestamp := ""
 	wg := &sync.WaitGroup{}
@@ -91,8 +93,8 @@ func returnURIsWithReadBatcher(t *testing.T, collection string) []string {
 }
 
 func TestReadBatcher(t *testing.T) {
-	clearDocs()
-	defer clearDocs()
+	integrationtests.ClearDocs()
+	defer integrationtests.ClearDocs()
 	writeDocumentsWithWriteBatcher()
 	uris := returnURIsWithReadBatcher(t, "collection-1")
 	uriCountWant := int(testCount)

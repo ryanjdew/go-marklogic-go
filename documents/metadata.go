@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	handle "github.com/ryanjdew/go-marklogic-go/handle"
+	util "github.com/ryanjdew/go-marklogic-go/util"
 )
 
 // MetadataHandle describes a document to write
@@ -21,12 +22,12 @@ type MetadataHandle struct {
 // Metadata describes a document to write
 type Metadata struct {
 	*bytes.Buffer
-	XMLName        xml.Name          `xml:"http://marklogic.com/rest-api metadata" json:"-"`
-	Collections    []string          `xml:"http://marklogic.com/rest-api collections" json:"collections,omitempty"`
-	Permissions    []Permission      `xml:"http://marklogic.com/rest-api permissions" json:"permissions,omitempty"`
-	Properties     map[string]string `xml:"http://marklogic.com/xdmp/property properties" json:"properties,omitempty"`
-	MetadataValues map[string]string `xml:"http://marklogic.com/rest-api metadata-values" json:"metadataValues,omitempty"`
-	Quality        int               `xml:"http://marklogic.com/rest-api quality" json:"quality,omitempty"`
+	XMLName        xml.Name                   `xml:"http://marklogic.com/rest-api metadata" json:"-"`
+	Collections    []string                   `xml:"http://marklogic.com/rest-api collections" json:"collections,omitempty"`
+	Permissions    []Permission               `xml:"http://marklogic.com/rest-api permissions" json:"permissions,omitempty"`
+	Properties     util.SerializableStringMap `xml:"http://marklogic.com/xdmp/property properties" json:"properties,omitempty"`
+	MetadataValues util.SerializableStringMap `xml:"http://marklogic.com/rest-api metadata-values" json:"metadataValues,omitempty"`
+	Quality        int                        `xml:"http://marklogic.com/rest-api quality" json:"quality,omitempty"`
 }
 
 // GetFormat returns int that represents XML or JSON
@@ -48,6 +49,11 @@ func (mh *MetadataHandle) Deserialize(bytes []byte) {
 	} else {
 		json.Unmarshal(bytes, mh)
 	}
+}
+
+// Deserialized returns Metadata as interface{}
+func (mh *MetadataHandle) Deserialized() interface{} {
+	return mh.metadata
 }
 
 // Serialize returns []byte of XML or JSON that represents the Metadata struct

@@ -2,8 +2,10 @@ package admin
 
 import (
 	"bytes"
+	"log"
 	"net/http"
 
+	"github.com/davecgh/go-spew/spew"
 	clients "github.com/ryanjdew/go-marklogic-go/clients"
 	handle "github.com/ryanjdew/go-marklogic-go/handle"
 	"github.com/ryanjdew/go-marklogic-go/util"
@@ -38,6 +40,11 @@ func (rh *TimestampResponseHandle) Deserialize(bytes []byte) {
 	}
 }
 
+// Deserialized returns deserialized timestamp string as interface{}
+func (rh *TimestampResponseHandle) Deserialized() interface{} {
+	return rh.timestamp
+}
+
 // AcceptResponse handles an *http.Response
 func (rh *TimestampResponseHandle) AcceptResponse(resp *http.Response) error {
 	return handle.CommonHandleAcceptResponse(rh, resp)
@@ -45,19 +52,14 @@ func (rh *TimestampResponseHandle) AcceptResponse(resp *http.Response) error {
 
 // Serialize returns []byte of XML or JSON that represents the Response struct
 func (rh *TimestampResponseHandle) Serialize(response interface{}) {
-	// rh.timestamp = response
 	rh.resetBuffer()
 	if rh.GetFormat() == handle.TEXTPLAIN {
 		rh.timestamp = response.(string)
-		// 	enc := json.NewEncoder(rh.Buffer)
-		// 	enc.Encode(&rh.response)
-		// } else {
-		// 	enc := xml.NewEncoder(rh.Buffer)
-		// 	enc.Encode(&rh.response)
+		rh.WriteString(rh.timestamp)
 	}
 }
 
-// Get returns string of XML or JSON
+// Get returns string of timestamp
 func (rh *TimestampResponseHandle) Get() *string {
 	return &rh.timestamp
 }
@@ -65,6 +67,7 @@ func (rh *TimestampResponseHandle) Get() *string {
 // Serialized returns string of XML or JSON
 func (rh *TimestampResponseHandle) Serialized() string {
 	rh.Serialize(rh.timestamp)
+	log.Println("Serialized = " + spew.Sdump(rh.timestamp))
 	return rh.String()
 }
 

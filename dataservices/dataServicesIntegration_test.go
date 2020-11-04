@@ -1,15 +1,20 @@
-// build integration
+// +build integration
 
-package integrationtests
+package dataservices
 
 import (
 	"fmt"
 	"testing"
+
+	integrationtests "github.com/ryanjdew/go-marklogic-go/integrationtests"
 )
 
+var dataServices = NewService(integrationtests.Client())
+var testCount int64 = 1000
+
 func TestProcessDataService(t *testing.T) {
-	clearDocs()
-	writeExtensionModule("process.mjs", `
+	integrationtests.ClearDocs()
+	integrationtests.WriteExtensionModule("process.mjs", `
 		declareUpdate();
 		let endpointState = external.endpointState ? fn.head(xdmp.fromJSON(external.endpointState)) : {};
 		const workUnit = fn.head(xdmp.fromJSON(external.workUnit)) || {};
@@ -32,7 +37,7 @@ func TestProcessDataService(t *testing.T) {
 			Sequence.from([endpointState].concat(outputArray));
 		}
 		`, "vnd.marklogic-js-module")
-	writeExtensionModule("process.api", `
+	integrationtests.WriteExtensionModule("process.api", `
 		{
 			"endpoint": "/ext/process.mjs",
 			"params": [
@@ -56,30 +61,28 @@ func TestProcessDataService(t *testing.T) {
 			}
 		}`, "json")
 	writeDocumentsWithDataServices()
-	bulkDataService := dataServices().BulkDataService("/ext/process.mjs").WithForestBasedWorkUnits().WithEndpointState([]byte("{}"))
+	bulkDataService := dataServices.BulkDataService("/ext/process.mjs").WithForestBasedWorkUnits().WithEndpointState([]byte("{}"))
 	bulkDataService.Run()
 	bulkDataService.Wait()
-	uris := returnURIsWithReadBatcher(t, "processed")
-	uriCountWant := int(testCount)
-	uriCountResult := len(uris)
+	uriCountWant := testCount
+	uriCountResult := integrationtests.CollectionCount("processed")
 	if uriCountResult != uriCountWant {
 		t.Errorf("URI Count = %d, Want = %d", uriCountResult, uriCountWant)
 	}
 }
 
 func TestInputDataService(t *testing.T) {
-	clearDocs()
+	integrationtests.ClearDocs()
 	writeDocumentsWithDataServices()
-	uris := returnURIsWithReadBatcher(t, "collection-1")
-	uriCountWant := int(testCount)
-	uriCountResult := len(uris)
+	uriCountWant := testCount
+	uriCountResult := integrationtests.CollectionCount("collection-1")
 	if uriCountResult != uriCountWant {
 		t.Errorf("URI Count = %d, Want = %d", uriCountResult, uriCountWant)
 	}
 }
 
 func writeDocumentsWithDataServices() {
-	writeExtensionModule("/input.mjs", `
+	integrationtests.WriteExtensionModule("/input.mjs", `
 		declareUpdate();
 		const input = external.input ? external.input.toArray().map(contentObj => contentObj.toObject()) : [];
 		const outputArray = [];
@@ -89,7 +92,7 @@ func writeDocumentsWithDataServices() {
 		}
 		Sequence.from(outputArray);
 		`, "vnd.marklogic-js-module")
-	writeExtensionModule("/input.api", `
+	integrationtests.WriteExtensionModule("/input.api", `
 		{
 			"endpoint": "/ext/input.mjs",
 			"params": [
@@ -107,9 +110,9 @@ func writeDocumentsWithDataServices() {
 			}
 		}`, "json")
 	inputChanel := make(chan string, 25)
-	bulkService := dataServices().BulkDataService("/ext/input.mjs").WithBatchSize(25).WithInputChannel(inputChanel)
+	bulkService := dataServices.BulkDataService("/ext/input.mjs").WithBatchSize(25).WithInputChannel(inputChanel)
 	bulkService.Run()
-	for i := 0; i < testCount; i++ {
+	for i := int64(0); i < testCount; i++ {
 		countStr := fmt.Sprint(i)
 		contentObject := `
 		{

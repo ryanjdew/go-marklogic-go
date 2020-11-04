@@ -47,6 +47,7 @@ type Handle interface {
 	io.ReadWriter
 	GetFormat() int
 	Deserialize([]byte)
+	Deserialized() interface{}
 	Serialize(interface{})
 	Serialized() string
 	SetTimestamp(string)
@@ -92,6 +93,11 @@ func (r *RawHandle) AcceptResponse(resp *http.Response) error {
 // Serialize returns the bytes that represent XML or JSON
 func (r *RawHandle) Serialize(bytes interface{}) {
 	r.Deserialize(bytes.([]byte))
+}
+
+// Deserialized returns string of XML or JSON as interface
+func (r *RawHandle) Deserialized() interface{} {
+	return r.String()
 }
 
 // Get returns string of XML or JSON
@@ -140,6 +146,11 @@ func (m *MapHandle) Deserialize(bytes []byte) {
 	m.Write(bytes)
 }
 
+// Deserialized returns map as interface
+func (m *MapHandle) Deserialized() interface{} {
+	return m.mapItem
+}
+
 // AcceptResponse handles an *http.Response
 func (m *MapHandle) AcceptResponse(resp *http.Response) error {
 	return CommonHandleAcceptResponse(m, resp)
@@ -150,7 +161,7 @@ func (m *MapHandle) Serialize(mapItem interface{}) {
 	m.mapItem = mapItem.(*map[string]interface{})
 }
 
-// Get returns string of XML or JSON
+// Get returns the map[string]interface{} form
 func (m *MapHandle) Get() *map[string]interface{} {
 	return m.mapItem
 }
@@ -196,6 +207,11 @@ func (rh *MultipartResponseHandle) Deserialize(bytes []byte) {
 	rh.resetBuffer()
 	rh.Write(bytes)
 	rh.response = append(rh.response, bytes)
+}
+
+// Deserialized returns [][]byte as interface{}
+func (rh *MultipartResponseHandle) Deserialized() interface{} {
+	return rh.response
 }
 
 // AcceptResponse handles an *http.Response

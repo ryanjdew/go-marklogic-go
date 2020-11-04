@@ -59,6 +59,11 @@ func (rh *RestartResponseHandle) Deserialize(bytes []byte) {
 	}
 }
 
+// Deserialized returns deserialised RestartResponse as interface{}
+func (rh *RestartResponseHandle) Deserialized() interface{} {
+	return &rh.response
+}
+
 // AcceptResponse handles an *http.Response
 func (rh *RestartResponseHandle) AcceptResponse(resp *http.Response) error {
 	return handle.CommonHandleAcceptResponse(rh, resp)
@@ -66,7 +71,12 @@ func (rh *RestartResponseHandle) AcceptResponse(resp *http.Response) error {
 
 // Serialize returns []byte of XML or JSON that represents the Response struct
 func (rh *RestartResponseHandle) Serialize(response interface{}) {
-	rh.response = response.(RestartResponse)
+	switch response.(type) {
+	case *RestartResponse:
+		rh.response = *(response.(*RestartResponse))
+	case RestartResponse:
+		rh.response = response.(RestartResponse)
+	}
 	rh.resetBuffer()
 	if rh.GetFormat() == handle.JSON {
 		enc := json.NewEncoder(rh.Buffer)
@@ -77,7 +87,7 @@ func (rh *RestartResponseHandle) Serialize(response interface{}) {
 	}
 }
 
-// Get returns string of XML or JSON
+// Get returns deserialised RestartResponse
 func (rh *RestartResponseHandle) Get() *RestartResponse {
 	return &rh.response
 }
@@ -145,6 +155,11 @@ func (rh *InitHandle) Deserialize(bytes []byte) {
 	}
 }
 
+// Deserialized returns deserialized InitializeProperties
+func (rh *InitHandle) Deserialized() interface{} {
+	return &rh.initializeProperties
+}
+
 // AcceptResponse handles an *http.Response
 func (rh *InitHandle) AcceptResponse(resp *http.Response) error {
 	return handle.CommonHandleAcceptResponse(rh, resp)
@@ -152,7 +167,12 @@ func (rh *InitHandle) AcceptResponse(resp *http.Response) error {
 
 // Serialize returns []byte of XML or JSON that represents the Response struct
 func (rh *InitHandle) Serialize(response interface{}) {
-	rh.initializeProperties = response.(InitializeProperties)
+	switch response.(type) {
+	case *InitializeProperties:
+		rh.initializeProperties = *(response.(*InitializeProperties))
+	case InitializeProperties:
+		rh.initializeProperties = response.(InitializeProperties)
+	}
 	rh.resetBuffer()
 	if rh.GetFormat() == handle.JSON {
 		enc := json.NewEncoder(rh.Buffer)
@@ -163,7 +183,7 @@ func (rh *InitHandle) Serialize(response interface{}) {
 	}
 }
 
-// Get returns string of XML or JSON
+// Get returns deserialized InitializeProperties
 func (rh *InitHandle) Get() *InitializeProperties {
 	return &rh.initializeProperties
 }

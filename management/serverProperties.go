@@ -138,6 +138,11 @@ func (sh *ServerPropertiesHandle) Deserialize(bytes []byte) {
 	}
 }
 
+// Deserialized returns ServerProperties as interface{}
+func (sh *ServerPropertiesHandle) Deserialized() interface{} {
+	return sh.serverProperties
+}
+
 // AcceptResponse handles an *http.Response
 func (sh *ServerPropertiesHandle) AcceptResponse(resp *http.Response) error {
 	return handle.CommonHandleAcceptResponse(sh, resp)
@@ -156,7 +161,7 @@ func (sh *ServerPropertiesHandle) Serialize(serverProperties interface{}) {
 	}
 }
 
-// Get returns string of XML or JSON
+// Get returns ServerProperties
 func (sh *ServerPropertiesHandle) Get() ServerProperties {
 	return sh.serverProperties
 }

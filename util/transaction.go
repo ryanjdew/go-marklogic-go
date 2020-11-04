@@ -141,6 +141,11 @@ func (tsh *TransactionStatusHandle) Deserialize(bytes []byte) {
 	json.Unmarshal(bytes, &tsh.TransactionStatus)
 }
 
+// Deserialized returns interface{}
+func (tsh *TransactionStatusHandle) Deserialized() interface{} {
+	return &tsh.TransactionStatus
+}
+
 // Serialize returns []byte of XML or JSON that represents the Query struct
 func (tsh *TransactionStatusHandle) Serialize(transactionStatus interface{}) {
 	tsh.TransactionStatus = transactionStatus.(TransactionStatus)
