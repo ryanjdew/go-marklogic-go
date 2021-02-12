@@ -44,6 +44,6 @@ func (s *Service) BulkDataService(endpoint string) *BulkDataService {
 }
 
 // CallDataService for bulk data service operations
-func (s *Service) CallDataService(endpoint string, reqParams map[string][]string, responseHandle handle.ResponseHandle) error {
-	return util.PostForm(s.client, endpoint, reqParams, responseHandle, true)
+func (s *Service) CallDataService(endpoint string, atomicParams map[string][]string, unatomicParams map[string][]*handle.Handle, responseHandle handle.ResponseHandle) error {
+	return util.PostForm(s.client, endpoint, atomicParams, unatomicParams, responseHandle, true)
 }

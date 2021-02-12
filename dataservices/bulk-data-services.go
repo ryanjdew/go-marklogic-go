@@ -39,7 +39,7 @@ type BulkDataService struct {
 	clientsByHost        map[string]*clients.Client
 	statusChangeListener []chan<- *WorkPhase
 	forestInfo           []util.ForestInfo
-	inputChannel         <-chan string
+	inputChannel         <-chan *handle.Handle
 	outputListeners      []chan<- []byte
 	waitGroup            *sync.WaitGroup
 	workIsForestBased    bool
@@ -53,7 +53,7 @@ func (bds *BulkDataService) WithOutputListener(listener chan []byte) *BulkDataSe
 }
 
 // WithInputChannel adds a channel to feed input to BulkDataServices
-func (bds *BulkDataService) WithInputChannel(inputChannel <-chan string) *BulkDataService {
+func (bds *BulkDataService) WithInputChannel(inputChannel <-chan *handle.Handle) *BulkDataService {
 	bds.inputChannel = inputChannel
 	return bds
 }
@@ -116,11 +116,11 @@ func (bds *BulkDataService) ThreadCount() uint8 {
 type DataServiceBatch struct {
 	endpoint      string
 	endpointState []byte
-	input         []string
+	input         []*handle.Handle
 }
 
 // Input contains the data to send to the Data Service
-func (dsb *DataServiceBatch) Input() []string {
+func (dsb *DataServiceBatch) Input() []*handle.Handle {
 	return dsb.input
 }
 
@@ -179,7 +179,7 @@ func (bds *BulkDataService) Wait() *BulkDataService {
 	return bds
 }
 
-func runInputThread(bds *BulkDataService, workUnit *interface{}, inputChannel <-chan string, client *clients.Client) {
+func runInputThread(bds *BulkDataService, workUnit *interface{}, inputChannel <-chan *handle.Handle, client *clients.Client) {
 	trackEndpointState := bds.endpointState != nil && len(bds.endpointState) > 0
 	listeners := bds.outputListeners
 	batchSizeInt := int(bds.BatchSize())
@@ -187,20 +187,20 @@ func runInputThread(bds *BulkDataService, workUnit *interface{}, inputChannel <-
 	defer wg.Done()
 	inputBatch := &DataServiceBatch{
 		endpoint:      bds.endpoint,
-		input:         make([]string, 0, batchSizeInt),
+		input:         make([]*handle.Handle, 0, batchSizeInt),
 		endpointState: bds.endpointState,
 	}
 	for {
 		select {
 		case input, open := <-inputChannel:
-			if len(input) > 0 {
+			if input != nil {
 				if bds.workPhase == INTERRUPTING {
 					return
 				}
 				inputBatch.input = append(inputBatch.input, input)
 				if len(inputBatch.input) >= batchSizeInt {
 					submitDataServiceBatch(inputBatch, workUnit, listeners, client)
-					inputBatch.input = make([]string, 0, batchSizeInt)
+					inputBatch.input = make([]*handle.Handle, 0, batchSizeInt)
 					if trackEndpointState && len(inputBatch.endpointState) == 0 {
 						return
 					}
@@ -212,7 +212,7 @@ func runInputThread(bds *BulkDataService, workUnit *interface{}, inputChannel <-
 				bds.workPhase = COMPLETED
 				if len(inputBatch.input) > 0 {
 					submitDataServiceBatch(inputBatch, workUnit, listeners, client)
-					inputBatch.input = make([]string, 0, batchSizeInt)
+					inputBatch.input = make([]*handle.Handle, 0, batchSizeInt)
 					if trackEndpointState && len(inputBatch.endpointState) == 0 {
 						return
 					}
@@ -241,23 +241,27 @@ func runProcessThread(bds *BulkDataService, workUnit *interface{}, client *clien
 }
 
 func submitDataServiceBatch(dataServiceBatch *DataServiceBatch, workUnit *interface{}, listeners []chan<- []byte, client *clients.Client) error {
-	reqParams := map[string][]string{}
+	unatomicParams := map[string][]*handle.Handle{}
 	if workUnit != nil {
 		jsonBytes, err := json.Marshal(workUnit)
 		if err != nil {
 			log.Fatal(err)
 		}
-		reqParams["workUnit"] = []string{string(jsonBytes)}
+		var workUnitHandle handle.Handle = &handle.RawHandle{Format: handle.JSON}
+		workUnitHandle.Deserialize(jsonBytes)
+		unatomicParams["workUnit"] = []*handle.Handle{&workUnitHandle}
 	}
 	trackEndpointState := dataServiceBatch.endpointState != nil && len(dataServiceBatch.endpointState) > 0
 	if trackEndpointState {
-		reqParams["endpointState"] = []string{string(dataServiceBatch.endpointState)}
+		var endpointStateHandle handle.Handle = &handle.RawHandle{Format: handle.JSON}
+		endpointStateHandle.Deserialize(dataServiceBatch.endpointState)
+		unatomicParams["endpointState"] = []*handle.Handle{&endpointStateHandle}
 	}
 	if len(dataServiceBatch.input) > 0 {
-		reqParams["input"] = dataServiceBatch.input
+		unatomicParams["input"] = dataServiceBatch.input
 	}
 	respHandle := &handle.MultipartResponseHandle{}
-	err := util.PostForm(client, dataServiceBatch.endpoint, reqParams, respHandle, true)
+	err := util.PostForm(client, dataServiceBatch.endpoint, make(map[string][]string), unatomicParams, respHandle, true)
 	multipartOutput := respHandle.Get()
 	if len(multipartOutput) == 0 {
 		if trackEndpointState {

@@ -1,10 +1,14 @@
 package util
 
 import (
+	"bytes"
 	"encoding/xml"
 	"fmt"
+	"io"
 	"io/ioutil"
+	"mime/multipart"
 	"net/http"
+	"net/textproto"
 	"net/url"
 	"strconv"
 	"strings"
@@ -22,11 +26,11 @@ func (s SerializableStringMap) MarshalXML(e *xml.Encoder, start xml.StartElement
 	tokens := []xml.Token{start}
 
 	for key, value := range s {
-		t := xml.StartElement{Name: xml.Name{"", key}}
-		tokens = append(tokens, t, xml.CharData(value), xml.EndElement{t.Name})
+		t := xml.StartElement{Name: xml.Name{Space: "", Local: key}}
+		tokens = append(tokens, t, xml.CharData(value), xml.EndElement{Name: t.Name})
 	}
 
-	tokens = append(tokens, xml.EndElement{start.Name})
+	tokens = append(tokens, xml.EndElement{Name: start.Name})
 
 	for _, t := range tokens {
 		if err := e.EncodeToken(t); err != nil {
@@ -139,23 +143,53 @@ func Execute(c clients.RESTClient, req *http.Request, responseHandle handle.Resp
 	return nil
 }
 
-// PostForm submits a URL encoded form TODO accept response handle
-func PostForm(c clients.RESTClient, endpoint string, reqParams map[string][]string, responseHandle handle.ResponseHandle, isDataService bool) error {
-	data := url.Values{}
-	for key, values := range reqParams {
-		for _, value := range values {
-			data.Add(key, value)
+// PostForm submits a URL encoded form
+func PostForm(c clients.RESTClient, endpoint string, atomicParams map[string][]string, unatomicParams map[string][]*handle.Handle, responseHandle handle.ResponseHandle, isDataService bool) error {
+	var reader io.Reader
+	var contentType string
+	var contentLength int
+	if len(unatomicParams) == 0 {
+		// if there are not unatomic types, use urlencode
+		data := url.Values{}
+		for key, values := range atomicParams {
+			for _, value := range values {
+				data.Add(key, value)
+			}
 		}
+		encodedData := data.Encode()
+		reader = strings.NewReader(encodedData)
+		contentType = "application/x-www-form-urlencoded; charset=UTF-8"
+		contentLength = len(encodedData)
+	} else {
+		// if there are unatomic types use multipart form
+		body := &bytes.Buffer{}
+		writer := multipart.NewWriter(body)
+		for key, values := range atomicParams {
+			for _, value := range values {
+				fw, _ := writer.CreateFormField(key)
+				io.Copy(fw, strings.NewReader(value))
+			}
+		}
+		for key, values := range unatomicParams {
+			for _, value := range values {
+				h := (*value)
+				mimetype := handle.FormatEnumToMimeType(h.GetFormat())
+				fw, _ := writer.CreatePart(textproto.MIMEHeader{"Content-Disposition": []string{"form-data; name=\"" + key + "\"; filename=\"\""}, "Content-Type": []string{mimetype}})
+				io.Copy(fw, bytes.NewBufferString(h.Serialized()))
+			}
+		}
+		contentType = writer.FormDataContentType()
+		writer.Close()
+		reader = bytes.NewBuffer(body.Bytes())
+		contentLength = len(body.Bytes())
 	}
-
-	encodedData := data.Encode()
 	baseURL := c.Base()
 	if isDataService {
 		baseURL = strings.Replace(baseURL, "/LATEST", "", -1)
 	}
-	req, _ := http.NewRequest(http.MethodPost, baseURL+endpoint, strings.NewReader(encodedData)) // URL-encoded payload
-	req.Header.Add("Content-Type", "application/x-www-form-urlencoded; charset=UTF-8")
-	req.Header.Add("Content-Length", strconv.Itoa(len(encodedData)))
+	req, _ := http.NewRequest(http.MethodPost, baseURL+endpoint, reader) // URL-encoded payload
+	req.Header.Add("Content-Type", contentType)
+	req.Header.Add("Content-Length", strconv.Itoa(contentLength))
 
 	clients.ApplyAuth(c, req)
 	resp, err := c.Do(req)

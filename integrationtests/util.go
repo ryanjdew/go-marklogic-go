@@ -41,7 +41,7 @@ func ClearDocs() error {
 				"nullable": true
 			}
 		}`, "json")
-	return util.PostForm(Client(), "/ext/clearDocs.mjs", make(map[string][]string), nil, true)
+	return util.PostForm(Client(), "/ext/clearDocs.mjs", make(map[string][]string), make(map[string][]*handle.Handle), nil, true)
 }
 
 func CollectionCount(collection string) int64 {

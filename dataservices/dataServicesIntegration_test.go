@@ -1,4 +1,4 @@
-// +build integration
+// build integration
 
 package dataservices
 
@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"testing"
 
+	handle "github.com/ryanjdew/go-marklogic-go/handle"
 	integrationtests "github.com/ryanjdew/go-marklogic-go/integrationtests"
 )
 
@@ -109,13 +110,15 @@ func writeDocumentsWithDataServices() {
 				"nullable": true
 			}
 		}`, "json")
-	inputChanel := make(chan string, 25)
+	inputChanel := make(chan *handle.Handle, 25)
 	bulkService := dataServices.BulkDataService("/ext/input.mjs").WithBatchSize(25).WithInputChannel(inputChanel)
 	bulkService.Run()
 	for i := int64(0); i < testCount; i++ {
 		countStr := fmt.Sprint(i)
-		contentObject := `
-		{
+		var contentObject handle.Handle = &handle.RawHandle{
+			Format: handle.JSON,
+		}
+		contentObject.Deserialize([]byte(`{
 			"uri": "/test-doc-` + countStr + `.json",
 			"value": {
 				"testId": ` + countStr + `
@@ -123,9 +126,8 @@ func writeDocumentsWithDataServices() {
 			"context": {
 				"collections": ["collection-1", "collection-2"]
 			}
-		}
-		`
-		inputChanel <- contentObject
+		}`))
+		inputChanel <- &contentObject
 	}
 	close(inputChanel)
 	bulkService.Wait()
