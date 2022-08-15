@@ -3,7 +3,6 @@ package goMarklogicGo
 import (
 	"bytes"
 	"io"
-	"io/ioutil"
 	"mime"
 	"mime/multipart"
 	"net/http"
@@ -234,7 +233,7 @@ func (rh *MultipartResponseHandle) AcceptResponse(resp *http.Response) error {
 			if err != nil {
 				return err
 			}
-			output, err := ioutil.ReadAll(p)
+			output, err := io.ReadAll(p)
 			if err != nil {
 				return err
 			}
@@ -274,9 +273,13 @@ func (rh *MultipartResponseHandle) Timestamp() string {
 
 // CommonHandleAcceptResponse handles an HTTP response
 func CommonHandleAcceptResponse(genericHandle Handle, response *http.Response) error {
-	defer response.Body.Close()
-	contents, err := ioutil.ReadAll(response.Body)
-	genericHandle.Deserialize(contents)
-	genericHandle.SetTimestamp(response.Header.Get("ML-Effective-Timestamp"))
+	var err error
+	var contents []byte
+	if response != nil {
+		defer response.Body.Close()
+		contents, err = io.ReadAll(response.Body)
+		genericHandle.Deserialize(contents)
+		genericHandle.SetTimestamp(response.Header.Get("ML-Effective-Timestamp"))
+	}
 	return err
 }

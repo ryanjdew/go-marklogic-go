@@ -56,11 +56,11 @@ func (rh *RulesResponseHandle) AcceptResponse(resp *http.Response) error {
 
 // Serialize returns []byte of XML or JSON that represents the Response struct
 func (rh *RulesResponseHandle) Serialize(response interface{}) {
-	switch response.(type) {
+	switch response := response.(type) {
 	case *RulesResponse:
-		rh.response = *(response.(*RulesResponse))
+		rh.response = *(response)
 	case RulesResponse:
-		rh.response = response.(RulesResponse)
+		rh.response = response
 	}
 	rh.resetBuffer()
 	if rh.GetFormat() == handle.JSON {

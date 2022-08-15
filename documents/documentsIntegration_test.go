@@ -1,4 +1,4 @@
-// +build integration
+//go:build integration
 
 package documents
 
@@ -21,7 +21,7 @@ func TestMain(m *testing.M) {
 func TestWriteReadDocuments(t *testing.T) {
 	client := integrationtests.Client()
 	docSet := []*DocumentDescription{
-		&DocumentDescription{
+		{
 			URI:     "/test.json",
 			Format:  handle.JSON,
 			Content: bytes.NewBufferString(`{ "test": "json"}`),
@@ -33,7 +33,7 @@ func TestWriteReadDocuments(t *testing.T) {
 				},
 			},
 		},
-		&DocumentDescription{
+		{
 			URI:     "/test2.xml",
 			Format:  handle.XML,
 			Content: bytes.NewBufferString(`<root/>`),

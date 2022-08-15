@@ -145,23 +145,21 @@ func runWriteThread(writeBatcher *WriteBatcher, writeChannel <-chan *documents.D
 				documentDescriptions: make([]*documents.DocumentDescription, 0, batchSizeInt),
 			}
 		}
-		select {
-		case writeDoc, ok := <-writeChannel:
-			if writeDoc != nil {
-				writeBatch.documentDescriptions = append(writeBatch.documentDescriptions, writeDoc)
-				if len(writeBatch.documentDescriptions) >= batchSizeInt {
-					submitBatch(writeBatch, writeBatcher.transform, writeBatcher.transaction, listeners)
-					writeBatch = nil
-				}
-			} else if !ok && len(writeChannel) == 0 {
-				if len(writeBatch.documentDescriptions) > 0 {
-					submitBatch(writeBatch, writeBatcher.transform, writeBatcher.transaction, listeners)
-					writeBatch = nil
-				}
-				return
-			} else {
-				time.Sleep(time.Millisecond)
+		writeDoc, ok := <-writeChannel
+		if writeDoc != nil {
+			writeBatch.documentDescriptions = append(writeBatch.documentDescriptions, writeDoc)
+			if len(writeBatch.documentDescriptions) >= batchSizeInt {
+				submitBatch(writeBatch, writeBatcher.transform, writeBatcher.transaction, listeners)
+				writeBatch = nil
 			}
+		} else if !ok && len(writeChannel) == 0 {
+			if len(writeBatch.documentDescriptions) > 0 {
+				submitBatch(writeBatch, writeBatcher.transform, writeBatcher.transaction, listeners)
+				writeBatch = nil
+			}
+			return
+		} else {
+			time.Sleep(time.Nanosecond)
 		}
 	}
 }

@@ -62,12 +62,12 @@ func (rh *InstanceAdminHandle) AcceptResponse(resp *http.Response) error {
 }
 
 // Serialize returns []byte of XML or JSON that represents the Response struct
-func (rh *InstanceAdminHandle) Serialize(response interface{}) {
-	switch response.(type) {
+func (rh *InstanceAdminHandle) Serialize(request interface{}) {
+	switch request := request.(type) {
 	case *InstanceAdminRequest:
-		rh.request = *(response.(*InstanceAdminRequest))
+		rh.request = *(request)
 	case InstanceAdminRequest:
-		rh.request = response.(InstanceAdminRequest)
+		rh.request = request
 	}
 	rh.resetBuffer()
 	if rh.GetFormat() == handle.JSON {

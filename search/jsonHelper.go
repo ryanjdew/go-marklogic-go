@@ -38,7 +38,7 @@ func wrapJSONInterface(item interface{}) (map[string]interface{}, error) {
 		}
 		return map[string]interface{}{n: item}, nil
 	}
-	return nil, errors.New("You failed")
+	return nil, errors.New("YOU FAILED")
 }
 
 func wrapJSON(i interface{}) ([]byte, error) {

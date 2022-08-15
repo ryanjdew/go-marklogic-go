@@ -3,7 +3,6 @@ package documents
 import (
 	"bytes"
 	"io"
-	"io/ioutil"
 	"mime/multipart"
 	"net/http"
 	"net/textproto"
@@ -28,7 +27,8 @@ func (dd *DocumentDescription) GetFormat() int {
 	return dd.Format
 }
 
-func toURIs(docs []*DocumentDescription) []string {
+// ToURIs returns a slice of URIs from a slice of DocumentDescription types
+func ToURIs(docs []*DocumentDescription) []string {
 	uris := []string{}
 	for _, doc := range docs {
 		uris = append(uris, doc.URI)
@@ -114,7 +114,7 @@ func writeSet(c *clients.Client, documents []*DocumentDescription, metadata hand
 		}
 		var docContentBytes []byte
 		if doc.Content != nil {
-			docContentBytes, _ = ioutil.ReadAll(doc.Content)
+			docContentBytes, _ = io.ReadAll(doc.Content)
 		}
 		doc.Content = bytes.NewBuffer(docContentBytes)
 		header := &textproto.MIMEHeader{}
