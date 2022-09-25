@@ -190,37 +190,27 @@ func runInputThread(bds *BulkDataService, workUnit *interface{}, inputChannel <-
 		input:         make([]*handle.Handle, 0, batchSizeInt),
 		endpointState: bds.endpointState,
 	}
-	for {
-		select {
-		case input, open := <-inputChannel:
-			if input != nil {
-				if bds.workPhase == INTERRUPTING {
-					return
-				}
-				inputBatch.input = append(inputBatch.input, input)
-				if len(inputBatch.input) >= batchSizeInt {
-					submitDataServiceBatch(inputBatch, workUnit, listeners, client)
-					inputBatch.input = make([]*handle.Handle, 0, batchSizeInt)
-					if trackEndpointState && len(inputBatch.endpointState) == 0 {
-						return
-					}
-				}
-			} else {
-				time.Sleep(time.Millisecond)
-			}
-			if !open {
-				bds.workPhase = COMPLETED
-				if len(inputBatch.input) > 0 {
-					submitDataServiceBatch(inputBatch, workUnit, listeners, client)
-					inputBatch.input = make([]*handle.Handle, 0, batchSizeInt)
-					if trackEndpointState && len(inputBatch.endpointState) == 0 {
-						return
-					}
-				}
+	for input := range inputChannel {
+		if input != nil {
+			if bds.workPhase == INTERRUPTING {
 				return
 			}
+			inputBatch.input = append(inputBatch.input, input)
+			if len(inputBatch.input) >= batchSizeInt {
+				submitDataServiceBatch(inputBatch, workUnit, listeners, client)
+				inputBatch.input = make([]*handle.Handle, 0, batchSizeInt)
+				if trackEndpointState && len(inputBatch.endpointState) == 0 {
+					return
+				}
+			}
+		} else {
+			time.Sleep(time.Nanosecond)
 		}
-
+	}
+	bds.workPhase = COMPLETED
+	if len(inputBatch.input) > 0 {
+		submitDataServiceBatch(inputBatch, workUnit, listeners, client)
+		inputBatch.input = make([]*handle.Handle, 0, batchSizeInt)
 	}
 }
 

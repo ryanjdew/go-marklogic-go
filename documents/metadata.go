@@ -83,7 +83,7 @@ func (mh *MetadataHandle) Serialized() string {
 	if err != nil {
 		panic(err)
 	}
-	return string(buffer.Bytes())
+	return buffer.String()
 }
 
 // SetTimestamp sets the timestamp

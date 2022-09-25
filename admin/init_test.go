@@ -2,11 +2,9 @@ package admin
 
 import (
 	"encoding/xml"
-	_ "encoding/xml"
 	"testing"
 
 	handle "github.com/ryanjdew/go-marklogic-go/handle"
-	_ "github.com/ryanjdew/go-marklogic-go/test"
 	testHelper "github.com/ryanjdew/go-marklogic-go/test"
 )
 

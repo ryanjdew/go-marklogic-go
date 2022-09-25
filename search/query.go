@@ -171,8 +171,8 @@ type NearQuery struct {
 // BoostQuery represents http://docs.marklogic.com/guide/search-dev/structured-query#id_25949
 type BoostQuery struct {
 	XMLName       xml.Name      `xml:"http://marklogic.com/appservices/search boost-query" json:"-"`
-	MatchingQuery PositiveQuery `xml:"http://marklogic.com/appservices/search macthing-query" json:"macthing-query,omitempty"`
-	BoostingQuery NegativeQuery `xml:"http://marklogic.com/appservices/search boosting-query" json:"boosting-query,omitempty"`
+	MatchingQuery MatchingQuery `xml:"http://marklogic.com/appservices/search matching-query" json:"matching-query,omitempty"`
+	BoostingQuery BoostingQuery `xml:"http://marklogic.com/appservices/search boosting-query" json:"boosting-query,omitempty"`
 }
 
 // MatchingQuery represents http://docs.marklogic.com/guide/search-dev/structured-query#id_25949
@@ -541,6 +541,9 @@ func SerializeXMLWithQueries(d *xml.Decoder, start xml.StartElement) ([]interfac
 				e := xml.StartElement(t)
 				q := stringToQueryStruct(e.Name.Local)
 				err = d.DecodeElement(q, &e)
+				if err != nil {
+					return nil, err
+				}
 				queries = append(queries, q)
 			case xml.EndElement:
 				e := xml.EndElement(t)

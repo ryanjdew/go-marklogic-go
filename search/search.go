@@ -177,7 +177,9 @@ func Delete(c *clients.Client, parameters map[string]string, transaction *util.T
 func StructuredSearch(c *clients.Client, query handle.Handle, start int64, pageLength int64, transaction *util.Transaction, response handle.ResponseHandle) error {
 	params := "?start=" + strconv.FormatInt(start, 10) + "&pageLength=" + strconv.FormatInt(pageLength, 10)
 	params = util.AddDatabaseParam(params, c)
-	params = util.AddTransactionParam(params, transaction)
+	if (transaction != nil) && (transaction.ID != "") {
+		params = util.AddTransactionParam(params, transaction)
+	}
 	req, err := util.BuildRequestFromHandle(c, "POST", "/search"+params, query)
 	if err != nil {
 		return err
@@ -185,7 +187,7 @@ func StructuredSearch(c *clients.Client, query handle.Handle, start int64, pageL
 	return util.Execute(c, req, response)
 }
 
-//UnmarshalXML for Match struct in a special way to handle highlighting matching text
+// UnmarshalXML for Match struct in a special way to handle highlighting matching text
 func (m *Match) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
 	for i := range start.Attr {
 		attr := start.Attr[i]

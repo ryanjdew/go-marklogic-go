@@ -1,6 +1,6 @@
 module github.com/ryanjdew/go-marklogic-go
 
-go 1.15
+go 1.19
 
 require (
 	github.com/davecgh/go-spew v1.1.1

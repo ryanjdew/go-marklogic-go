@@ -71,11 +71,11 @@ func (rh *RestartResponseHandle) AcceptResponse(resp *http.Response) error {
 
 // Serialize returns []byte of XML or JSON that represents the Response struct
 func (rh *RestartResponseHandle) Serialize(response interface{}) {
-	switch response.(type) {
+	switch response := response.(type) {
 	case *RestartResponse:
-		rh.response = *(response.(*RestartResponse))
+		rh.response = *(response)
 	case RestartResponse:
-		rh.response = response.(RestartResponse)
+		rh.response = response
 	}
 	rh.resetBuffer()
 	if rh.GetFormat() == handle.JSON {
@@ -167,11 +167,11 @@ func (rh *InitHandle) AcceptResponse(resp *http.Response) error {
 
 // Serialize returns []byte of XML or JSON that represents the Response struct
 func (rh *InitHandle) Serialize(response interface{}) {
-	switch response.(type) {
+	switch response := response.(type) {
 	case *InitializeProperties:
-		rh.initializeProperties = *(response.(*InitializeProperties))
+		rh.initializeProperties = *(response)
 	case InitializeProperties:
-		rh.initializeProperties = response.(InitializeProperties)
+		rh.initializeProperties = response
 	}
 	rh.resetBuffer()
 	if rh.GetFormat() == handle.JSON {

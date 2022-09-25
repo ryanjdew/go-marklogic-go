@@ -6,7 +6,6 @@ import (
 
 	handle "github.com/ryanjdew/go-marklogic-go/handle"
 	"github.com/ryanjdew/go-marklogic-go/search"
-	_ "github.com/ryanjdew/go-marklogic-go/test"
 	testHelper "github.com/ryanjdew/go-marklogic-go/test"
 	util "github.com/ryanjdew/go-marklogic-go/util"
 )

@@ -5,7 +5,6 @@ import (
 	"encoding/xml"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"mime/multipart"
 	"net/http"
 	"net/textproto"
@@ -106,7 +105,13 @@ func BuildRequestFromHandle(c clients.RESTClient, method string, uri string, req
 	if reqHandle != nil {
 		reqType = handle.FormatEnumToMimeType(reqHandle.GetFormat())
 	}
-	req, err := http.NewRequest(method, c.Base()+uri, reqHandle)
+	var req *http.Request
+	var err error
+	if reqHandle == nil || reqHandle.Serialized() == "" {
+		req, err = http.NewRequest(method, c.Base()+uri, nil)
+	} else {
+		req, err = http.NewRequest(method, c.Base()+uri, reqHandle)
+	}
 	if err == nil && reqType != "" {
 		req.Header.Add("Content-Type", reqType)
 	} else {
@@ -138,7 +143,9 @@ func Execute(c clients.RESTClient, req *http.Request, responseHandle handle.Resp
 	if respHandleNotNil {
 		return responseHandle.AcceptResponse(resp)
 	}
-	ioutil.ReadAll(resp.Body)
+	if resp != nil {
+		io.ReadAll(resp.Body)
+	}
 
 	return nil
 }
