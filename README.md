@@ -30,7 +30,7 @@ import (
 func main() {
   db, _ := marklogic.NewClient("localhost", 8050, "admin", "admin", marklogic.DigestAuth)
   query := search.Query{}
-  query.Queries = []interface{}{
+  query.Queries = []any{
     search.TermQuery{
       Terms: []string{queryStr},
     },

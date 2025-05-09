@@ -144,7 +144,7 @@ func TestSearch(t *testing.T) {
 	}
 	query :=
 		Query{
-			Queries: []interface{}{
+			Queries: []any{
 				TermQuery{Terms: []string{"data"}},
 			},
 		}

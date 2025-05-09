@@ -1,4 +1,4 @@
-// +build integration
+//go:build integration
 
 package datamovement
 
@@ -57,7 +57,7 @@ func returnURIsWithReadBatcher(t *testing.T, collection string) []string {
 	listenerChannel := make(chan *QueryBatch, 100)
 	query :=
 		searchMod.Query{
-			Queries: []interface{}{
+			Queries: []any{
 				searchMod.CollectionQuery{
 					URIs: []string{collection},
 				},
@@ -71,20 +71,15 @@ func returnURIsWithReadBatcher(t *testing.T, collection string) []string {
 	wg := &sync.WaitGroup{}
 	wg.Add(1)
 	go func() {
-		for {
-			select {
-			case queryBatch, ok := <-listenerChannel:
-				if queryBatch != nil {
-					if timestamp != "" && timestamp != queryBatch.Timestamp() {
-						t.Errorf("Has timestamp = %s, Expected = %s", queryBatch.Timestamp(), timestamp)
-					}
-					uris = append(uris, queryBatch.URIs...)
-				} else if !ok && len(listenerChannel) == 0 {
-					wg.Done()
-					return
+		for queryBatch := range listenerChannel {
+			if queryBatch != nil {
+				if timestamp != "" && timestamp != queryBatch.Timestamp() {
+					t.Errorf("Has timestamp = %s, Expected = %s", queryBatch.Timestamp(), timestamp)
 				}
+				uris = append(uris, queryBatch.URIs...)
 			}
 		}
+		wg.Done()
 	}()
 	queryBatcher.Wait()
 	close(listenerChannel)

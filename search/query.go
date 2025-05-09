@@ -103,21 +103,21 @@ type CombinedQuery struct {
 
 // Query represents http://docs.marklogic.com/guide/search-dev/structured-query#id_85307
 type Query struct {
-	XMLName xml.Name      `xml:"http://marklogic.com/appservices/search query" json:"-"`
-	Queries []interface{} `xml:",any" json:"queries"`
+	XMLName xml.Name `xml:"http://marklogic.com/appservices/search query" json:"-"`
+	Queries []any    `xml:",any" json:"queries"`
 }
 
 // OrQuery represents http://docs.marklogic.com/guide/search-dev/structured-query#id_64259
 type OrQuery struct {
-	XMLName xml.Name      `xml:"http://marklogic.com/appservices/search or-query" json:"-"`
-	Queries []interface{} `xml:",any" json:"queries"`
+	XMLName xml.Name `xml:"http://marklogic.com/appservices/search or-query" json:"-"`
+	Queries []any    `xml:",any" json:"queries"`
 }
 
 // AndQuery represents http://docs.marklogic.com/guide/search-dev/structured-query#id_83674
 type AndQuery struct {
-	XMLName xml.Name      `xml:"http://marklogic.com/appservices/search and-query" json:"-"`
-	Ordered bool          `xml:"http://marklogic.com/appservices/search ordered,omitempty" json:"ordered,omitempty"`
-	Queries []interface{} `xml:",any" json:"queries"`
+	XMLName xml.Name `xml:"http://marklogic.com/appservices/search and-query" json:"-"`
+	Ordered bool     `xml:"http://marklogic.com/appservices/search ordered,omitempty" json:"ordered,omitempty"`
+	Queries []any    `xml:",any" json:"queries"`
 }
 
 // TermQuery represents http://docs.marklogic.com/guide/search-dev/structured-query#id_56027
@@ -136,20 +136,20 @@ type AndNotQuery struct {
 
 // PositiveQuery represents http://docs.marklogic.com/guide/search-dev/structured-query#id_65108
 type PositiveQuery struct {
-	XMLName xml.Name      `xml:"http://marklogic.com/appservices/search positive-query" json:"-"`
-	Queries []interface{} `xml:",any" json:"queries"`
+	XMLName xml.Name `xml:"http://marklogic.com/appservices/search positive-query" json:"-"`
+	Queries []any    `xml:",any" json:"queries"`
 }
 
 // NegativeQuery represents http://docs.marklogic.com/guide/search-dev/structured-query#id_65108
 type NegativeQuery struct {
-	XMLName xml.Name      `xml:"http://marklogic.com/appservices/search negative-query" json:"-"`
-	Queries []interface{} `xml:",any" json:"queries"`
+	XMLName xml.Name `xml:"http://marklogic.com/appservices/search negative-query" json:"-"`
+	Queries []any    `xml:",any" json:"queries"`
 }
 
 // NotQuery represents http://docs.marklogic.com/guide/search-dev/structured-query#id_39488
 type NotQuery struct {
-	XMLName xml.Name      `xml:"http://marklogic.com/appservices/search not-query" json:"-"`
-	Queries []interface{} `xml:",any" json:"queries"`
+	XMLName xml.Name `xml:"http://marklogic.com/appservices/search not-query" json:"-"`
+	Queries []any    `xml:",any" json:"queries"`
 }
 
 // NotInQuery represents http://docs.marklogic.com/guide/search-dev/structured-query#id_90794
@@ -161,11 +161,11 @@ type NotInQuery struct {
 
 // NearQuery represents http://docs.marklogic.com/guide/search-dev/structured-query#id_48512
 type NearQuery struct {
-	XMLName        xml.Name      `xml:"http://marklogic.com/appservices/search near-query" json:"-"`
-	Queries        []interface{} `xml:",any" json:"queries"`
-	Ordered        bool          `xml:"http://marklogic.com/appservices/search ordered,omitempty" json:"ordered,omitempty"`
-	Distance       int64         `xml:"http://marklogic.com/appservices/search distance,omitempty" json:"distance,omitempty"`
-	DistanceWeight float64       `xml:"http://marklogic.com/appservices/search distance-weight,omitempty" json:"distance-weight,omitempty"`
+	XMLName        xml.Name `xml:"http://marklogic.com/appservices/search near-query" json:"-"`
+	Queries        []any    `xml:",any" json:"queries"`
+	Ordered        bool     `xml:"http://marklogic.com/appservices/search ordered,omitempty" json:"ordered,omitempty"`
+	Distance       int64    `xml:"http://marklogic.com/appservices/search distance,omitempty" json:"distance,omitempty"`
+	DistanceWeight float64  `xml:"http://marklogic.com/appservices/search distance-weight,omitempty" json:"distance-weight,omitempty"`
 }
 
 // BoostQuery represents http://docs.marklogic.com/guide/search-dev/structured-query#id_25949
@@ -177,20 +177,20 @@ type BoostQuery struct {
 
 // MatchingQuery represents http://docs.marklogic.com/guide/search-dev/structured-query#id_25949
 type MatchingQuery struct {
-	XMLName xml.Name      `xml:"http://marklogic.com/appservices/search matching-query" json:"-"`
-	Queries []interface{} `xml:",any" json:"queries"`
+	XMLName xml.Name `xml:"http://marklogic.com/appservices/search matching-query" json:"-"`
+	Queries []any    `xml:",any" json:"queries"`
 }
 
 // BoostingQuery represents http://docs.marklogic.com/guide/search-dev/structured-query#id_25949
 type BoostingQuery struct {
-	XMLName xml.Name      `xml:"http://marklogic.com/appservices/search boosting-query" json:"-"`
-	Queries []interface{} `xml:",any" json:"queries"`
+	XMLName xml.Name `xml:"http://marklogic.com/appservices/search boosting-query" json:"-"`
+	Queries []any    `xml:",any" json:"queries"`
 }
 
 // PropertiesQuery represents http://docs.marklogic.com/guide/search-dev/structured-query#id_67222
 type PropertiesQuery struct {
-	XMLName xml.Name      `xml:"http://marklogic.com/appservices/search properties-query" json:"-"`
-	Queries []interface{} `xml:",any" json:"queries"`
+	XMLName xml.Name `xml:"http://marklogic.com/appservices/search properties-query" json:"-"`
+	Queries []any    `xml:",any" json:"queries"`
 }
 
 // DirectoryQuery represents http://docs.marklogic.com/guide/search-dev/structured-query#id_94821
@@ -208,11 +208,11 @@ type CollectionQuery struct {
 
 // ContainerQuery represents http://docs.marklogic.com/guide/search-dev/structured-query#id_87231
 type ContainerQuery struct {
-	XMLName       xml.Name      `xml:"http://marklogic.com/appservices/search container-query" json:"-"`
-	Element       QueryElement  `xml:"http://marklogic.com/appservices/search element,omitempty" json:"element,omitempty"`
-	JSONKey       string        `xml:"http://marklogic.com/appservices/search json-key,omitempty" json:"json-key,omitempty"`
-	FragmentScope string        `xml:"http://marklogic.com/appservices/search fragment-scope,omitempty" json:"fragment-scope,omitempty"`
-	Queries       []interface{} `xml:",any" json:"queries"`
+	XMLName       xml.Name     `xml:"http://marklogic.com/appservices/search container-query" json:"-"`
+	Element       QueryElement `xml:"http://marklogic.com/appservices/search element,omitempty" json:"element,omitempty"`
+	JSONKey       string       `xml:"http://marklogic.com/appservices/search json-key,omitempty" json:"json-key,omitempty"`
+	FragmentScope string       `xml:"http://marklogic.com/appservices/search fragment-scope,omitempty" json:"fragment-scope,omitempty"`
+	Queries       []any        `xml:",any" json:"queries"`
 }
 
 // QueryElement represents http://docs.marklogic.com/guide/search-dev/structured-query#id_87231
@@ -237,14 +237,14 @@ type DocumentQuery struct {
 
 // DocumentFragmentQuery represents http://docs.marklogic.com/guide/search-dev/structured-query#id_30556
 type DocumentFragmentQuery struct {
-	XMLName xml.Name      `xml:"http://marklogic.com/appservices/search document-fragment-query" json:"-"`
-	Queries []interface{} `xml:",any" json:"queries"`
+	XMLName xml.Name `xml:"http://marklogic.com/appservices/search document-fragment-query" json:"-"`
+	Queries []any    `xml:",any" json:"queries"`
 }
 
 // LocksQuery represents http://docs.marklogic.com/guide/search-dev/structured-query#id_53441
 type LocksQuery struct {
-	XMLName xml.Name      `xml:"http://marklogic.com/appservices/search locks-query" json:"-"`
-	Queries []interface{} `xml:",any" json:"queries"`
+	XMLName xml.Name `xml:"http://marklogic.com/appservices/search locks-query" json:"-"`
+	Queries []any    `xml:",any" json:"queries"`
 }
 
 // RangeQuery represents http://docs.marklogic.com/guide/search-dev/structured-query#id_83393
@@ -532,8 +532,8 @@ func (q *LocksQuery) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error 
 }
 
 // SerializeXMLWithQueries Serializes text into Query struct
-func SerializeXMLWithQueries(d *xml.Decoder, start xml.StartElement) ([]interface{}, error) {
-	var queries []interface{}
+func SerializeXMLWithQueries(d *xml.Decoder, start xml.StartElement) ([]any, error) {
+	var queries []any
 	for {
 		if token, err := d.Token(); (err == nil) && (token != nil) {
 			switch t := token.(type) {

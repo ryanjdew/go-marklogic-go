@@ -1,0 +1,30 @@
+version: '3'
+
+tasks:
+  setup:
+    vars:
+      REST_API_PAYLOAD: '{\"rest-api\":{\"name\": \"ml-go\",\"modules-database\": \"ml-go-modules\",\"database\": \"ml-go-content\",\"port\": 8011}}'
+      REST_API_CONTENT_TYPE: 'Content-Type: application/json'
+    desc: Setup the project environment
+    cmds:
+      - echo "Setting up the project environment..."
+      - go mod tidy
+      - docker run -d --privileged -p 7999-8015:7999-8015 --memory=32g --memory-swap=64g --name=ml-go -e MARKLOGIC_INIT=true -e MARKLOGIC_ADMIN_USERNAME={{.MARKLOGIC_ADMIN_USERNAME}} -e MARKLOGIC_ADMIN_PASSWORD={{.MARKLOGIC_ADMIN_PASSWORD}} --platform linux/amd64 progressofficial/marklogic-db:latest
+      - TIMEOUT /T 60
+      - docker exec -it ml-go bash -c "curl -X POST --anyauth -u {{.MARKLOGIC_ADMIN_USERNAME}}:{{.MARKLOGIC_ADMIN_PASSWORD}} http://localhost:8002/v1/rest-apis -d '{{.REST_API_PAYLOAD}}' -H '{{.REST_API_CONTENT_TYPE}}'"
+    requires:
+      vars:
+          - MARKLOGIC_ADMIN_USERNAME
+          - MARKLOGIC_ADMIN_PASSWORD
+
+  build:
+    desc: Build the project
+    cmds:
+      - echo "Building the project..."
+      - go build .
+
+  test:
+    desc: Run tests
+    cmds:
+      - echo "Running tests..."
+      - go test ./... -p 1 --tags=integration

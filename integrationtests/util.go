@@ -48,7 +48,7 @@ func CollectionCount(collection string) int64 {
 	resp := &searchMod.ResponseHandle{}
 	structuredQuery := &searchMod.QueryHandle{
 		Query: searchMod.Query{
-			Queries: []interface{}{searchMod.CollectionQuery{URIs: []string{collection}}},
+			Queries: []any{searchMod.CollectionQuery{URIs: []string{collection}}},
 		},
 	}
 	Search().StructuredSearch(structuredQuery, 1, 0, nil, resp)

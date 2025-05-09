@@ -31,7 +31,7 @@ const (
 type BulkDataService struct {
 	endpoint             string
 	workPhase            WorkPhase
-	workUnits            []interface{}
+	workUnits            []any
 	batchSize            uint16
 	threadCount          uint8
 	mutex                *sync.Mutex
@@ -67,7 +67,7 @@ func (bds *BulkDataService) WithWorkUnits(workUnits ...interface{}) *BulkDataSer
 
 // WithForestBasedWorkUnits sets work units based off of forests in the database
 func (bds *BulkDataService) WithForestBasedWorkUnits() *BulkDataService {
-	forestBasedWorkUnits := make([]interface{}, 0, len(bds.forestInfo))
+	forestBasedWorkUnits := make([]any, 0, len(bds.forestInfo))
 	for _, forestInfo := range bds.forestInfo {
 		workUnit := map[string]string{}
 		workUnit["forestId"] = forestInfo.ID

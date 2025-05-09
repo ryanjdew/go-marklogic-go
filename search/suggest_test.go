@@ -35,7 +35,7 @@ func TestSuggestionXML(t *testing.T) {
 	respHandle := SuggestionsResponseHandle{Format: handle.XML}
 	query :=
 		Query{
-			Queries: []interface{}{
+			Queries: []any{
 				TermQuery{Terms: []string{"data"}},
 			},
 		}
@@ -63,7 +63,7 @@ func TestSuggestionJSON(t *testing.T) {
 	respHandle := SuggestionsResponseHandle{Format: handle.JSON}
 	query :=
 		Query{
-			Queries: []interface{}{
+			Queries: []any{
 				TermQuery{Terms: []string{"data"}},
 			},
 		}
