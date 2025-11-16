@@ -17,6 +17,7 @@ A comprehensive Go client library for interacting with MarkLogic's REST APIs. Th
 - **Multi-Statement Transactions** - Atomically execute multiple document or search operations
 - **User-Defined Resources** - Call custom REST extensions (GET/POST/PUT/DELETE)
 - **Flexible Indexes** - Create and manage range and field indexes for optimized performance
+- **Temporal Document Operations** - Track document versions across time with temporal axes and system time management
 - **Bulk Operations** - Efficiently batch read/write multiple documents
 - **Query Management** - Install and manage query options, transforms, and extensions
 - **Format Flexibility** - Seamless JSON/XML serialization with format negotiation
@@ -591,6 +592,101 @@ respHandle := indexes.IndexHandle{Format: handle.JSON}
 err := client.Indexes().DeleteIndex("text-search", nil, &respHandle)
 ```
 
+### Temporal Document and Axis Operations
+
+#### Create a Temporal Axis
+
+```go
+import (
+	"github.com/ryanjdew/go-marklogic-go/temporal"
+)
+
+// Create an axis for tracking system time
+axisConfig := handle.RawHandle{Format: handle.JSON}
+axisConfig.Write([]byte(`{
+	"axis-name": "system-time",
+	"scalar-uri": "xs:dateTime"
+}`))
+
+respHandle := temporal.TemporalHandle{Format: handle.JSON}
+err := client.Temporal().CreateAxis("system-time", &axisConfig, &respHandle)
+```
+
+#### List All Temporal Axes
+
+```go
+// Retrieve all configured temporal axes
+respHandle := temporal.TemporalHandle{Format: handle.JSON}
+err := client.Temporal().ListAxes(&respHandle)
+```
+
+#### Get Temporal Axis Configuration
+
+```go
+// Get details about a specific axis
+respHandle := temporal.TemporalHandle{Format: handle.JSON}
+err := client.Temporal().GetAxis("system-time", &respHandle)
+```
+
+#### Enable Temporal Support on a Collection
+
+```go
+// Enable temporal versioning on a document collection
+temporalConfig := handle.RawHandle{Format: handle.JSON}
+temporalConfig.Write([]byte(`{
+	"system-axis": "system-time",
+	"valid-axis": "valid-dates"
+}`))
+
+respHandle := temporal.TemporalHandle{Format: handle.JSON}
+err := client.Temporal().EnableCollectionTemporal("temporal-docs", &temporalConfig, &respHandle)
+```
+
+#### Retrieve a Temporal Document at a Specific Time
+
+```go
+// Get a document as it existed at a specific point in time
+respHandle := temporal.TemporalHandle{Format: handle.JSON}
+timestamp := "2024-06-15T12:00:00Z"
+err := client.Temporal().GetTemporalDocument("/documents/doc1.json", timestamp, &respHandle)
+```
+
+#### Advance System Time
+
+```go
+// Advance the system clock for temporal operations
+newTime := "2024-12-31T23:59:59Z"
+respHandle := temporal.TemporalHandle{Format: handle.JSON}
+err := client.Temporal().AdvanceSystemTime(newTime, &respHandle)
+```
+
+#### Get Current System Time
+
+```go
+// Retrieve the current system time for temporal operations
+respHandle := temporal.TemporalHandle{Format: handle.JSON}
+err := client.Temporal().GetSystemTime(&respHandle)
+
+sysTime := respHandle.Deserialized().(temporal.SystemTime)
+fmt.Printf("Current system time: %s\n", sysTime.Timestamp)
+```
+
+#### Disable Temporal Support on a Collection
+
+```go
+// Remove temporal versioning from a collection
+respHandle := temporal.TemporalHandle{Format: handle.JSON}
+err := client.Temporal().DisableCollectionTemporal("temporal-docs", &respHandle)
+```
+
+#### Delete a Temporal Axis
+
+```go
+// Remove a temporal axis from the system
+respHandle := temporal.TemporalHandle{Format: handle.JSON}
+err := client.Temporal().DeleteAxis("system-time", &respHandle)
+```
+
 ### Query Configuration
 
 #### Installing Query Options
@@ -792,6 +888,7 @@ This library maps to MarkLogic's REST API. For more details on specific operatio
 - **Eval**: [/v1/eval](https://docs.marklogic.com/REST/POST/v1/eval) - Server-side XQuery/JavaScript execution
 - **Suggest**: [/v1/suggest](https://docs.marklogic.com/REST/GET/v1/suggest) - Query suggestions and autocomplete
 - **Indexes**: [/v1/config/indexes](https://docs.marklogic.com/REST/GET/v1/config/indexes) - Range and field index management
+- **Temporal**: [/v1/temporal](https://docs.marklogic.com/REST/GET/v1/temporal/axes) - Temporal axes, collections, and document versioning
 - **Configuration**: [/v1/config](https://docs.marklogic.com/REST/GET/v1/config/query) - Query options, transforms, extensions
 - **Transactions**: [/v1/transactions](https://docs.marklogic.com/REST/POST/v1/transactions) - Multi-statement transactions
 - **Resources**: [/v1/resources](https://docs.marklogic.com/REST/GET/v1/resources/{name}) - Custom REST extensions

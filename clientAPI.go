@@ -13,6 +13,7 @@ import (
 	rowsManagement "github.com/ryanjdew/go-marklogic-go/rows-management"
 	search "github.com/ryanjdew/go-marklogic-go/search"
 	"github.com/ryanjdew/go-marklogic-go/semantics"
+	temporal "github.com/ryanjdew/go-marklogic-go/temporal"
 	transactions "github.com/ryanjdew/go-marklogic-go/transactions"
 	"github.com/ryanjdew/go-marklogic-go/util"
 	"github.com/ryanjdew/go-marklogic-go/values"
@@ -95,6 +96,11 @@ func (c *Client) Search() *search.Service {
 // Semantics service
 func (c *Client) Semantics() *semantics.Service {
 	return semantics.NewService(convertToSubClient(c))
+}
+
+// Temporal service
+func (c *Client) Temporal() *temporal.Service {
+	return temporal.NewService(convertToSubClient(c))
 }
 
 // Transactions service
