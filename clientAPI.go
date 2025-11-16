@@ -8,6 +8,7 @@ import (
 	"github.com/ryanjdew/go-marklogic-go/dataservices"
 	"github.com/ryanjdew/go-marklogic-go/documents"
 	"github.com/ryanjdew/go-marklogic-go/eval"
+	"github.com/ryanjdew/go-marklogic-go/indexes"
 	resources "github.com/ryanjdew/go-marklogic-go/resources"
 	rowsManagement "github.com/ryanjdew/go-marklogic-go/rows-management"
 	search "github.com/ryanjdew/go-marklogic-go/search"
@@ -69,6 +70,11 @@ func (c *Client) Documents() *documents.Service {
 // Eval service
 func (c *Client) Eval() *eval.Service {
 	return eval.NewService(convertToSubClient(c))
+}
+
+// Indexes service
+func (c *Client) Indexes() *indexes.Service {
+	return indexes.NewService(convertToSubClient(c))
 }
 
 // Resources service

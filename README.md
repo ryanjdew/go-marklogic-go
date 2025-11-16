@@ -16,6 +16,7 @@ A comprehensive Go client library for interacting with MarkLogic's REST APIs. Th
 - **Query Suggestions** - Get suggestions for queries and implement autocomplete
 - **Multi-Statement Transactions** - Atomically execute multiple document or search operations
 - **User-Defined Resources** - Call custom REST extensions (GET/POST/PUT/DELETE)
+- **Flexible Indexes** - Create and manage range and field indexes for optimized performance
 - **Bulk Operations** - Efficiently batch read/write multiple documents
 - **Query Management** - Install and manage query options, transforms, and extensions
 - **Format Flexibility** - Seamless JSON/XML serialization with format negotiation
@@ -511,6 +512,85 @@ resp := resources.ResourceExtensionHandle{Format: handle.JSON}
 err := client.Resources().Delete("my-resource", nil, &resp)
 ```
 
+### Flexible Indexes
+
+#### List All Configured Indexes
+
+```go
+import (
+	"github.com/ryanjdew/go-marklogic-go/indexes"
+)
+
+// List all indexes in the system
+respHandle := indexes.IndexHandle{Format: handle.JSON}
+err := client.Indexes().ListIndexes(nil, &respHandle)
+if err != nil {
+	log.Fatal(err)
+}
+```
+
+#### Create a Range Index
+
+```go
+// Create an element range index for efficient value comparisons
+indexConfig := handle.RawHandle{Format: handle.JSON}
+indexConfig.Write([]byte(`{
+	"scalar-type": "xs:string",
+	"namespace": "http://example.com/",
+	"localname": "title",
+	"collation": "http://marklogic.com/collation/codepoint"
+}`))
+
+respHandle := indexes.IndexHandle{Format: handle.JSON}
+err := client.Indexes().CreateIndex(&indexConfig, &respHandle)
+```
+
+#### Create a Field Index
+
+```go
+// Create a field index for faster value retrieval across multiple elements
+fieldIndex := handle.RawHandle{Format: handle.JSON}
+fieldIndex.Write([]byte(`{
+	"field-name": "text-search",
+	"scalar-types": ["xs:string"],
+	"tokenizer": "http://marklogic.com/xdmp/tokenizer/default",
+	"included-elements": ["title", "body"]
+}`))
+
+respHandle := indexes.IndexHandle{Format: handle.JSON}
+err := client.Indexes().CreateIndex(&fieldIndex, &respHandle)
+```
+
+#### Get Index Details
+
+```go
+// Retrieve configuration for a specific index
+respHandle := indexes.IndexHandle{Format: handle.JSON}
+err := client.Indexes().GetIndex("text-search", nil, &respHandle)
+```
+
+#### Update an Index
+
+```go
+// Update an existing index configuration
+updatedIndex := handle.RawHandle{Format: handle.JSON}
+updatedIndex.Write([]byte(`{
+	"scalar-type": "xs:string",
+	"collation": "http://marklogic.com/collation/en"
+}`))
+
+respHandle := indexes.IndexHandle{Format: handle.JSON}
+err := client.Indexes().UpdateIndex("element-range-index-1", &updatedIndex, &respHandle)
+```
+
+#### Delete an Index
+
+```go
+// Remove an index from the system
+respHandle := indexes.IndexHandle{Format: handle.JSON}
+err := client.Indexes().DeleteIndex("text-search", nil, &respHandle)
+```
+
 ### Query Configuration
 
 #### Installing Query Options
@@ -711,6 +791,7 @@ This library maps to MarkLogic's REST API. For more details on specific operatio
 - **Values**: [/v1/values](https://docs.marklogic.com/REST/GET/v1/values/{name}) - Lexicon value enumeration
 - **Eval**: [/v1/eval](https://docs.marklogic.com/REST/POST/v1/eval) - Server-side XQuery/JavaScript execution
 - **Suggest**: [/v1/suggest](https://docs.marklogic.com/REST/GET/v1/suggest) - Query suggestions and autocomplete
+- **Indexes**: [/v1/config/indexes](https://docs.marklogic.com/REST/GET/v1/config/indexes) - Range and field index management
 - **Configuration**: [/v1/config](https://docs.marklogic.com/REST/GET/v1/config/query) - Query options, transforms, extensions
 - **Transactions**: [/v1/transactions](https://docs.marklogic.com/REST/POST/v1/transactions) - Multi-statement transactions
 - **Resources**: [/v1/resources](https://docs.marklogic.com/REST/GET/v1/resources/{name}) - Custom REST extensions
