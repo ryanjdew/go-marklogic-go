@@ -9,6 +9,7 @@ import (
 	"github.com/ryanjdew/go-marklogic-go/documents"
 	"github.com/ryanjdew/go-marklogic-go/eval"
 	"github.com/ryanjdew/go-marklogic-go/indexes"
+	"github.com/ryanjdew/go-marklogic-go/metadata"
 	resources "github.com/ryanjdew/go-marklogic-go/resources"
 	rowsManagement "github.com/ryanjdew/go-marklogic-go/rows-management"
 	search "github.com/ryanjdew/go-marklogic-go/search"
@@ -76,6 +77,11 @@ func (c *Client) Eval() *eval.Service {
 // Indexes service
 func (c *Client) Indexes() *indexes.Service {
 	return indexes.NewService(convertToSubClient(c))
+}
+
+// Metadata service
+func (c *Client) Metadata() *metadata.Service {
+	return metadata.NewService(convertToSubClient(c))
 }
 
 // Resources service

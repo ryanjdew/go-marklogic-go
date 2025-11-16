@@ -18,6 +18,7 @@ A comprehensive Go client library for interacting with MarkLogic's REST APIs. Th
 - **User-Defined Resources** - Call custom REST extensions (GET/POST/PUT/DELETE)
 - **Flexible Indexes** - Create and manage range and field indexes for optimized performance
 - **Temporal Document Operations** - Track document versions across time with temporal axes and system time management
+- **Metadata Extraction & Validation** - Extract metadata from documents and validate against configurable rules
 - **Bulk Operations** - Efficiently batch read/write multiple documents
 - **Query Management** - Install and manage query options, transforms, and extensions
 - **Format Flexibility** - Seamless JSON/XML serialization with format negotiation
@@ -687,6 +688,167 @@ respHandle := temporal.TemporalHandle{Format: handle.JSON}
 err := client.Temporal().DeleteAxis("system-time", &respHandle)
 ```
 
+### Metadata Extraction and Validation
+
+#### Extract Metadata from Specific Documents
+
+```go
+import (
+	"github.com/ryanjdew/go-marklogic-go/metadata"
+)
+
+// Extract metadata from specific URIs
+options := map[string]string{
+	"extractors": "document-properties,element-values",
+}
+
+respHandle := metadata.MetadataHandle{Format: handle.JSON}
+err := client.Metadata().ExtractMetadata([]string{"/doc1.json", "/doc2.json"}, options, &respHandle)
+
+// Access the metadata results
+results := respHandle.Deserialized()
+fmt.Printf("Extraction results: %v\n", results)
+```
+
+#### Extract Metadata from Query Results
+
+```go
+// Extract metadata from documents matching a query
+queryPayload := handle.RawHandle{Format: handle.JSON}
+queryPayload.Write([]byte(`{
+	"query": {
+		"text-query": {
+			"text": "important"
+		}
+	}
+}`))
+
+respHandle := metadata.MetadataHandle{Format: handle.JSON}
+err := client.Metadata().ExtractMetadataFromQuery(&queryPayload, nil, &respHandle)
+```
+
+#### Extract Metadata from a Single Document
+
+```go
+// Extract metadata from one document
+options := map[string]string{
+	"format": "json",
+}
+
+respHandle := metadata.MetadataHandle{Format: handle.JSON}
+err := client.Metadata().ExtractMetadataFromURI("/doc1.json", options, &respHandle)
+
+result := respHandle.Deserialized().(metadata.MetadataResult)
+fmt.Printf("Document: %s\nMetadata: %v\n", result.URI, result.Metadata)
+```
+
+#### Set Validation Rules
+
+```go
+// Configure validation rules for the database
+rulesPayload := handle.RawHandle{Format: handle.JSON}
+rulesPayload.Write([]byte(`{
+	"rules": [
+		{
+			"name": "required-title",
+			"rule-type": "xpath",
+			"xpath": "title",
+			"action": "fail",
+			"message": "Document must contain a title element"
+		},
+		{
+			"name": "valid-status",
+			"rule-type": "enum",
+			"xpath": "status",
+			"values": ["draft", "published", "archived"],
+			"action": "warn"
+		}
+	]
+}`))
+
+respHandle := metadata.MetadataHandle{Format: handle.JSON}
+err := client.Metadata().SetValidationRules(&rulesPayload, &respHandle)
+```
+
+#### Get Current Validation Rules
+
+```go
+// Retrieve the configured validation rules
+respHandle := metadata.MetadataHandle{Format: handle.JSON}
+err := client.Metadata().GetValidationRules(&respHandle)
+```
+
+#### Validate Specific Documents
+
+```go
+// Validate documents against rules
+rulesPayload := handle.RawHandle{Format: handle.JSON}
+rulesPayload.Write([]byte(`{
+	"rules": [{
+		"name": "required-title",
+		"rule-type": "xpath",
+		"xpath": "title",
+		"action": "fail"
+	}]
+}`))
+
+respHandle := metadata.MetadataHandle{Format: handle.JSON}
+err := client.Metadata().ValidateDocuments([]string{"/doc1.json"}, &rulesPayload, &respHandle)
+
+// Check validation results
+results := respHandle.Deserialized()
+fmt.Printf("Validation results: %v\n", results)
+```
+
+#### Validate a Single Document
+
+```go
+// Validate one document
+rulesPayload := handle.RawHandle{Format: handle.JSON}
+rulesPayload.Write([]byte(`{
+	"rules": [{
+		"name": "required-title",
+		"xpath": "title",
+		"action": "fail"
+	}]
+}`))
+
+respHandle := metadata.MetadataHandle{Format: handle.JSON}
+err := client.Metadata().ValidateURI("/doc1.json", &rulesPayload, &respHandle)
+
+result := respHandle.Deserialized().(metadata.ValidationResult)
+fmt.Printf("Document: %s - Valid: %v\n", result.URI, result.Valid)
+if !result.Valid {
+	fmt.Printf("Errors: %v\n", result.Errors)
+}
+```
+
+#### Validate Documents from Query Results
+
+```go
+// Validate documents matching a query against rules
+queryPayload := handle.RawHandle{Format: handle.JSON}
+queryPayload.Write([]byte(`{
+	"query": {
+		"text-query": {
+			"text": "important"
+		}
+	}
+}`))
+
+rulesPayload := handle.RawHandle{Format: handle.JSON}
+rulesPayload.Write([]byte(`{
+	"rules": [{
+		"name": "required-title",
+		"xpath": "title",
+		"action": "fail"
+	}]
+}`))
+
+respHandle := metadata.MetadataHandle{Format: handle.JSON}
+err := client.Metadata().ValidateQuery(&queryPayload, &rulesPayload, &respHandle)
+```
+
 ### Query Configuration
 
 #### Installing Query Options
@@ -889,6 +1051,7 @@ This library maps to MarkLogic's REST API. For more details on specific operatio
 - **Suggest**: [/v1/suggest](https://docs.marklogic.com/REST/GET/v1/suggest) - Query suggestions and autocomplete
 - **Indexes**: [/v1/config/indexes](https://docs.marklogic.com/REST/GET/v1/config/indexes) - Range and field index management
 - **Temporal**: [/v1/temporal](https://docs.marklogic.com/REST/GET/v1/temporal/axes) - Temporal axes, collections, and document versioning
+- **Metadata**: [/v1/metadata](https://docs.marklogic.com/REST/GET/v1/metadata) - Metadata extraction and document validation
 - **Configuration**: [/v1/config](https://docs.marklogic.com/REST/GET/v1/config/query) - Query options, transforms, extensions
 - **Transactions**: [/v1/transactions](https://docs.marklogic.com/REST/POST/v1/transactions) - Multi-statement transactions
 - **Resources**: [/v1/resources](https://docs.marklogic.com/REST/GET/v1/resources/{name}) - Custom REST extensions
