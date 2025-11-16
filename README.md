@@ -14,9 +14,10 @@ A comprehensive Go client library for interacting with MarkLogic's REST APIs. Th
 - **Lexicon Value Enumeration** - Query distinct values from range indexes
 - **Server-Side Code Execution** - Execute XQuery and JavaScript on the server with external variables
 - **Query Suggestions** - Get suggestions for queries and implement autocomplete
+- **Multi-Statement Transactions** - Atomically execute multiple document or search operations
+- **User-Defined Resources** - Call custom REST extensions (GET/POST/PUT/DELETE)
 - **Bulk Operations** - Efficiently batch read/write multiple documents
 - **Query Management** - Install and manage query options, transforms, and extensions
-- **Multi-statement Transactions** - Atomic operations across multiple documents
 - **Format Flexibility** - Seamless JSON/XML serialization with format negotiation
 - **Authentication** - Basic Auth, Digest Auth, or no authentication support
 
@@ -395,6 +396,121 @@ err := client.Search().StructuredSuggestions(
 )
 ```
 
+### Multi-Statement Transactions
+
+#### Begin a Transaction
+
+```go
+import (
+	"github.com/ryanjdew/go-marklogic-go/transactions"
+)
+
+// Start a new transaction
+respHandle := transactions.TransactionHandle{Format: handle.JSON}
+err := client.Transactions().Begin(&respHandle)
+
+// Extract transaction ID
+txInfo := respHandle.Deserialized().(transactions.TransactionInfo)
+txid := txInfo.TxID
+```
+
+#### Execute Multiple Operations in a Transaction
+
+```go
+// Begin transaction
+txResp := transactions.TransactionHandle{Format: handle.JSON}
+client.Transactions().Begin(&txResp)
+txid := txResp.Deserialized().(transactions.TransactionInfo).TxID
+
+// Create transaction object for use in operations
+txn := client.NewTransaction()
+txn.ID = txid
+
+// Now use txn in document or search operations
+doc := &documents.DocumentDescription{
+	URI:     "/txn-test/doc1.json",
+	Content: bytes.NewBufferString(`{"status":"active"}`),
+	Format:  handle.JSON,
+}
+
+err := client.Documents().Write([]*documents.DocumentDescription{doc}, nil, txn, &respHandle)
+
+// Commit the transaction
+commitResp := transactions.TransactionHandle{Format: handle.JSON}
+client.Transactions().Commit(txid, &commitResp)
+```
+
+#### Rollback a Transaction
+
+```go
+// Rollback instead of commit to discard all changes
+rollbackResp := transactions.TransactionHandle{Format: handle.JSON}
+err := client.Transactions().Rollback(txid, &rollbackResp)
+```
+
+#### Check Transaction Status
+
+```go
+// Check the status of an active transaction
+statusResp := transactions.TransactionHandle{Format: handle.JSON}
+err := client.Transactions().Status(txid, &statusResp)
+
+info := statusResp.Deserialized().(transactions.TransactionInfo)
+fmt.Printf("Transaction %s is %s\n", info.TxID, info.Status)
+```
+
+### User-Defined Resource Extensions
+
+#### Call a GET Resource Extension
+
+```go
+import (
+	"github.com/ryanjdew/go-marklogic-go/resources"
+)
+
+// Call a custom GET extension with parameters
+params := map[string]string{
+	"format": "json",
+	"limit":  "10",
+}
+
+respHandle := resources.ResourceExtensionHandle{Format: handle.JSON}
+err := client.Resources().Get("my-resource", params, &respHandle)
+
+resource := respHandle.Deserialized().(resources.ResourceExtension)
+fmt.Printf("Resource: %s - %s\n", resource.Name, resource.Title)
+```
+
+#### Call a POST Resource Extension
+
+```go
+// POST data to a custom resource
+payload := handle.RawHandle{Format: handle.JSON}
+payload.Write([]byte(`{"action":"process","data":"input"}`))
+
+resp := resources.ResourceExtensionHandle{Format: handle.JSON}
+err := client.Resources().Post("my-resource", nil, &payload, &resp)
+```
+
+#### Call a PUT Resource Extension
+
+```go
+// PUT (update) data in a custom resource
+payload := handle.RawHandle{Format: handle.JSON}
+payload.Write([]byte(`{"title":"Updated Title","status":"active"}`))
+
+resp := resources.ResourceExtensionHandle{Format: handle.JSON}
+err := client.Resources().Put("my-resource", nil, &payload, &resp)
+```
+
+#### Call a DELETE Resource Extension
+
+```go
+// DELETE a resource
+resp := resources.ResourceExtensionHandle{Format: handle.JSON}
+err := client.Resources().Delete("my-resource", nil, &resp)
+```
+
 ### Query Configuration
 
 #### Installing Query Options
@@ -597,6 +713,7 @@ This library maps to MarkLogic's REST API. For more details on specific operatio
 - **Suggest**: [/v1/suggest](https://docs.marklogic.com/REST/GET/v1/suggest) - Query suggestions and autocomplete
 - **Configuration**: [/v1/config](https://docs.marklogic.com/REST/GET/v1/config/query) - Query options, transforms, extensions
 - **Transactions**: [/v1/transactions](https://docs.marklogic.com/REST/POST/v1/transactions) - Multi-statement transactions
+- **Resources**: [/v1/resources](https://docs.marklogic.com/REST/GET/v1/resources/{name}) - Custom REST extensions
 - **Full API Reference**: [docs.marklogic.com/REST](https://docs.marklogic.com/REST)
 
 ## License

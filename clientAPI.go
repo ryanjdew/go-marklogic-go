@@ -8,9 +8,11 @@ import (
 	"github.com/ryanjdew/go-marklogic-go/dataservices"
 	"github.com/ryanjdew/go-marklogic-go/documents"
 	"github.com/ryanjdew/go-marklogic-go/eval"
+	resources "github.com/ryanjdew/go-marklogic-go/resources"
 	rowsManagement "github.com/ryanjdew/go-marklogic-go/rows-management"
 	search "github.com/ryanjdew/go-marklogic-go/search"
 	"github.com/ryanjdew/go-marklogic-go/semantics"
+	transactions "github.com/ryanjdew/go-marklogic-go/transactions"
 	"github.com/ryanjdew/go-marklogic-go/util"
 	"github.com/ryanjdew/go-marklogic-go/values"
 )
@@ -69,6 +71,11 @@ func (c *Client) Eval() *eval.Service {
 	return eval.NewService(convertToSubClient(c))
 }
 
+// Resources service
+func (c *Client) Resources() *resources.Service {
+	return resources.NewService(convertToSubClient(c))
+}
+
 // RowsManagement service
 func (c *Client) RowsManagement() *rowsManagement.Service {
 	return rowsManagement.NewService(convertToSubClient(c))
@@ -82,6 +89,11 @@ func (c *Client) Search() *search.Service {
 // Semantics service
 func (c *Client) Semantics() *semantics.Service {
 	return semantics.NewService(convertToSubClient(c))
+}
+
+// Transactions service
+func (c *Client) Transactions() *transactions.Service {
+	return transactions.NewService(convertToSubClient(c))
 }
 
 // Values service
