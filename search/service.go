@@ -29,6 +29,11 @@ func (s *Service) StructuredSearch(query handle.Handle, start int64, pageLength 
 	return StructuredSearch(s.client, query, start, pageLength, transaction, response)
 }
 
+// Suggest suggests query text based on a partial string query
+func (s *Service) Suggest(partialQ string, limit int64, options string, response handle.ResponseHandle) error {
+	return Suggest(s.client, partialQ, limit, options, response)
+}
+
 // StructuredSuggestions suggests query text based off of a structured query
 func (s *Service) StructuredSuggestions(query handle.Handle, partialQ string, limit int64, options string, transaction *util.Transaction, response handle.ResponseHandle) error {
 	return StructuredSuggestions(s.client, query, partialQ, limit, options, response)

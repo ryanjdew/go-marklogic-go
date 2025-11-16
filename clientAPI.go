@@ -7,10 +7,12 @@ import (
 	datamovement "github.com/ryanjdew/go-marklogic-go/datamovement"
 	"github.com/ryanjdew/go-marklogic-go/dataservices"
 	"github.com/ryanjdew/go-marklogic-go/documents"
+	"github.com/ryanjdew/go-marklogic-go/eval"
 	rowsManagement "github.com/ryanjdew/go-marklogic-go/rows-management"
 	search "github.com/ryanjdew/go-marklogic-go/search"
 	"github.com/ryanjdew/go-marklogic-go/semantics"
 	"github.com/ryanjdew/go-marklogic-go/util"
+	"github.com/ryanjdew/go-marklogic-go/values"
 )
 
 // Authentication options
@@ -62,6 +64,11 @@ func (c *Client) Documents() *documents.Service {
 	return documents.NewService(convertToSubClient(c))
 }
 
+// Eval service
+func (c *Client) Eval() *eval.Service {
+	return eval.NewService(convertToSubClient(c))
+}
+
 // RowsManagement service
 func (c *Client) RowsManagement() *rowsManagement.Service {
 	return rowsManagement.NewService(convertToSubClient(c))
@@ -75,6 +82,11 @@ func (c *Client) Search() *search.Service {
 // Semantics service
 func (c *Client) Semantics() *semantics.Service {
 	return semantics.NewService(convertToSubClient(c))
+}
+
+// Values service
+func (c *Client) Values() *values.Service {
+	return values.NewService(convertToSubClient(c))
 }
 
 // NewTransaction returns a new transaction struct
