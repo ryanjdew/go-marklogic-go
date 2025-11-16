@@ -11,7 +11,7 @@ A comprehensive Go client library for interacting with MarkLogic's REST APIs. Th
 - **Full-text & Structured Search** - Query text, use structured queries, get suggestions, and retrieve faceted results
 - **Document CRUD** - Read, write, update, and delete documents with metadata management
 - **Semantic/Graph Operations** - Work with RDF triples, SPARQL queries, and semantic data
-- **Lexicon Value Enumeration** - Query distinct values from range indexes
+- **Lexicon Value Enumeration** - Query distinct values from range indexes with aggregation and co-occurrence analysis
 - **Server-Side Code Execution** - Execute XQuery and JavaScript on the server with external variables
 - **Query Suggestions** - Get suggestions for queries and implement autocomplete
 - **Multi-Statement Transactions** - Atomically execute multiple document or search operations
@@ -20,6 +20,7 @@ A comprehensive Go client library for interacting with MarkLogic's REST APIs. Th
 - **Temporal Document Operations** - Track document versions across time with temporal axes and system time management
 - **Metadata Extraction & Validation** - Extract metadata from documents and validate against configurable rules
 - **Bulk Operations** - Efficiently batch read/write multiple documents
+- **Optic Queries** - Execute SQL-like queries on structured data with explain and query planning
 - **Query Management** - Install and manage query options, transforms, and extensions
 - **Format Flexibility** - Seamless JSON/XML serialization with format negotiation
 - **Authentication** - Basic Auth, Digest Auth, or no authentication support
@@ -963,6 +964,13 @@ import (
 	datamovement "github.com/ryanjdew/go-marklogic-go/datamovement"
 )
 
+### Bulk Operations
+
+```go
+import (
+	datamovement "github.com/ryanjdew/go-marklogic-go/datamovement"
+)
+
 // Use DataMovement service for optimized batch operations
 batcher := client.DataMovement().WriteBatcher()
 
@@ -978,6 +986,106 @@ for i := 0; i < 1000; i++ {
 
 // Flush and wait for completion
 err := batcher.Flush()
+```
+
+### Optic Queries
+
+The Rows Management service executes MarkLogic's Optic API for advanced SQL-like queries on structured data.
+
+#### Execute Optic Plan
+
+```go
+import (
+	rowsManagement "github.com/ryanjdew/go-marklogic-go/rows-management"
+)
+
+// Execute an Optic plan
+opticPlan := handle.RawHandle{Format: handle.JSON}
+opticPlan.Write([]byte(`{
+	"_export": "EMPLOYEES",
+	"_module": {"_import": "marklogic-optic", "fn": "op"},
+	"_next": {
+		"_export": "FROM_EMPLOYEES",
+		"_invoke": {"_function": "from", "_args": ["EMPLOYEES", "employees"]}
+	}
+}`))
+
+respHandle := handle.RawHandle{Format: handle.JSON}
+err := client.RowsManagement().Rows(&opticPlan, nil, &respHandle)
+
+// Results contain the rows in JSON format
+results := respHandle.Deserialized()
+```
+
+#### Explain Query Plan
+
+```go
+// Get query plan and execution estimates
+opticPlan := handle.RawHandle{Format: handle.JSON}
+opticPlan.Write([]byte(`{"_export": "EMPLOYEES"}`))
+
+respHandle := handle.RawHandle{Format: handle.JSON}
+err := client.RowsManagement().Explain(&opticPlan, nil, &respHandle)
+
+// Response contains query plan, estimated row counts, and cost analysis
+```
+
+#### Sample Query Results
+
+```go
+// Get a sample of results without computing full result set
+opticPlan := handle.RawHandle{Format: handle.JSON}
+opticPlan.Write([]byte(`{"_export": "EMPLOYEES"}`))
+
+params := map[string]string{"size": "10"}
+respHandle := handle.RawHandle{Format: handle.JSON}
+err := client.RowsManagement().Sample(&opticPlan, params, &respHandle)
+
+// Response contains sample rows
+```
+
+#### Get Optimized Plan
+
+```go
+// Get the optimized execution plan
+opticPlan := handle.RawHandle{Format: handle.JSON}
+opticPlan.Write([]byte(`{"_export": "EMPLOYEES"}`))
+
+respHandle := handle.RawHandle{Format: handle.JSON}
+err := client.RowsManagement().Plan(&opticPlan, nil, &respHandle)
+
+// Response shows index usage and access path optimization
+```
+
+## Handle Pattern
+
+The library uses a **Handle** abstraction for serialization/deserialization. This allows flexible format handling (JSON, XML, multipart/mixed) without format-specific code.
+
+### Creating Handles
+
+```go
+// JSON format
+jsonHandle := search.ResponseHandle{Format: handle.JSON}
+
+// XML format
+xmlHandle := search.ResponseHandle{Format: handle.XML}
+
+// Raw handle for binary or passthrough data
+rawHandle := handle.RawHandle{Format: handle.UNKNOWN}
+```
+
+### Using Handles
+
+```go
+// For requests: serialize your data
+query := search.Query{...}
+qh := search.QueryHandle{Format: handle.XML}
+qh.Serialize(query)  // Encodes to XML
+
+// Service automatically uses the format
+respHandle := search.ResponseHandle{Format: handle.JSON}
+err := client.Search().StructuredSearch(&qh, 1, 10, nil, &respHandle)
+````
 ```
 
 ## Handle Pattern
@@ -1106,12 +1214,13 @@ This library maps to MarkLogic's REST API. For more details on specific operatio
 - **Search**: [/v1/search](https://docs.marklogic.com/REST/GET/v1/search) - Full-text, structured queries, faceting
 - **Documents**: [/v1/documents](https://docs.marklogic.com/REST/GET/v1/documents) - CRUD operations
 - **Semantics**: [/v1/graphs](https://docs.marklogic.com/REST/GET/v1/graphs), [/v1/graphs/sparql](https://docs.marklogic.com/REST/POST/v1/graphs/sparql) - Triple store, SPARQL queries
-- **Values**: [/v1/values](https://docs.marklogic.com/REST/GET/v1/values/{name}) - Lexicon value enumeration
+- **Values**: [/v1/values](https://docs.marklogic.com/REST/GET/v1/values/{name}) - Lexicon value enumeration with aggregation
 - **Eval**: [/v1/eval](https://docs.marklogic.com/REST/POST/v1/eval) - Server-side XQuery/JavaScript execution
 - **Suggest**: [/v1/suggest](https://docs.marklogic.com/REST/GET/v1/suggest) - Query suggestions and autocomplete
 - **Indexes**: [/v1/config/indexes](https://docs.marklogic.com/REST/GET/v1/config/indexes) - Range and field index management
 - **Temporal**: [/v1/temporal](https://docs.marklogic.com/REST/GET/v1/temporal/axes) - Temporal axes, collections, and document versioning
 - **Metadata**: [/v1/metadata](https://docs.marklogic.com/REST/GET/v1/metadata) - Metadata extraction and document validation
+- **Rows (Optic)**: [/v1/rows](https://docs.marklogic.com/REST/POST/v1/rows) - SQL-like queries with explain and sampling
 - **Configuration**: [/v1/config](https://docs.marklogic.com/REST/GET/v1/config/query) - Query options, transforms, extensions
 - **Transactions**: [/v1/transactions](https://docs.marklogic.com/REST/POST/v1/transactions) - Multi-statement transactions
 - **Resources**: [/v1/resources](https://docs.marklogic.com/REST/GET/v1/resources/{name}) - Custom REST extensions
