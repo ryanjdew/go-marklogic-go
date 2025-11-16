@@ -305,6 +305,66 @@ err := client.Values().QueryValues(
 )
 ```
 
+#### Aggregate Values
+
+```go
+// Calculate aggregate operations on lexicon values (sum, count, min, max, etc.)
+aggregateBody := `<values-query xmlns="http://marklogic.com/appservices/search">
+  <range name="count" type="xs:int">
+    <aggregate function="sum" />
+  </range>
+</values-query>`
+
+queryHandle := handle.RawHandle{Format: handle.XML}
+queryHandle.Write([]byte(aggregateBody))
+
+respHandle := values.ResponseHandle{Format: handle.XML}
+err := client.Values().AggregateValues(
+	"count",
+	nil,
+	&queryHandle,
+	&respHandle,
+)
+
+// Results contain sum, min, max, count, average
+```
+
+#### Co-occurrence Values
+
+```go
+// Find correlated values across multiple lexicons
+queryHandle := handle.RawHandle{Format: handle.XML}
+queryHandle.Write([]byte(`<values-query xmlns="http://marklogic.com/appservices/search"></values-query>`))
+
+respHandle := values.ResponseHandle{Format: handle.XML}
+err := client.Values().CoOccurrenceValues(
+	[]string{"status", "priority"},  // Multiple lexicon names
+	nil,
+	&queryHandle,
+	&respHandle,
+)
+
+// Results show value pairs and their co-occurrence frequency
+```
+
+#### Tuple Values
+
+```go
+// Generate tuples of related values from multiple lexicons
+queryHandle := handle.RawHandle{Format: handle.XML}
+queryHandle.Write([]byte(`<values-query xmlns="http://marklogic.com/appservices/search"></values-query>`))
+
+respHandle := values.ResponseHandle{Format: handle.XML}
+err := client.Values().TupleValues(
+	[]string{"status", "priority", "date"},  // Multiple lexicon names
+	nil,
+	&queryHandle,
+	&respHandle,
+)
+
+// Results contain tuples with positional values from each lexicon
+```
+
 ### Server-Side Code Execution
 
 #### Evaluate XQuery

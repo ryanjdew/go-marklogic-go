@@ -34,3 +34,30 @@ func (s *Service) ListValues(name string, params map[string]string, response han
 func (s *Service) QueryValues(name string, params map[string]string, requestBody handle.Handle, response handle.ResponseHandle) error {
 	return queryValues(s.client, name, params, requestBody, response)
 }
+
+// AggregateValues performs aggregate operations on lexicon values
+// name: The name of the range index or field to aggregate
+// params: Query parameters (e.g., aggregate function)
+// requestBody: Aggregate query specification
+// response: The response handle for results
+func (s *Service) AggregateValues(name string, params map[string]string, requestBody handle.Handle, response handle.ResponseHandle) error {
+	return aggregateValues(s.client, name, params, requestBody, response)
+}
+
+// CoOccurrenceValues retrieves co-occurrence values from multiple lexicons
+// names: The names of the range indexes or fields to correlate
+// params: Query parameters
+// requestBody: Co-occurrence query specification
+// response: The response handle for results
+func (s *Service) CoOccurrenceValues(names []string, params map[string]string, requestBody handle.Handle, response handle.ResponseHandle) error {
+	return coOccurrenceValues(s.client, names, params, requestBody, response)
+}
+
+// TupleValues retrieves tuples of values from multiple lexicons
+// names: The names of the range indexes or fields for tuple generation
+// params: Query parameters
+// requestBody: Tuple query specification
+// response: The response handle for results
+func (s *Service) TupleValues(names []string, params map[string]string, requestBody handle.Handle, response handle.ResponseHandle) error {
+	return tupleValues(s.client, names, params, requestBody, response)
+}
