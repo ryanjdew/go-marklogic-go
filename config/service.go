@@ -1,4 +1,21 @@
-// Package config can configure the MarkLogic REST server
+// Package config provides server configuration management including query options,
+// transforms, indexes, and custom REST extensions. It enables programmatic configuration
+// of server-side behaviors, query processing rules, and extension deployment.
+//
+// Config Service enables:
+//   - Query options (search configuration with faceting, fields, constraints)
+//   - Server-side transforms (data transformation during read/write)
+//   - Range and field indexes for query optimization
+//   - Custom REST extensions and resources deployment
+//   - Namespace management
+//   - Server properties and configuration retrieval
+//
+// Example: Create query options
+//
+//	opts := `<search:options>...</search:options>`
+//	optHandle := handle.Handle{Format: handle.XML}
+//	optHandle.Serialize(opts)
+//	client.Config().SetQueryOptions("my-options", &optHandle, respHandle)
 package config
 
 import (
@@ -8,45 +25,87 @@ import (
 	handle "github.com/ryanjdew/go-marklogic-go/handle"
 )
 
-// Service is used for the configuration service
+// Service provides methods for managing MarkLogic server configuration.
+// All configuration operations are persisted server-side and affect subsequent
+// query and document operations.
 type Service struct {
 	client *clients.Client
 }
 
-// NewService returns a new config.Service
+// NewService creates and returns a new config.Service instance for server
+// configuration management operations.
 func NewService(client *clients.Client) *Service {
 	return &Service{
 		client: client,
 	}
 }
 
-// ListExtensions shows all the installed REST extensions
+// ListExtensions retrieves all installed REST extensions in the specified directory.
+// Extensions include both built-in and custom REST service implementations.
+//
+// Parameters:
+//
+//	directory: Directory path to list extensions from (e.g., "/")
+//	response: ResponseHandle to populate with extension list
 func (s *Service) ListExtensions(directory string, response handle.ResponseHandle) error {
 	return listExtensions(s.client, directory, response)
 }
 
-// DeleteExtensions removes all the installed REST extensions under the provided path
+// DeleteExtensions removes all REST extensions in the specified directory path.
+// Exercise caution as this permanently removes extension configurations.
+//
+// Parameters:
+//
+//	directory: Directory path for extensions to delete
 func (s *Service) DeleteExtensions(directory string) error {
 	return deleteExtensions(s.client, directory)
 }
 
-// CreateExtension shows all the installed REST extensions
+// CreateExtension installs or updates a REST service extension. Extensions can be
+// written in XQuery or JavaScript and provide custom REST API endpoints.
+//
+// Parameters:
+//
+//	assetName: Name/path for the extension (e.g., "my-service")
+//	resource: Reader containing extension source code
+//	extensionType: Extension language ("xqy" for XQuery or "js" for JavaScript)
+//	options: Configuration options for the extension
+//	response: ResponseHandle for confirmation
 func (s *Service) CreateExtension(assetName string, resource io.Reader, extensionType string, options map[string]string, response handle.ResponseHandle) error {
 	return createExtension(s.client, assetName, resource, extensionType, options, response)
 
 }
 
-// ListResources shows all the installed REST service extensions
+// ListResources lists all installed REST service resources and their metadata.
+//
+// Parameters:
+//
+//	response: ResponseHandle to populate with resource list
 func (s *Service) ListResources(response handle.ResponseHandle) error {
 	return listResources(s.client, response)
 }
 
-// GetResourceInfo shows all the installed REST extensions
+// GetResourceInfo retrieves metadata for a specific REST resource including its
+// definition, associated code, and configuration.
+//
+// Parameters:
+//
+//	name: Resource name/identifier
+//	response: ResponseHandle to populate with resource metadata
 func (s *Service) GetResourceInfo(name string, response handle.ResponseHandle) error {
 	return getResourceInfo(s.client, name, response)
 }
 
-// CreateResource installs a REST service
+// CreateResource deploys a new REST service resource to the server. Resources
+// provide endpoints for custom operations beyond standard CRUD.
+//
+// Parameters:
+//
+//	name: Resource name (becomes part of REST endpoint)
+//	resource: Reader containing resource source code
+//	extensionType: Language ("xqy" or "js")
+//	options: Configuration options
+//	response: ResponseHandle for confirmation
 func (s *Service) CreateResource(name string, resource io.Reader, extensionType string, options map[string]string, response handle.ResponseHandle) error {
 	return createResource(s.client, name, resource, extensionType, options, response)
 }
