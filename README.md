@@ -988,6 +988,57 @@ for i := 0; i < 1000; i++ {
 err := batcher.Flush()
 ```
 
+#### QueryBatcher Iterator (Pull-style)
+
+The `QueryBatcher` also provides a pull-style iterator API using `Iterator(ctx)` that returns
+an object with `Next(ctx)` and `Close()` methods. This can be more ergonomic than channel listeners
+for many use-cases, and it supports `context.Context` for cancellation.
+
+```go
+import (
+	"context"
+	"io"
+	"fmt"
+	datamovement "github.com/ryanjdew/go-marklogic-go/datamovement"
+	handle "github.com/ryanjdew/go-marklogic-go/handle"
+	search "github.com/ryanjdew/go-marklogic-go/search"
+)
+
+// Build query (example using the search package)
+query := search.Query{
+	Queries: []any{search.TermQuery{Terms: []string{"example"}}},
+}
+qh := search.QueryHandle{Format: handle.JSON}
+qh.Serialize(query)
+
+qbr := client.DataMovement().QueryBatcher().
+	WithBatchSize(100).
+	WithQuery(&qh)
+
+ctx := context.Background()
+it := qbr.Iterator(ctx)
+defer it.Close()
+
+for {
+	batch, err := it.Next(ctx)
+	if err == io.EOF {
+		break
+	}
+	if err != nil {
+		// handle error
+		panic(err)
+	}
+	fmt.Printf("Batch with %d URIs, timestamp %s\n", len(batch.URIs), batch.Timestamp())
+	// Process URIs
+}
+```
+
+Notes:
+- `Next(ctx)` returns `io.EOF` when there are no more results.
+- `Close()` cancels the underlying work and waits for goroutines to finish.
+- Existing listener (`WithListener`) and channel-based APIs remain supported.
+
+
 ### Optic Queries
 
 The Rows Management service executes MarkLogic's Optic API for advanced SQL-like queries on structured data.

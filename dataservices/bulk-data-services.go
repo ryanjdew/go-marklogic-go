@@ -1,7 +1,9 @@
 package dataservices
 
 import (
+	"context"
 	"encoding/json"
+	"io"
 	"log"
 	"sync"
 	"time"
@@ -269,4 +271,188 @@ func submitDataServiceBatch(dataServiceBatch *DataServiceBatch, workUnit *interf
 		}
 	}
 	return err
+}
+
+// DataServiceIterator yields byte slices for each part from the BulkDataService.
+type DataServiceIterator interface {
+	Next(ctx context.Context) ([]byte, error)
+	Close() error
+}
+
+func (bds *BulkDataService) Iterator(ctx context.Context) DataServiceIterator {
+	// basic checks: if there are no clients and no forests, return EOF immediately
+	if len(bds.clientsByHost) == 0 && len(bds.forestInfo) == 0 {
+		ch := make(chan []byte)
+		close(ch)
+		return &dataServiceIter{results: ch}
+	}
+	ctx, cancel := context.WithCancel(ctx)
+	results := make(chan []byte)
+	wg := &sync.WaitGroup{}
+	hosts := make([]string, 0, len(bds.clientsByHost))
+	for host := range bds.clientsByHost {
+		hosts = append(hosts, host)
+	}
+	forestLength := len(bds.forestInfo)
+	hostLength := len(hosts)
+	threadCount := int(bds.ThreadCount())
+	if threadCount == 0 {
+		threadCount = 1
+	}
+	roundRobinCounter := 0
+	var roundRobinLength int
+	if bds.workIsForestBased {
+		roundRobinLength = forestLength
+		threadCount = forestLength
+	} else {
+		roundRobinLength = hostLength
+	}
+	workUnitRRCounter := 0
+	workUnitRRLength := len(bds.workUnits)
+	for i := 0; i < threadCount; i++ {
+		wg.Add(1)
+		var selectedHost string
+		if bds.workIsForestBased && forestLength > 0 {
+			selectedHost = bds.forestInfo[roundRobinCounter].PreferredHost()
+		} else if hostLength > 0 {
+			selectedHost = hosts[roundRobinCounter]
+		}
+		client := bds.clientsByHost[selectedHost]
+		var currentWorkUnit *interface{} = nil
+		if workUnitRRLength > 0 {
+			currentWorkUnit = &bds.workUnits[workUnitRRCounter]
+			workUnitRRCounter = (workUnitRRCounter + 1) % workUnitRRLength
+		}
+		if bds.inputChannel != nil {
+			go runInputThreadIterator(bds, currentWorkUnit, bds.inputChannel, client, results, wg, ctx)
+		} else {
+			go runProcessThreadIterator(bds, currentWorkUnit, client, results, wg, ctx)
+		}
+		roundRobinCounter = (roundRobinCounter + 1) % roundRobinLength
+	}
+	go func() {
+		wg.Wait()
+		close(results)
+	}()
+	return &dataServiceIter{results: results, cancel: cancel, wg: wg}
+}
+
+type dataServiceIter struct {
+	results <-chan []byte
+	cancel  context.CancelFunc
+	wg      *sync.WaitGroup
+}
+
+func (it *dataServiceIter) Next(ctx context.Context) ([]byte, error) {
+	select {
+	case <-ctx.Done():
+		if it.cancel != nil {
+			it.cancel()
+		}
+		return nil, ctx.Err()
+	case val, ok := <-it.results:
+		if !ok {
+			return nil, io.EOF
+		}
+		return val, nil
+	}
+}
+
+func (it *dataServiceIter) Close() error {
+	if it.cancel != nil {
+		it.cancel()
+	}
+	if it.wg != nil {
+		it.wg.Wait()
+	}
+	return nil
+}
+
+func runProcessThreadIterator(bds *BulkDataService, workUnit *interface{}, client *clients.Client, results chan<- []byte, wg *sync.WaitGroup, ctx context.Context) {
+	defer wg.Done()
+	b := &DataServiceBatch{endpoint: bds.endpoint, endpointState: bds.endpointState}
+	for {
+		select {
+		case <-ctx.Done():
+			return
+		default:
+		}
+		// reuse existing submit code but capture results
+		tmpCh := make(chan []byte, 10)
+		go func() {
+			submitDataServiceBatch(b, workUnit, []chan<- []byte{tmpCh}, client)
+			close(tmpCh)
+		}()
+		for val := range tmpCh {
+			select {
+			case <-ctx.Done():
+				return
+			case results <- val:
+			}
+		}
+		if len(b.endpointState) == 0 {
+			return
+		}
+	}
+}
+
+func runInputThreadIterator(bds *BulkDataService, workUnit *interface{}, inputChannel <-chan *handle.Handle, client *clients.Client, results chan<- []byte, wg *sync.WaitGroup, ctx context.Context) {
+	defer wg.Done()
+	trackEndpointState := bds.endpointState != nil && len(bds.endpointState) > 0
+	batchSizeInt := int(bds.BatchSize())
+	inputBatch := &DataServiceBatch{endpoint: bds.endpoint, input: make([]*handle.Handle, 0, batchSizeInt), endpointState: bds.endpointState}
+	for {
+		select {
+		case <-ctx.Done():
+			return
+		default:
+		}
+		select {
+		case input, ok := <-inputChannel:
+			if !ok {
+				bds.workPhase = COMPLETED
+				if len(inputBatch.input) > 0 {
+					tmpCh := make(chan []byte, 10)
+					go func() {
+						submitDataServiceBatch(inputBatch, workUnit, []chan<- []byte{tmpCh}, client)
+						close(tmpCh)
+					}()
+					for val := range tmpCh {
+						select {
+						case <-ctx.Done():
+							return
+						case results <- val:
+						}
+					}
+				}
+				return
+			}
+			if input != nil {
+				if bds.workPhase == INTERRUPTING {
+					return
+				}
+				inputBatch.input = append(inputBatch.input, input)
+				if len(inputBatch.input) >= batchSizeInt {
+					tmpCh := make(chan []byte, 10)
+					go func() {
+						submitDataServiceBatch(inputBatch, workUnit, []chan<- []byte{tmpCh}, client)
+						close(tmpCh)
+					}()
+					for val := range tmpCh {
+						select {
+						case <-ctx.Done():
+							return
+						case results <- val:
+						}
+					}
+					inputBatch.input = make([]*handle.Handle, 0, batchSizeInt)
+					if trackEndpointState && len(inputBatch.endpointState) == 0 {
+						return
+					}
+				}
+			}
+		case <-ctx.Done():
+			return
+		}
+	}
 }
