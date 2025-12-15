@@ -1,0 +1,129 @@
+{
+  "load_variables_from": [
+    {
+      "variable_loader_type": "dotenv",
+      "env_file_path": ".env"
+    }
+  ],
+  "manual_call_templates": [
+  ],
+  "post_processing": [
+  ],
+  "tool_repository": {
+    "tool_repository_type": "in_memory",
+    "tools": [
+      {
+        "name": "go.build",
+        "description": "Run `go build` for a package or set of packages",
+        "tags": ["go", "build", "compile"],
+        "inputs": {
+          "packages": { "type": "string", "description": "Packages to build (e.g., ./...)", "default": "./..." },
+          "output": { "type": "string", "description": "Optional output binary file path", "default": "" }
+        },
+        "outputs": { "output_path": { "type": "string" } },
+        "tool_call_template": {
+          "call_template_type": "cli",
+          "commands": [ "go build -o UTCP_ARG_output_UTCP_END UTCP_ARG_packages_UTCP_END" ]
+        }
+      },
+      {
+        "name": "go.test",
+        "description": "Run `go test` for a package or set of packages",
+        "tags": ["go", "test", "unit"],
+        "inputs": {
+          "packages": { "type": "string", "description": "Packages to test (e.g., ./...)", "default": "./..." },
+          "flags": { "type": "string", "description": "Optional flags for go test" }
+        },
+        "outputs": { "result": { "type": "string" } },
+        "tool_call_template": {
+          "call_template_type": "cli",
+          "commands": [ "go test UTCP_ARG_packages_UTCP_END UTCP_ARG_flags_UTCP_END" ]
+        }
+      },
+      {
+        "name": "go.mod_tidy",
+        "description": "Run `go mod tidy` to ensure module files are consistent",
+        "tags": ["go", "module", "dependency"],
+        "inputs": {},
+        "outputs": { "output": { "type": "string" } },
+        "tool_call_template": {
+          "call_template_type": "cli",
+          "commands": [ "go mod tidy" ]
+        }
+      },
+      {
+        "name": "go.lint",
+        "description": "Run `go vet` to check code quality",
+        "tags": ["go", "lint", "quality"],
+        "inputs": {
+          "packages": { "type": "string", "default": "./..." }
+        },
+        "outputs": { "result": { "type": "string" } },
+        "tool_call_template": {
+          "call_template_type": "cli",
+          "commands": [ "go vet UTCP_ARG_packages_UTCP_END" ]
+        }
+      },
+      {
+        "name": "go.run",
+        "description": "Run Go program via `go run`",
+        "tags": ["go", "run", "execute"],
+        "inputs": {
+          "main": { "type": "string", "description": "Main package/file to run", "default": "./cmd" },
+          "args": { "type": "array", "items": { "type": "string" }, "description": "Optional runtime args" }
+        },
+        "outputs": { "stdout": { "type": "string" } },
+        "tool_call_template": {
+          "call_template_type": "cli",
+          "commands": [ "go run UTCP_ARG_main_UTCP_END UTCP_ARG_args_UTCP_END" ]
+        }
+      },
+      {
+        "name": "marklogic.search",
+        "description": "Execute MarkLogic /v1/search",
+        "tags": ["marklogic", "search", "query"],
+        "inputs": {
+          "query": { "type": "object", "description": "Structured search query or simple JSON" },
+          "options": { "type": "object", "description": "Optional search options" }
+        },
+        "outputs": { "results": { "type": "object" } },
+        "tool_call_template": {
+          "call_template_type": "http",
+          "http_method": "POST",
+          "url": "{{MARKLOGIC_BASE_URL}}/v1/search",
+          "auth": {
+            "auth_type": "basic",
+            "username": "{{MARKLOGIC_USERNAME}}",
+            "password": "{{MARKLOGIC_PASSWORD}}"
+          },
+          "body": {
+            "query": "{{query}}",
+            "options": "{{options}}"
+          }
+        }
+      },
+      {
+        "name": "marklogic.getDocument",
+        "description": "Retrieve a document by URI via /v1/documents?uri=...",
+        "tags": ["marklogic", "document", "retrieve"],
+        "inputs": {
+          "uri": { "type": "string", "description": "Document URI to retrieve" }
+        },
+        "outputs": { "document": { "type": "object" } },
+        "tool_call_template": {
+          "call_template_type": "http",
+          "http_method": "GET",
+          "url": "{{MARKLOGIC_BASE_URL}}/v1/documents?uri={{uri}}",
+          "auth": {
+            "auth_type": "basic",
+            "username": "{{MARKLOGIC_USERNAME}}",
+            "password": "{{MARKLOGIC_PASSWORD}}"
+          }
+        }
+      }
+    ]
+  },
+  "tool_search_strategy": {
+    "tool_search_strategy_type": "tag_and_description_word_match"
+  }
+}

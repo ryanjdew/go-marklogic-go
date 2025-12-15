@@ -1,4 +1,4 @@
 {
-    "cmake.configureOnOpen": false,
-    "codeQL.createQuery.qlPackLocation": "c:\\Users\\ryand\\Documents\\GitHub\\go-marklogic-go"
+  "cmake.configureOnOpen": false,
+  "codeQL.createQuery.qlPackLocation": "c:\\Users\\ryand\\Documents\\GitHub\\go-marklogic-go"
 }

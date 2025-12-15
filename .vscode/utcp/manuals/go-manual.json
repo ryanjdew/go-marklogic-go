@@ -1,0 +1,68 @@
+{
+  "manual_version": "1.0.0",
+  "utcp_version": "1.0.1",
+  "tools": [
+    {
+      "name": "go.build",
+      "description": "Run `go build` for a package or set of packages",
+      "inputs": {
+        "packages": { "type": "string", "description": "Packages to build (e.g., ./...)", "default": "./..." },
+        "output": { "type": "string", "description": "Optional output binary file path", "default": "" }
+      },
+      "outputs": { "output_path": { "type": "string" } },
+      "tool_call_template": {
+        "call_template_type": "cli",
+        "commands": [ "go build -o UTCP_ARG_output_UTCP_END UTCP_ARG_packages_UTCP_END" ]
+      }
+    },
+    {
+      "name": "go.test",
+      "description": "Run `go test` for a package or set of packages",
+      "inputs": {
+        "packages": { "type": "string", "description": "Packages to test (e.g., ./...)", "default": "./..." },
+        "flags": { "type": "string", "description": "Optional flags for go test" }
+      },
+      "outputs": { "result": { "type": "string" } },
+      "tool_call_template": {
+        "call_template_type": "cli",
+        "commands": [ "go test UTCP_ARG_packages_UTCP_END UTCP_ARG_flags_UTCP_END" ]
+      }
+    },
+    {
+      "name": "go.mod_tidy",
+      "description": "Run `go mod tidy` to ensure module files are consistent",
+      "inputs": {},
+      "outputs": { "output": { "type": "string" } },
+      "tool_call_template": {
+        "call_template_type": "cli",
+        "commands": [ "go mod tidy" ]
+      }
+    },
+    {
+      "name": "go.lint",
+      "description": "Run `go vet` as a fallback",
+      "inputs": {
+        "packages": { "type": "string", "default": "./..." }
+      },
+      "outputs": { "result": { "type": "string" } },
+      "tool_call_template": {
+        "call_template_type": "cli",
+        "commands": [ "go vet UTCP_ARG_packages_UTCP_END" ]
+      }
+    },
+    {
+      "name": "go.run",
+      "description": "Run Go program via `go run`",
+      "inputs": {
+        "main": { "type": "string", "description": "Main package/file to run", "default": "./cmd" },
+        "args": { "type": "array", "items": { "type": "string" }, "description": "Optional runtime args" }
+      },
+      "outputs": { "stdout": { "type": "string" } },
+      "tool_call_template": {
+        "call_template_type": "cli",
+        "commands": [ "go run UTCP_ARG_main_UTCP_END UTCP_ARG_args_UTCP_END" ]
+      }
+    }
+  ]
+}
+ 

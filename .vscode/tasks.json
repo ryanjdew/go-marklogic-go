@@ -1,0 +1,25 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Start UTCP Code Mode MCP Server",
+      "type": "shell",
+      "command": "npx @utcp/code-mode-mcp",
+      "problemMatcher": [],
+      "group": "none"
+    }
+    ,
+    {
+      "label": "Start UTCP Code Mode MCP Server (with CLI)",
+      "type": "shell",
+      "command": "npx @utcp/code-mode-mcp",
+      "options": {
+        "env": {
+          "ENABLE_CLI": "true"
+        }
+      },
+      "problemMatcher": [],
+      "group": "none"
+    }
+  ]
+}

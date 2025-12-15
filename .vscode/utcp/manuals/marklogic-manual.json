@@ -1,0 +1,47 @@
+{
+  "manual_version": "1.0.0",
+  "utcp_version": "1.0.1",
+  "tools": [
+    {
+      "name": "marklogic.search",
+      "description": "Execute MarkLogic /v1/search",
+      "inputs": {
+        "query": { "type": "object", "description": "Structured search query or simple JSON" },
+        "options": { "type": "object", "description": "Optional search options" }
+      },
+      "outputs": { "results": { "type": "object" } },
+      "tool_call_template": {
+        "call_template_type": "http",
+        "http_method": "POST",
+        "url": "{{MARKLOGIC_BASE_URL}}/v1/search",
+        "auth": {
+          "auth_type": "basic",
+          "username": "{{MARKLOGIC_USERNAME}}",
+          "password": "{{MARKLOGIC_PASSWORD}}"
+        },
+        "body": {
+          "query": "{{query}}",
+          "options": "{{options}}"
+        }
+      }
+    },
+    {
+      "name": "marklogic.getDocument",
+      "description": "Retrieve a document by URI via /v1/documents?uri=...",
+      "inputs": {
+        "uri": { "type": "string", "description": "Document URI to retrieve" }
+      },
+      "outputs": { "document": { "type": "object" } },
+      "tool_call_template": {
+        "call_template_type": "http",
+        "http_method": "GET",
+        "url": "{{MARKLOGIC_BASE_URL}}/v1/documents?uri={{uri}}",
+        "auth": {
+          "auth_type": "basic",
+          "username": "{{MARKLOGIC_USERNAME}}",
+          "password": "{{MARKLOGIC_PASSWORD}}"
+        }
+      }
+    }
+  ]
+}
