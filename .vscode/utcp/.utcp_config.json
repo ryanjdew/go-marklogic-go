@@ -5,20 +5,18 @@
       "env_file_path": ".env"
     }
   ],
-  "manual_call_templates": [
-  ],
-  "post_processing": [
-  ],
+  "manual_call_templates": [],
+  "post_processing": [],
   "tool_repository": {
     "tool_repository_type": "in_memory",
     "tools": [
       {
         "name": "go.build",
-        "description": "Run `go build` for a package or set of packages",
-        "tags": ["go", "build", "compile"],
+        "description": "Build Go packages",
+        "tags": ["go", "build"],
         "inputs": {
-          "packages": { "type": "string", "description": "Packages to build (e.g., ./...)", "default": "./..." },
-          "output": { "type": "string", "description": "Optional output binary file path", "default": "" }
+          "packages": { "type": "string", "default": "./..." },
+          "output": { "type": "string", "default": "" }
         },
         "outputs": { "output_path": { "type": "string" } },
         "tool_call_template": {
@@ -28,11 +26,11 @@
       },
       {
         "name": "go.test",
-        "description": "Run `go test` for a package or set of packages",
-        "tags": ["go", "test", "unit"],
+        "description": "Test Go packages",
+        "tags": ["go", "test"],
         "inputs": {
-          "packages": { "type": "string", "description": "Packages to test (e.g., ./...)", "default": "./..." },
-          "flags": { "type": "string", "description": "Optional flags for go test" }
+          "packages": { "type": "string", "default": "./..." },
+          "flags": { "type": "string" }
         },
         "outputs": { "result": { "type": "string" } },
         "tool_call_template": {
@@ -41,9 +39,23 @@
         }
       },
       {
+        "name": "go.test_coverage",
+        "description": "Test Go packages with coverage",
+        "tags": ["go", "test", "coverage"],
+        "inputs": {
+          "packages": { "type": "string", "default": "./..." },
+          "format": { "type": "string", "default": "html" }
+        },
+        "outputs": { "coverage_file": { "type": "string" } },
+        "tool_call_template": {
+          "call_template_type": "cli",
+          "commands": [ "go test -coverprofile=coverage.out UTCP_ARG_packages_UTCP_END && go tool cover -UTCP_ARG_format_UTCP_END=coverage.html -o coverage.html coverage.out" ]
+        }
+      },
+      {
         "name": "go.mod_tidy",
-        "description": "Run `go mod tidy` to ensure module files are consistent",
-        "tags": ["go", "module", "dependency"],
+        "description": "Tidy Go module dependencies",
+        "tags": ["go", "mod"],
         "inputs": {},
         "outputs": { "output": { "type": "string" } },
         "tool_call_template": {
@@ -53,8 +65,8 @@
       },
       {
         "name": "go.lint",
-        "description": "Run `go vet` to check code quality",
-        "tags": ["go", "lint", "quality"],
+        "description": "Lint Go code with vet",
+        "tags": ["go", "lint"],
         "inputs": {
           "packages": { "type": "string", "default": "./..." }
         },
@@ -65,12 +77,25 @@
         }
       },
       {
-        "name": "go.run",
-        "description": "Run Go program via `go run`",
-        "tags": ["go", "run", "execute"],
+        "name": "go.fmt",
+        "description": "Format Go code",
+        "tags": ["go", "format"],
         "inputs": {
-          "main": { "type": "string", "description": "Main package/file to run", "default": "./cmd" },
-          "args": { "type": "array", "items": { "type": "string" }, "description": "Optional runtime args" }
+          "paths": { "type": "string", "default": "." }
+        },
+        "outputs": { "result": { "type": "string" } },
+        "tool_call_template": {
+          "call_template_type": "cli",
+          "commands": [ "go fmt UTCP_ARG_paths_UTCP_END" ]
+        }
+      },
+      {
+        "name": "go.run",
+        "description": "Run Go program",
+        "tags": ["go", "run"],
+        "inputs": {
+          "main": { "type": "string", "default": "./cmd" },
+          "args": { "type": "array", "items": { "type": "string" } }
         },
         "outputs": { "stdout": { "type": "string" } },
         "tool_call_template": {
@@ -80,11 +105,11 @@
       },
       {
         "name": "marklogic.search",
-        "description": "Execute MarkLogic /v1/search",
-        "tags": ["marklogic", "search", "query"],
+        "description": "Query MarkLogic search",
+        "tags": ["marklogic", "search"],
         "inputs": {
-          "query": { "type": "object", "description": "Structured search query or simple JSON" },
-          "options": { "type": "object", "description": "Optional search options" }
+          "query": { "type": "object" },
+          "options": { "type": "object" }
         },
         "outputs": { "results": { "type": "object" } },
         "tool_call_template": {
@@ -104,10 +129,10 @@
       },
       {
         "name": "marklogic.getDocument",
-        "description": "Retrieve a document by URI via /v1/documents?uri=...",
-        "tags": ["marklogic", "document", "retrieve"],
+        "description": "Get MarkLogic document",
+        "tags": ["marklogic", "document"],
         "inputs": {
-          "uri": { "type": "string", "description": "Document URI to retrieve" }
+          "uri": { "type": "string" }
         },
         "outputs": { "document": { "type": "object" } },
         "tool_call_template": {
@@ -119,6 +144,31 @@
             "username": "{{MARKLOGIC_USERNAME}}",
             "password": "{{MARKLOGIC_PASSWORD}}"
           }
+        }
+      },
+      {
+        "name": "marklogic.putDocument",
+        "description": "Create/update MarkLogic document",
+        "tags": ["marklogic", "document", "write"],
+        "inputs": {
+          "uri": { "type": "string" },
+          "content": { "type": "object" },
+          "format": { "type": "string", "default": "json" }
+        },
+        "outputs": { "status": { "type": "string" } },
+        "tool_call_template": {
+          "call_template_type": "http",
+          "http_method": "PUT",
+          "url": "{{MARKLOGIC_BASE_URL}}/v1/documents?uri={{uri}}",
+          "auth": {
+            "auth_type": "basic",
+            "username": "{{MARKLOGIC_USERNAME}}",
+            "password": "{{MARKLOGIC_PASSWORD}}"
+          },
+          "headers": {
+            "Content-Type": "application/{{format}}"
+          },
+          "body": "{{content}}"
         }
       }
     ]
