@@ -160,7 +160,7 @@ qh := search.QueryHandle{Format: handle.XML}  // Set desired format
 qh.Serialize(query)  // Encodes query struct to XML string
 
 // 2. EXECUTE: util.BuildRequestFromHandle adds Content-Type from handle
-req, _ := util.BuildRequestFromHandle(client, "POST", "/v1/search", &qh)
+req, _ := util.BuildRequestFromHandle(client, "POST", "/search", &qh)
 // Sets: req.Header["Content-Type"] = "application/xml"
 
 // 3. RESPONSE: Deserialize from Accept header (multipart/mixed for bulk ops)
