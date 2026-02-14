@@ -183,7 +183,7 @@ func (tsh *TransactionStatusHandle) SetTimestamp(timestamp string) {
 	tsh.timestamp = timestamp
 }
 
-// Timestamp retieves a timestamp
+// Timestamp retrieves a timestamp
 func (tsh *TransactionStatusHandle) Timestamp() string {
 	return tsh.timestamp
 }

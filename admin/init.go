@@ -103,7 +103,7 @@ func (rh *RestartResponseHandle) SetTimestamp(timestamp string) {
 	rh.timestamp = timestamp
 }
 
-// Timestamp retieves a timestamp
+// Timestamp retrieves a timestamp
 func (rh *RestartResponseHandle) Timestamp() string {
 	return rh.timestamp
 }
@@ -199,7 +199,7 @@ func (rh *InitHandle) SetTimestamp(timestamp string) {
 	rh.timestamp = timestamp
 }
 
-// Timestamp retieves a timestamp
+// Timestamp retrieves a timestamp
 func (rh *InitHandle) Timestamp() string {
 	return rh.timestamp
 }
