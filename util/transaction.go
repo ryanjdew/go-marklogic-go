@@ -70,7 +70,7 @@ func (t *Transaction) GetStatus() TransactionStatus {
 	transactionStatusHandle := &TransactionStatusHandle{}
 	params := "?format=json"
 	params = AddDatabaseParam(params, t.client)
-	req, _ := BuildRequestFromHandle(t.client, "GET", "/v1/transactions/"+t.ID+params, nil)
+	req, _ := BuildRequestFromHandle(t.client, "GET", "/transactions/"+t.ID+params, nil)
 	Execute(t.client, req, transactionStatusHandle)
 	return *transactionStatusHandle.Get()
 }
@@ -119,7 +119,7 @@ func (t *Transaction) Rollback() bool {
 func actOnTransaction(t *Transaction, action string) bool {
 	params := "?result=" + action
 	params = AddDatabaseParam(params, t.client)
-	req, err := BuildRequestFromHandle(t.client, "POST", "/v1/transactions/"+t.ID+params, nil)
+	req, err := BuildRequestFromHandle(t.client, "POST", "/transactions/"+t.ID+params, nil)
 	if err != nil {
 		return false
 	}
