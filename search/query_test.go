@@ -13,10 +13,10 @@ func TestXMLQuerySerialize(t *testing.T) {
 	want := "<query xmlns=\"http://marklogic.com/appservices/search\"><and-query xmlns=\"http://marklogic.com/appservices/search\"><ordered xmlns=\"http://marklogic.com/appservices/search\">true</ordered><term-query xmlns=\"http://marklogic.com/appservices/search\"><text xmlns=\"http://marklogic.com/appservices/search\">data</text></term-query></and-query></query>"
 	query :=
 		Query{
-			Queries: []interface{}{
+			Queries: []any{
 				AndQuery{
 					Ordered: true,
-					Queries: []interface{}{
+					Queries: []any{
 						TermQuery{Terms: []string{"data"}},
 					},
 				},
@@ -46,10 +46,10 @@ func TestJSONQuerySerialize(t *testing.T) {
 	want := `{"query":{"queries":[{"and-query":{"ordered":true,"queries":[{"term-query":{"text":["data"]}}]}}]}}`
 	query :=
 		Query{
-			Queries: []interface{}{
+			Queries: []any{
 				AndQuery{
 					Ordered: true,
-					Queries: []interface{}{
+					Queries: []any{
 						TermQuery{Terms: []string{"data"}},
 					},
 				},

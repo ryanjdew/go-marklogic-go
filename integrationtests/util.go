@@ -3,6 +3,7 @@ package integrationtests
 import (
 	"strings"
 
+	"github.com/ryanjdew/go-marklogic-go/transactions"
 	"github.com/ryanjdew/go-marklogic-go/util"
 
 	clients "github.com/ryanjdew/go-marklogic-go/clients"
@@ -15,6 +16,7 @@ import (
 var _client, _ = clients.NewClient(&clients.Connection{Host: "localhost", Port: 8011, Username: "admin", Password: "admin", AuthenticationType: clients.DigestAuth})
 var _search = searchMod.NewService(_client)
 var _config = config.NewService(_client)
+var _transactions = transactions.NewService(_client)
 
 func Client() *clients.Client {
 	return _client
@@ -22,6 +24,10 @@ func Client() *clients.Client {
 
 func Search() *searchMod.Service {
 	return _search
+}
+
+func Transactions() *transactions.Service {
+	return _transactions
 }
 
 func ClearDocs() error {
@@ -48,7 +54,7 @@ func CollectionCount(collection string) int64 {
 	resp := &searchMod.ResponseHandle{}
 	structuredQuery := &searchMod.QueryHandle{
 		Query: searchMod.Query{
-			Queries: []interface{}{searchMod.CollectionQuery{URIs: []string{collection}}},
+			Queries: []any{searchMod.CollectionQuery{URIs: []string{collection}}},
 		},
 	}
 	Search().StructuredSearch(structuredQuery, 1, 0, nil, resp)

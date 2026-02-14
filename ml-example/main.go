@@ -41,7 +41,7 @@ func main() {
 		log.Fatal(err)
 	}
 	query := search.Query{}
-	query.Queries = []interface{}{
+	query.Queries = []any{
 		search.TermQuery{
 			Terms: []string{queryStr},
 		},

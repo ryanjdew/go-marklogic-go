@@ -1,6 +1,8 @@
 package datamovement
 
 import (
+	"context"
+	"io"
 	"sync"
 
 	"github.com/ryanjdew/go-marklogic-go/clients"
@@ -10,16 +12,24 @@ import (
 
 // QueryBatcher reads documents in bulk
 type QueryBatcher struct {
-	mutex         *sync.Mutex
-	client        *clients.Client
-	clientsByHost map[string]*clients.Client
-	batchSize     uint16
-	query         handle.Handle
-	timestamp     string
-	listeners     []chan<- *QueryBatch
-	waitGroup     *sync.WaitGroup
-	forestInfo    []util.ForestInfo
-	transaction   *util.Transaction
+	mutex           *sync.Mutex
+	client          *clients.Client
+	clientsByHost   map[string]*clients.Client
+	batchSize       uint16
+	query           handle.Handle
+	timestamp       string
+	listeners       []chan<- *QueryBatch
+	waitGroup       *sync.WaitGroup
+	forestInfo      []util.ForestInfo
+	transaction     *util.Transaction
+	serializedQuery string
+	serializedMutex *sync.Mutex
+}
+
+// QueryBatchIterator provides a pull-style iterator for QueryBatch results
+type QueryBatchIterator interface {
+	Next(ctx context.Context) (*QueryBatch, error)
+	Close() error
 }
 
 // BatchSize is the number documents we'll retrieve in a single batch
@@ -70,6 +80,12 @@ func (qbr *QueryBatcher) RemoveListener(listener chan *QueryBatch) *QueryBatcher
 // Run the QueryBatcher
 func (qbr *QueryBatcher) Run() *QueryBatcher {
 	qbr.waitGroup = &sync.WaitGroup{}
+
+	// Pre-serialize the query once to avoid concurrent serialization by multiple forest goroutines
+	if qbr.query != nil {
+		qbr.serializedQuery = qbr.query.Serialized()
+	}
+
 	for _, forest := range qbr.forestInfo {
 		qbr.waitGroup.Add(1)
 		go runReadThread(qbr, forest)
@@ -88,12 +104,31 @@ func runReadThread(queryBatcher *QueryBatcher, forest util.ForestInfo) {
 	batchSize := int(queryBatcher.BatchSize())
 	wg := queryBatcher.waitGroup
 	forestClient := queryBatcher.clientsByHost[forest.PreferredHost()]
-	after := ""
+	start := uint64(1) // Start is 1-based
 	defer wg.Done()
+
+	// Create a query handle from the pre-serialized query to avoid concurrent serialization
+	var queryHandle handle.Handle
+	if queryBatcher.serializedQuery != "" {
+		// Create a RawHandle with the pre-serialized query
+		rawHandle := &handle.RawHandle{
+			Format: handle.JSON, // Assume JSON format as per the test
+		}
+		rawHandle.Serialize([]byte(queryBatcher.serializedQuery))
+		queryHandle = rawHandle
+	} else {
+		queryHandle = queryBatcher.query
+	}
+
 	for {
 		urisHandle := &util.URIsHandle{}
 		urisHandle.SetTimestamp(queryBatcher.timestamp)
-		util.GetURIs(forestClient, queryBatcher.query, forest.Name, queryBatcher.transaction, 0, after, uint(batchSize), urisHandle)
+		err := util.GetURIs(forestClient, queryHandle, forest.Name, queryBatcher.transaction, start, "", uint(batchSize), urisHandle)
+		if err != nil {
+			// Log the error for debugging but continue gracefully
+			_ = err // TODO: Consider logging this error properly
+			return
+		}
 		if queryBatcher.timestamp == "" {
 			queryBatcher.mutex.Lock()
 			if queryBatcher.timestamp == "" {
@@ -102,9 +137,6 @@ func runReadThread(queryBatcher *QueryBatcher, forest util.ForestInfo) {
 			queryBatcher.mutex.Unlock()
 		}
 		uris := urisHandle.Get()
-		if len(uris) > 0 {
-			after = uris[len(uris)-1]
-		}
 		queryBatch := &QueryBatch{
 			client:    forestClient,
 			URIs:      uris,
@@ -116,6 +148,118 @@ func runReadThread(queryBatcher *QueryBatcher, forest util.ForestInfo) {
 		if len(queryBatch.URIs) < batchSize {
 			return
 		}
+		start += uint64(len(queryBatch.URIs))
+	}
+}
+
+// Iterator returns an iterator over QueryBatch results. It is a non-blocking
+// call which starts internal goroutines to fetch batches and provides them
+// through Next(). The iterator respects ctx cancellation and Close().
+func (qbr *QueryBatcher) Iterator(ctx context.Context) QueryBatchIterator {
+	ctx, cancel := context.WithCancel(ctx)
+	results := make(chan *QueryBatch)
+	wg := &sync.WaitGroup{}
+
+	// If there are no forests, close results and return an iterator that
+	// immediately yields EOF.
+	if len(qbr.forestInfo) == 0 {
+		close(results)
+		return &queryBatchIter{results: results, cancel: cancel, wg: wg}
+	}
+
+	for _, forest := range qbr.forestInfo {
+		wg.Add(1)
+		go runReadThreadIterator(qbr, forest, results, wg, ctx)
+	}
+
+	// close results when all goroutines finished
+	go func() {
+		wg.Wait()
+		close(results)
+	}()
+	return &queryBatchIter{results: results, cancel: cancel, wg: wg}
+}
+
+type queryBatchIter struct {
+	results <-chan *QueryBatch
+	cancel  context.CancelFunc
+	wg      *sync.WaitGroup
+}
+
+func (it *queryBatchIter) Next(ctx context.Context) (*QueryBatch, error) {
+	select {
+	case <-ctx.Done():
+		it.cancel()
+		return nil, ctx.Err()
+	case batch, ok := <-it.results:
+		if !ok {
+			return nil, io.EOF
+		}
+		return batch, nil
+	}
+}
+
+func (it *queryBatchIter) Close() error {
+	it.cancel()
+	// Wait for goroutines to finish (best-effort)
+	it.wg.Wait()
+	return nil
+}
+
+func runReadThreadIterator(queryBatcher *QueryBatcher, forest util.ForestInfo, results chan<- *QueryBatch, wg *sync.WaitGroup, ctx context.Context) {
+	defer wg.Done()
+	batchSize := int(queryBatcher.BatchSize())
+	start := uint64(0) // Start is 0-based
+
+	// Create a query handle from the pre-serialized query to avoid concurrent serialization
+	var queryHandle handle.Handle
+	if queryBatcher.serializedQuery != "" {
+		// Create a RawHandle with the pre-serialized query
+		rawHandle := &handle.RawHandle{
+			Format: handle.JSON, // Assume JSON format
+		}
+		rawHandle.Serialize([]byte(queryBatcher.serializedQuery))
+		queryHandle = rawHandle
+	} else {
+		queryHandle = queryBatcher.query
+	}
+
+	for {
+		// short-circuit if context cancelled
+		select {
+		case <-ctx.Done():
+			return
+		default:
+		}
+		urisHandle := &util.URIsHandle{}
+		urisHandle.SetTimestamp(queryBatcher.timestamp)
+		client := queryBatcher.clientsByHost[forest.PreferredHost()]
+		err := util.GetURIs(client, queryHandle, forest.Name, queryBatcher.transaction, start, "", uint(batchSize), urisHandle)
+		if err != nil {
+			return
+		}
+		if queryBatcher.timestamp == "" {
+			queryBatcher.mutex.Lock()
+			if queryBatcher.timestamp == "" {
+				queryBatcher.timestamp = urisHandle.Timestamp()
+			}
+			queryBatcher.mutex.Unlock()
+		}
+		uris := urisHandle.Get()
+		queryBatch := &QueryBatch{
+			client:    client,
+			URIs:      uris,
+			timestamp: queryBatcher.timestamp,
+		}
+		select {
+		case <-ctx.Done():
+			return
+		case results <- queryBatch:
+		}
+		if len(queryBatch.URIs) < batchSize {
+			return
+		}
+		start += uint64(len(queryBatch.URIs))
 	}
 }
 

@@ -95,6 +95,20 @@ func (srh *SuggestionsResponseHandle) Timestamp() string {
 	return srh.timestamp
 }
 
+// Suggest suggests query text based on a partial string query
+func Suggest(c *clients.Client, partialQ string, limit int64, options string, response handle.ResponseHandle) error {
+	uri := "/suggest?partial-q=" + partialQ + "&limit=" + strconv.FormatInt(limit, 10)
+	if options != "" {
+		uri = uri + "&options=" + options
+	}
+	uri = util.AddDatabaseParam(uri, c)
+	req, err := http.NewRequest("GET", c.Base()+uri, nil)
+	if err != nil {
+		return err
+	}
+	return util.Execute(c, req, response)
+}
+
 // StructuredSuggestions suggests query text based off of a structured query
 func StructuredSuggestions(c *clients.Client, query handle.Handle, partialQ string, limit int64, options string, response handle.ResponseHandle) error {
 	uri := "/suggest?limit=" + strconv.FormatInt(limit, 10)

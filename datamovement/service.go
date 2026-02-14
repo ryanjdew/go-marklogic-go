@@ -48,10 +48,11 @@ func (s *Service) WriteBatcher() *WriteBatcher {
 // QueryBatcher for reading documents in bulk
 func (s *Service) QueryBatcher() *QueryBatcher {
 	return &QueryBatcher{
-		mutex:         &sync.Mutex{},
-		client:        s.client,
-		clientsByHost: s.clientsByHost,
-		batchSize:     1000,
-		forestInfo:    s.forestInfo,
+		mutex:           &sync.Mutex{},
+		client:          s.client,
+		clientsByHost:   s.clientsByHost,
+		batchSize:       1000,
+		forestInfo:      s.forestInfo,
+		serializedMutex: &sync.Mutex{},
 	}
 }

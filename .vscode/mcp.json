@@ -1,0 +1,12 @@
+{
+  "servers": {
+    "utcp-code-mode": {
+      "command": "npx",
+      "args": ["@utcp/code-mode-mcp@latest"],
+      "env": {
+        "UTCP_CONFIG_FILE": ".vscode/utcp/.utcp_config.json",
+        "ENABLE_CLI": "true"
+      }
+    }
+  }
+}

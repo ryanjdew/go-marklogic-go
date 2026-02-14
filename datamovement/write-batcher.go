@@ -1,6 +1,8 @@
 package datamovement
 
 import (
+	"context"
+	"io"
 	"sync"
 	"time"
 
@@ -24,6 +26,12 @@ type WriteBatcher struct {
 	forestInfo             []util.ForestInfo
 	transform              *util.Transform
 	transaction            *util.Transaction
+}
+
+// WriteBatchIterator provides a pull-style iterator for WriteBatch results
+type WriteBatchIterator interface {
+	Next(ctx context.Context) (*WriteBatch, error)
+	Close() error
 }
 
 // BatchSize is the number documents we'll create in a single batch
@@ -103,7 +111,8 @@ func (wbr *WriteBatcher) Run() *WriteBatcher {
 	wbr.waitGroup = &sync.WaitGroup{}
 	forestLength := len(wbr.forestInfo)
 	hostLength := len(hosts)
-	distributeByForest := threadCount >= forestLength
+	distributeByForest := forestLength > 0 && threadCount >= forestLength
+	// debug logs removed
 	roundRobinCounter := 0
 	var roundRobinLength int
 	if distributeByForest {
@@ -162,6 +171,132 @@ func runWriteThread(writeBatcher *WriteBatcher, writeChannel <-chan *documents.D
 			time.Sleep(time.Nanosecond)
 		}
 	}
+}
+
+func runWriteThreadIterator(writeBatcher *WriteBatcher, writeChannel <-chan *documents.DocumentDescription, documentsService *documents.Service, results chan<- *WriteBatch, wg *sync.WaitGroup, ctx context.Context) {
+	defer wg.Done()
+	batchSizeInt := int(writeBatcher.BatchSize())
+	// ensure writeBatch is initialized before reads to avoid nil deref
+	writeBatch := &WriteBatch{
+		documentsService:     documentsService,
+		documentDescriptions: make([]*documents.DocumentDescription, 0, batchSizeInt),
+	}
+	for {
+		select {
+		case <-ctx.Done():
+			return
+		case writeDoc, ok := <-writeChannel:
+			if writeDoc != nil {
+				writeBatch.documentDescriptions = append(writeBatch.documentDescriptions, writeDoc)
+				if len(writeBatch.documentDescriptions) >= batchSizeInt {
+					// submit and forward via results
+					ch := make(chan *WriteBatch, 1)
+					submitBatch(writeBatch, writeBatcher.transform, writeBatcher.transaction, []chan<- *WriteBatch{ch})
+					select {
+					case <-ctx.Done():
+						return
+					case res := <-ch:
+						results <- res
+					}
+					// reset batch
+					writeBatch = &WriteBatch{
+						documentsService:     documentsService,
+						documentDescriptions: make([]*documents.DocumentDescription, 0, batchSizeInt),
+					}
+				}
+			} else if !ok && len(writeChannel) == 0 {
+				if len(writeBatch.documentDescriptions) > 0 {
+					ch := make(chan *WriteBatch, 1)
+					submitBatch(writeBatch, writeBatcher.transform, writeBatcher.transaction, []chan<- *WriteBatch{ch})
+					select {
+					case <-ctx.Done():
+						return
+					case res := <-ch:
+						results <- res
+					}
+					writeBatch = nil
+				}
+				return
+			}
+		}
+	}
+}
+
+// Iterator returns an iterator which yields WriteBatch results after performing
+// writes. If `WithWriteChannel` wasn't set, the iterator yields EOF immediately.
+func (wbr *WriteBatcher) Iterator(ctx context.Context) WriteBatchIterator {
+	if wbr.writeChannel == nil || len(wbr.documentsServiceByHost) == 0 {
+		ch := make(chan *WriteBatch)
+		close(ch)
+		return &writeBatchIter{results: ch}
+	}
+	ctx, cancel := context.WithCancel(ctx)
+	results := make(chan *WriteBatch)
+	wg := &sync.WaitGroup{}
+	threadCount := int(wbr.ThreadCount())
+	hosts := make([]string, 0, len(wbr.documentsServiceByHost))
+	for host := range wbr.documentsServiceByHost {
+		hosts = append(hosts, host)
+	}
+	// debug logs removed
+	forestLength := len(wbr.forestInfo)
+	hostLength := len(hosts)
+	distributeByForest := forestLength > 0 && threadCount >= forestLength
+	roundRobinCounter := 0
+	var roundRobinLength int
+	if distributeByForest {
+		roundRobinLength = forestLength
+	} else {
+		roundRobinLength = hostLength
+	}
+	for i := 0; i < threadCount; i++ {
+		wg.Add(1)
+		var selectedHost string
+		if distributeByForest {
+			selectedHost = wbr.forestInfo[roundRobinCounter].PreferredHost()
+		} else {
+			selectedHost = hosts[roundRobinCounter]
+		}
+		documentsService := wbr.documentsServiceByHost[selectedHost]
+		go runWriteThreadIterator(wbr, wbr.WriteChannel(), documentsService, results, wg, ctx)
+		roundRobinCounter = (roundRobinCounter + 1) % roundRobinLength
+	}
+	go func() {
+		wg.Wait()
+		close(results)
+	}()
+	return &writeBatchIter{results: results, cancel: cancel, wg: wg}
+}
+
+type writeBatchIter struct {
+	results <-chan *WriteBatch
+	cancel  context.CancelFunc
+	wg      *sync.WaitGroup
+}
+
+func (it *writeBatchIter) Next(ctx context.Context) (*WriteBatch, error) {
+	select {
+	case <-ctx.Done():
+		if it.cancel != nil {
+			it.cancel()
+		}
+		return nil, ctx.Err()
+	case batch, ok := <-it.results:
+		if !ok {
+			return nil, io.EOF
+		}
+		return batch, nil
+	}
+}
+
+func (it *writeBatchIter) Close() error {
+	if it.cancel != nil {
+		it.cancel()
+	}
+	if it.wg != nil {
+		it.wg.Wait()
+	}
+	return nil
 }
 
 func submitBatch(writeBatch *WriteBatch, transform *util.Transform, transaction *util.Transaction, listeners []chan<- *WriteBatch) {

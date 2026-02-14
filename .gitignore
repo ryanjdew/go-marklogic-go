@@ -1,2 +1,5 @@
 .DS_Store
 .idea
+Taskfile.yml
+codeql-custom-queries-go/
+.env

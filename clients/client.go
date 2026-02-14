@@ -34,7 +34,7 @@ type Client struct {
 	*BasicClient
 }
 
-//ClientBuilder is a factory for MarkLogic clients
+// ClientBuilder is a factory for MarkLogic clients
 func ClientBuilder(connection *Connection, base string) (*BasicClient, error) {
 	httpClient := &http.Client{}
 	var basicClient *BasicClient

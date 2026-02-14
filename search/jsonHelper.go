@@ -74,7 +74,7 @@ func unwrapJSON(b []byte, mapper stringToInterface) (interface{}, error) {
 		if err := json.Unmarshal(queryJSON[nestedName]["queries"], &queriesData); err != nil {
 			return nil, err
 		}
-		childQueries := make([]interface{}, len(queriesData))
+		childQueries := make([]any, len(queriesData))
 		for i, rawJSON := range queriesData {
 			child, err := unwrapJSON(rawJSON, mapper)
 			if err != nil {

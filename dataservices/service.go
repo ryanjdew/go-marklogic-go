@@ -31,15 +31,16 @@ func NewService(client *clients.Client) *Service {
 // BulkDataService for bulk data service operations
 func (s *Service) BulkDataService(endpoint string) *BulkDataService {
 	return &BulkDataService{
-		mutex:             &sync.Mutex{},
-		waitGroup:         &sync.WaitGroup{},
-		endpoint:          endpoint,
-		client:            s.client,
-		clientsByHost:     s.clientsByHost,
-		batchSize:         1000,
-		forestInfo:        s.forestInfo,
-		threadCount:       uint8(len(s.forestInfo)),
-		workIsForestBased: false,
+		mutex:              &sync.Mutex{},
+		endpointStateMutex: &sync.Mutex{},
+		waitGroup:          &sync.WaitGroup{},
+		endpoint:           endpoint,
+		client:             s.client,
+		clientsByHost:      s.clientsByHost,
+		batchSize:          1000,
+		forestInfo:         s.forestInfo,
+		threadCount:        uint8(len(s.forestInfo)),
+		workIsForestBased:  false,
 	}
 }
 

@@ -7,10 +7,17 @@ import (
 	datamovement "github.com/ryanjdew/go-marklogic-go/datamovement"
 	"github.com/ryanjdew/go-marklogic-go/dataservices"
 	"github.com/ryanjdew/go-marklogic-go/documents"
+	"github.com/ryanjdew/go-marklogic-go/eval"
+	"github.com/ryanjdew/go-marklogic-go/indexes"
+	"github.com/ryanjdew/go-marklogic-go/metadata"
+	resources "github.com/ryanjdew/go-marklogic-go/resources"
 	rowsManagement "github.com/ryanjdew/go-marklogic-go/rows-management"
 	search "github.com/ryanjdew/go-marklogic-go/search"
 	"github.com/ryanjdew/go-marklogic-go/semantics"
+	temporal "github.com/ryanjdew/go-marklogic-go/temporal"
+	transactions "github.com/ryanjdew/go-marklogic-go/transactions"
 	"github.com/ryanjdew/go-marklogic-go/util"
+	"github.com/ryanjdew/go-marklogic-go/values"
 )
 
 // Authentication options
@@ -62,6 +69,26 @@ func (c *Client) Documents() *documents.Service {
 	return documents.NewService(convertToSubClient(c))
 }
 
+// Eval service
+func (c *Client) Eval() *eval.Service {
+	return eval.NewService(convertToSubClient(c))
+}
+
+// Indexes service
+func (c *Client) Indexes() *indexes.Service {
+	return indexes.NewService(convertToSubClient(c))
+}
+
+// Metadata service
+func (c *Client) Metadata() *metadata.Service {
+	return metadata.NewService(convertToSubClient(c))
+}
+
+// Resources service
+func (c *Client) Resources() *resources.Service {
+	return resources.NewService(convertToSubClient(c))
+}
+
 // RowsManagement service
 func (c *Client) RowsManagement() *rowsManagement.Service {
 	return rowsManagement.NewService(convertToSubClient(c))
@@ -77,9 +104,24 @@ func (c *Client) Semantics() *semantics.Service {
 	return semantics.NewService(convertToSubClient(c))
 }
 
+// Temporal service
+func (c *Client) Temporal() *temporal.Service {
+	return temporal.NewService(convertToSubClient(c))
+}
+
+// Transactions service
+func (c *Client) Transactions() *transactions.Service {
+	return transactions.NewService(convertToSubClient(c))
+}
+
+// Values service
+func (c *Client) Values() *values.Service {
+	return values.NewService(convertToSubClient(c))
+}
+
 // NewTransaction returns a new transaction struct
 func (c *Client) NewTransaction() *util.Transaction {
-	return &util.Transaction{}
+	return util.NewTransaction(convertToSubClient(c))
 }
 
 func convertToSubClient(c *Client) *clients.Client {
