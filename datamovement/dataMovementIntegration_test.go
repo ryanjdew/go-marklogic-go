@@ -1,5 +1,3 @@
-//go:build integration
-
 package datamovement
 
 import (
@@ -12,6 +10,7 @@ import (
 	handle "github.com/ryanjdew/go-marklogic-go/handle"
 	integrationtests "github.com/ryanjdew/go-marklogic-go/integrationtests"
 	searchMod "github.com/ryanjdew/go-marklogic-go/search"
+	"github.com/ryanjdew/go-marklogic-go/util"
 )
 
 var dataMovement = NewService(integrationtests.Client())
@@ -65,16 +64,28 @@ func returnURIsWithReadBatcher(t *testing.T, collection string) []string {
 		}
 	qh := searchMod.QueryHandle{Format: handle.JSON}
 	qh.Serialize(query)
-	queryBatcher := dataMovement.QueryBatcher().WithQuery(&qh).WithBatchSize(100).WithListener(listenerChannel)
+	transaction := util.NewTransaction(integrationtests.Client())
+	transaction.Begin()
+	queryBatcher := dataMovement.QueryBatcher().WithQuery(&qh).WithBatchSize(100).WithTransaction(transaction).WithListener(listenerChannel)
 	queryBatcher.Run()
 	timestamp := ""
 	wg := &sync.WaitGroup{}
 	wg.Add(1)
+	seenUris := make(map[string]bool)
 	go func() {
 		for queryBatch := range listenerChannel {
 			if queryBatch != nil {
 				if timestamp != "" && timestamp != queryBatch.Timestamp() {
 					t.Errorf("Has timestamp = %s, Expected = %s", queryBatch.Timestamp(), timestamp)
+				}
+				if timestamp == "" && len(queryBatch.Timestamp()) > 0 {
+					timestamp = queryBatch.Timestamp()
+				}
+				for _, uri := range queryBatch.URIs {
+					if seenUris[uri] {
+						t.Errorf("URI %s was seen more than once\n", uri)
+					}
+					seenUris[uri] = true
 				}
 				uris = append(uris, queryBatch.URIs...)
 			}
@@ -91,10 +102,14 @@ func TestReadBatcher(t *testing.T) {
 	integrationtests.ClearDocs()
 	defer integrationtests.ClearDocs()
 	writeDocumentsWithWriteBatcher()
+	if integrationtests.CollectionCount("collection-1") != int64(testCount) {
+		t.Fatalf("Collection Count 'collection-1' = %d, Want = %d", integrationtests.CollectionCount("collection-1"), testCount)
+	}
 	uris := returnURIsWithReadBatcher(t, "collection-1")
+
 	uriCountWant := int(testCount)
-	uriCountResult := len(uris)
-	if uriCountResult != uriCountWant {
-		t.Errorf("URI Count = %d, Want = %d", uriCountResult, uriCountWant)
+
+	if len(uris) != uriCountWant {
+		t.Errorf("URI Count = %d, Want = %d", len(uris), uriCountWant)
 	}
 }

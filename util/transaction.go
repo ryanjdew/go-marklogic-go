@@ -3,6 +3,7 @@ package util
 import (
 	"bytes"
 	"encoding/json"
+	"math/rand/v2"
 	"net/http"
 	"strconv"
 	"strings"
@@ -77,14 +78,14 @@ func (t *Transaction) GetStatus() TransactionStatus {
 // Begin starts a Transaction
 func (t *Transaction) Begin() bool {
 	if t.Name == "" {
-		t.Name = "go-client-txn"
+		t.Name = "go-client-txn-" + strconv.Itoa(rand.IntN(1000000))
 	}
 	params := "?name=" + t.Name
 	if t.TimeLimit != 0 {
 		params = params + "&timeLimit=" + strconv.Itoa(t.TimeLimit)
 	}
 	params = AddDatabaseParam(params, t.client)
-	req, err := BuildRequestFromHandle(t.client, "POST", "/v1/transactions"+params, nil)
+	req, err := BuildRequestFromHandle(t.client, "POST", "/transactions"+params, nil)
 	if err != nil {
 		return false
 	}
@@ -93,11 +94,15 @@ func (t *Transaction) Begin() bool {
 	if err != nil {
 		return false
 	}
-	if resp.StatusCode >= 400 {
+	if resp.Request.URL.Path != req.URL.Path {
+		location := resp.Request.URL.Path
+		t.ID = location[strings.LastIndex(location, "/")+1:]
+		return true
+	} else if resp.StatusCode >= 400 {
 		return false
 	}
 	location := resp.Header.Get("Location")
-	t.ID = location[strings.LastIndex(location, "/"):]
+	t.ID = location[strings.LastIndex(location, "/")+1:]
 	return true
 }
 

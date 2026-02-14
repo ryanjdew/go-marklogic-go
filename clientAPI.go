@@ -121,7 +121,7 @@ func (c *Client) Values() *values.Service {
 
 // NewTransaction returns a new transaction struct
 func (c *Client) NewTransaction() *util.Transaction {
-	return &util.Transaction{}
+	return util.NewTransaction(convertToSubClient(c))
 }
 
 func convertToSubClient(c *Client) *clients.Client {

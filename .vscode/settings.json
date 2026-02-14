@@ -1,4 +1,17 @@
 {
   "cmake.configureOnOpen": false,
-  "codeQL.createQuery.qlPackLocation": "c:\\Users\\ryand\\Documents\\GitHub\\go-marklogic-go"
+  "codeQL.createQuery.qlPackLocation": "c:\\Users\\ryand\\Documents\\GitHub\\go-marklogic-go",
+  "cSpell.words": [
+    "datamovement",
+    "dataservices",
+    "goroutines",
+    "integrationtests",
+    "localname",
+    "marklogic",
+    "Println",
+    "ryanjdew",
+    "SPARQL",
+    "TEXTPLAIN",
+    "xquery"
+  ]
 }

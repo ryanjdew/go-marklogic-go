@@ -19,6 +19,10 @@ import (
 // SerializableStringMap is a map[string]string which can be converted to XML.
 type SerializableStringMap map[string]string
 
+func NewTransaction(client *clients.Client) *Transaction {
+	return &Transaction{client: client}
+}
+
 // MarshalXML marshals map[string]string into XML.
 func (s SerializableStringMap) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
 
@@ -107,10 +111,18 @@ func BuildRequestFromHandle(c clients.RESTClient, method string, uri string, req
 	}
 	var req *http.Request
 	var err error
-	if reqHandle == nil || reqHandle.Serialized() == "" {
+	if reqHandle == nil {
 		req, err = http.NewRequest(method, c.Base()+uri, nil)
 	} else {
-		req, err = http.NewRequest(method, c.Base()+uri, reqHandle)
+		// Serialize the handle to get its content as a string
+		// This avoids concurrent access issues when the same handle is used by multiple goroutines
+		serialized := reqHandle.Serialized()
+		if serialized == "" {
+			req, err = http.NewRequest(method, c.Base()+uri, nil)
+		} else {
+			// Use strings.NewReader to avoid concurrent reads from the handle's buffer
+			req, err = http.NewRequest(method, c.Base()+uri, strings.NewReader(serialized))
+		}
 	}
 	if err == nil && reqType != "" {
 		req.Header.Add("Content-Type", reqType)

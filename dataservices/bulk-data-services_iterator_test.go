@@ -28,7 +28,7 @@ func TestBulkDataServiceIterator_NoClients_ReturnsEOF(t *testing.T) {
 func TestBulkDataServiceIterator_CancelledContext_ReturnsDeadlineExceeded(t *testing.T) {
 	inputChannel := make(chan *handle.Handle)
 	bds := &BulkDataService{
-		clientsByHost: map[string]*clients.Client{"localhost": &clients.Client{}},
+		clientsByHost: map[string]*clients.Client{"localhost": {}},
 		inputChannel:  inputChannel,
 		endpoint:      "/v1/mock",
 		batchSize:     10,
@@ -47,7 +47,7 @@ func TestBulkDataServiceIterator_CancelledContext_ReturnsDeadlineExceeded(t *tes
 func TestBulkDataServiceIterator_CloseReturnsEOF(t *testing.T) {
 	inputChannel := make(chan *handle.Handle)
 	bds := &BulkDataService{
-		clientsByHost: map[string]*clients.Client{"localhost": &clients.Client{}},
+		clientsByHost: map[string]*clients.Client{"localhost": {}},
 		inputChannel:  inputChannel,
 		endpoint:      "/v1/mock",
 		batchSize:     10,
