@@ -60,7 +60,7 @@ func (rh *RestartResponseHandle) Deserialize(bytes []byte) {
 }
 
 // Deserialized returns deserialised RestartResponse as interface{}
-func (rh *RestartResponseHandle) Deserialized() interface{} {
+func (rh *RestartResponseHandle) Deserialized() any {
 	return &rh.response
 }
 
@@ -70,7 +70,7 @@ func (rh *RestartResponseHandle) AcceptResponse(resp *http.Response) error {
 }
 
 // Serialize returns []byte of XML or JSON that represents the Response struct
-func (rh *RestartResponseHandle) Serialize(response interface{}) {
+func (rh *RestartResponseHandle) Serialize(response any) {
 	switch response := response.(type) {
 	case *RestartResponse:
 		rh.response = *(response)
@@ -111,8 +111,8 @@ func (rh *RestartResponseHandle) Timestamp() string {
 // RestartResponse represents a response from /admin/v1/init API
 type RestartResponse struct {
 	XMLName     xml.Name           `xml:"http://marklogic.com/manage restart" json:"-"`
-	LastStartup LastStartupElement `xml:"last-startup" json:"last-startup,omitempty"`
-	Link        LinkElement        `xml:"link" json:"link,omitempty"`
+	LastStartup LastStartupElement `xml:"last-startup" json:"last-startup"`
+	Link        LinkElement        `xml:"link" json:"link"`
 	Message     string             `xml:"message" json:"message,omitempty"`
 	timestamp   string
 }
@@ -156,7 +156,7 @@ func (rh *InitHandle) Deserialize(bytes []byte) {
 }
 
 // Deserialized returns deserialized InitializeProperties
-func (rh *InitHandle) Deserialized() interface{} {
+func (rh *InitHandle) Deserialized() any {
 	return &rh.initializeProperties
 }
 
@@ -166,7 +166,7 @@ func (rh *InitHandle) AcceptResponse(resp *http.Response) error {
 }
 
 // Serialize returns []byte of XML or JSON that represents the Response struct
-func (rh *InitHandle) Serialize(response interface{}) {
+func (rh *InitHandle) Serialize(response any) {
 	switch response := response.(type) {
 	case *InitializeProperties:
 		rh.initializeProperties = *(response)

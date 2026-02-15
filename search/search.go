@@ -50,7 +50,7 @@ func (rh *ResponseHandle) Deserialize(bytes []byte) {
 }
 
 // Deserialized returns *Response as interface{}
-func (rh *ResponseHandle) Deserialized() interface{} {
+func (rh *ResponseHandle) Deserialized() any {
 	return &rh.response
 }
 
@@ -60,7 +60,7 @@ func (rh *ResponseHandle) AcceptResponse(resp *http.Response) error {
 }
 
 // Serialize returns []byte of XML or JSON that represents the Response struct
-func (rh *ResponseHandle) Serialize(response interface{}) {
+func (rh *ResponseHandle) Serialize(response any) {
 	rh.response = response.(Response)
 	rh.resetBuffer()
 	if rh.GetFormat() == handle.JSON {

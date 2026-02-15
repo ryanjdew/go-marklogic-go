@@ -46,8 +46,8 @@ type Handle interface {
 	io.ReadWriter
 	GetFormat() int
 	Deserialize([]byte)
-	Deserialized() interface{}
-	Serialize(interface{})
+	Deserialized() any
+	Serialize(any)
 	Serialized() string
 	SetTimestamp(string)
 	Timestamp() string
@@ -90,12 +90,12 @@ func (r *RawHandle) AcceptResponse(resp *http.Response) error {
 }
 
 // Serialize returns the bytes that represent XML or JSON
-func (r *RawHandle) Serialize(bytes interface{}) {
+func (r *RawHandle) Serialize(bytes any) {
 	r.Deserialize(bytes.([]byte))
 }
 
 // Deserialized returns string of XML or JSON as interface
-func (r *RawHandle) Deserialized() interface{} {
+func (r *RawHandle) Deserialized() any {
 	return r.String()
 }
 
@@ -124,7 +124,7 @@ type MapHandle struct {
 	*bytes.Buffer
 	Format    int
 	timestamp string
-	mapItem   *map[string]interface{}
+	mapItem   *map[string]any
 }
 
 // GetFormat returns int that represents XML or JSON
@@ -146,7 +146,7 @@ func (m *MapHandle) Deserialize(bytes []byte) {
 }
 
 // Deserialized returns map as interface
-func (m *MapHandle) Deserialized() interface{} {
+func (m *MapHandle) Deserialized() any {
 	return m.mapItem
 }
 
@@ -156,12 +156,12 @@ func (m *MapHandle) AcceptResponse(resp *http.Response) error {
 }
 
 // Serialize returns the bytes that represent XML or JSON
-func (m *MapHandle) Serialize(mapItem interface{}) {
-	m.mapItem = mapItem.(*map[string]interface{})
+func (m *MapHandle) Serialize(mapItem any) {
+	m.mapItem = mapItem.(*map[string]any)
 }
 
 // Get returns the map[string]interface{} form
-func (m *MapHandle) Get() *map[string]interface{} {
+func (m *MapHandle) Get() *map[string]any {
 	return m.mapItem
 }
 
@@ -209,7 +209,7 @@ func (rh *MultipartResponseHandle) Deserialize(bytes []byte) {
 }
 
 // Deserialized returns [][]byte as interface{}
-func (rh *MultipartResponseHandle) Deserialized() interface{} {
+func (rh *MultipartResponseHandle) Deserialized() any {
 	return rh.response
 }
 
@@ -245,7 +245,7 @@ func (rh *MultipartResponseHandle) AcceptResponse(resp *http.Response) error {
 }
 
 // Serialize returns []byte of XML or JSON that represents the Response struct
-func (rh *MultipartResponseHandle) Serialize(response interface{}) {
+func (rh *MultipartResponseHandle) Serialize(response any) {
 	rh.response = response.([][]byte)
 	rh.resetBuffer()
 }

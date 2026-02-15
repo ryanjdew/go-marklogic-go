@@ -28,10 +28,10 @@ type ValidationRule struct {
 
 // MetadataResult represents the result of metadata extraction
 type MetadataResult struct {
-	URI      string                 `json:"uri" xml:"uri"`
-	Metadata map[string]interface{} `json:"metadata" xml:"metadata"`
-	Valid    bool                   `json:"valid" xml:"valid"`
-	Errors   []string               `json:"errors,omitempty" xml:"errors,omitempty"`
+	URI      string         `json:"uri" xml:"uri"`
+	Metadata map[string]any `json:"metadata" xml:"metadata"`
+	Valid    bool           `json:"valid" xml:"valid"`
+	Errors   []string       `json:"errors,omitempty" xml:"errors,omitempty"`
 }
 
 // ValidationResult represents the result of document validation
