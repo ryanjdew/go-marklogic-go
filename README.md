@@ -382,7 +382,7 @@ $x * 2 + 1
 `
 
 respHandle := eval.ResponseHandle{Format: handle.JSON}
-err := client.Eval().EvalXQuery(xqueryCode, nil, &respHandle)
+err := client.Eval().EvalXQuery(xqueryCode, nil, nil, &respHandle)
 
 // Result is available as JSON
 result := respHandle.Deserialized()
@@ -399,7 +399,7 @@ params := map[string]string{
 }
 
 respHandle := eval.ResponseHandle{Format: handle.JSON}
-err := client.Eval().EvalXQuery(xqueryCode, params, &respHandle)
+err := client.Eval().EvalXQuery(xqueryCode, params, nil, &respHandle)
 ```
 
 #### Evaluate JavaScript
@@ -413,7 +413,7 @@ result;
 `
 
 respHandle := eval.ResponseHandle{Format: handle.JSON}
-err := client.Eval().EvalJavaScript(jsCode, nil, &respHandle)
+err := client.Eval().EvalJavaScript(jsCode, nil, nil, &respHandle)
 ```
 
 ### Query Suggestions

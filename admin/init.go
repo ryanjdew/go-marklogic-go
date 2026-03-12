@@ -59,7 +59,7 @@ func (rh *RestartResponseHandle) Deserialize(bytes []byte) {
 	}
 }
 
-// Deserialized returns deserialised RestartResponse as interface{}
+// Deserialized returns deserialized RestartResponse as interface{}
 func (rh *RestartResponseHandle) Deserialized() any {
 	return &rh.response
 }
@@ -87,7 +87,7 @@ func (rh *RestartResponseHandle) Serialize(response any) {
 	}
 }
 
-// Get returns deserialised RestartResponse
+// Get returns deserialized RestartResponse
 func (rh *RestartResponseHandle) Get() *RestartResponse {
 	return &rh.response
 }

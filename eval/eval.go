@@ -2,8 +2,9 @@ package eval
 
 import (
 	"bytes"
+	"encoding/json"
 	"net/http"
-	"strings"
+	"net/url"
 
 	"github.com/ryanjdew/go-marklogic-go/clients"
 	handle "github.com/ryanjdew/go-marklogic-go/handle"
@@ -11,48 +12,39 @@ import (
 )
 
 // evalCode executes code (XQuery or JavaScript) on the server.
-func evalCode(c *clients.Client, language string, code string, params map[string]string, response handle.ResponseHandle) error {
-	// Build base path with language parameter
-	path := "/eval"
-	if language != "" {
-		path = path + "?rex:language=" + language
-	}
+func evalCode(c *clients.Client, language string, code string, params map[string]string, transaction *util.Transaction, response handle.ResponseHandle) error {
+	// Build query parameters
+	pathParams := ""
+	pathParams = util.AddDatabaseParam(pathParams, c)
+	pathParams = util.AddTransactionParam(pathParams, transaction)
 
-	// Build additional parameters
-	var parameters strings.Builder
-	if language != "" {
-		parameters.WriteString("&")
+	// Build form-encoded body with code and parameters
+	formData := url.Values{}
+
+	// Add the code with appropriate parameter name based on language
+	if language == "javascript" {
+		formData.Set("javascript", code)
 	} else {
-		parameters.WriteString("?")
+		formData.Set("xquery", code)
 	}
 
-	// Add mapped params if any
+	// Add external variables if any parameters provided
 	if len(params) > 0 {
-		for key, value := range params {
-			parameters.WriteString("&")
-			parameters.WriteString(key)
-			parameters.WriteString("=")
-			parameters.WriteString(value)
+		varsJSON, err := json.Marshal(params)
+		if err != nil {
+			return err
 		}
+		formData.Set("vars", string(varsJSON))
 	}
 
-	// Add database param
-	fullPath := path + parameters.String()
-	fullPath = util.AddDatabaseParam(fullPath, c)
-	fullPath = util.AddTransactionParam(fullPath, nil)
-
-	// Create request with code body
-	req, err := http.NewRequest("POST", c.Base()+fullPath, bytes.NewBufferString(code))
+	// Create request with form-encoded body
+	req, err := http.NewRequest("POST", c.Base()+"/eval"+pathParams, bytes.NewBufferString(formData.Encode()))
 	if err != nil {
 		return err
 	}
 
-	// Set Content-Type based on language
-	if language == "javascript" {
-		req.Header.Set("Content-Type", "application/javascript")
-	} else {
-		req.Header.Set("Content-Type", "text/xquery")
-	}
+	// Set Content-Type to form-urlencoded
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
 	return util.Execute(c, req, response)
 }
