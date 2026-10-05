@@ -22,9 +22,11 @@ import (
 
 // Authentication options
 const (
-	BasicAuth  = clients.BasicAuth
-	DigestAuth = clients.DigestAuth
-	None       = clients.None
+	BasicAuth       = clients.BasicAuth
+	DigestAuth      = clients.DigestAuth
+	None            = clients.None
+	DigestBasicAuth = clients.DigestBasicAuth
+	OAuthAuth       = clients.OAuthAuth
 )
 
 // Client is used for connecting to the MarkLogic REST API.
