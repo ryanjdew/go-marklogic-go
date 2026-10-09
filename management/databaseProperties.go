@@ -102,20 +102,20 @@ type AssignmentPolicy struct {
 
 // ElementWordQueryThrough struct reprenting an element word query through in the database
 type ElementWordQueryThrough struct {
-	NamespaceURI string      `xml:"http://marklogic.com/manage namespace-uri" json:"namespace-uri"`
-	Localname    interface{} `xml:"http://marklogic.com/manage localname" json:"localname"`
+	NamespaceURI string `xml:"http://marklogic.com/manage namespace-uri" json:"namespace-uri"`
+	Localname    any    `xml:"http://marklogic.com/manage localname" json:"localname"`
 }
 
 // PhraseThrough struct reprenting a phrase through in the database
 type PhraseThrough struct {
-	NamespaceURI string      `xml:"http://marklogic.com/manage namespace-uri" json:"namespace-uri"`
-	Localname    interface{} `xml:"http://marklogic.com/manage localname" json:"localname"`
+	NamespaceURI string `xml:"http://marklogic.com/manage namespace-uri" json:"namespace-uri"`
+	Localname    any    `xml:"http://marklogic.com/manage localname" json:"localname"`
 }
 
 // PhraseAround struct reprenting a phrase around in the database
 type PhraseAround struct {
-	NamespaceURI string      `xml:"http://marklogic.com/manage namespace-uri" json:"namespace-uri"`
-	Localname    interface{} `xml:"http://marklogic.com/manage localname" json:"localname"`
+	NamespaceURI string `xml:"http://marklogic.com/manage namespace-uri" json:"namespace-uri"`
+	Localname    any    `xml:"http://marklogic.com/manage localname" json:"localname"`
 }
 
 // RangeElementIndex struct reprenting an element range index in the database
@@ -221,7 +221,7 @@ func (dh *DatabasePropertiesHandle) Deserialize(bytes []byte) {
 }
 
 // Deserialized returns DatabaseProperties as interface{}
-func (dh *DatabasePropertiesHandle) Deserialized() interface{} {
+func (dh *DatabasePropertiesHandle) Deserialized() any {
 	return dh.databaseProperties
 }
 
@@ -231,7 +231,7 @@ func (dh *DatabasePropertiesHandle) AcceptResponse(resp *http.Response) error {
 }
 
 // Serialize returns []byte of XML or JSON that represents the Query struct
-func (dh *DatabasePropertiesHandle) Serialize(databaseProperties interface{}) {
+func (dh *DatabasePropertiesHandle) Serialize(databaseProperties any) {
 	dh.databaseProperties = databaseProperties.(DatabaseProperties)
 	dh.resetBuffer()
 	if dh.GetFormat() == handle.JSON {

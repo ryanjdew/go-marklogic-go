@@ -52,7 +52,7 @@ func (srh *SuggestionsResponseHandle) Deserialize(bytes []byte) {
 }
 
 // Deserialized returns *SuggestionsResponse as interface{}
-func (srh *SuggestionsResponseHandle) Deserialized() interface{} {
+func (srh *SuggestionsResponseHandle) Deserialized() any {
 	return srh.suggestionsResponse
 }
 
@@ -62,7 +62,7 @@ func (srh *SuggestionsResponseHandle) AcceptResponse(resp *http.Response) error 
 }
 
 // Serialize returns []byte of XML or JSON that represents the Query struct
-func (srh *SuggestionsResponseHandle) Serialize(suggestionsResponse interface{}) {
+func (srh *SuggestionsResponseHandle) Serialize(suggestionsResponse any) {
 	srh.suggestionsResponse = suggestionsResponse.(*SuggestionsResponse)
 	srh.resetBuffer()
 	if srh.GetFormat() == handle.JSON {

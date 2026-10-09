@@ -139,7 +139,7 @@ func (sh *ServerPropertiesHandle) Deserialize(bytes []byte) {
 }
 
 // Deserialized returns ServerProperties as interface{}
-func (sh *ServerPropertiesHandle) Deserialized() interface{} {
+func (sh *ServerPropertiesHandle) Deserialized() any {
 	return sh.serverProperties
 }
 
@@ -149,7 +149,7 @@ func (sh *ServerPropertiesHandle) AcceptResponse(resp *http.Response) error {
 }
 
 // Serialize returns []byte of XML or JSON that represents the Query struct
-func (sh *ServerPropertiesHandle) Serialize(serverProperties interface{}) {
+func (sh *ServerPropertiesHandle) Serialize(serverProperties any) {
 	sh.serverProperties = serverProperties.(ServerProperties)
 	sh.resetBuffer()
 	if sh.GetFormat() == handle.JSON {

@@ -45,7 +45,7 @@ func (rh *RulesResponseHandle) Deserialize(bytes []byte) {
 }
 
 // Deserialized returns deserialised RestartResponse as interface{}
-func (rh *RulesResponseHandle) Deserialized() interface{} {
+func (rh *RulesResponseHandle) Deserialized() any {
 	return &rh.response
 }
 
@@ -55,7 +55,7 @@ func (rh *RulesResponseHandle) AcceptResponse(resp *http.Response) error {
 }
 
 // Serialize returns []byte of XML or JSON that represents the Response struct
-func (rh *RulesResponseHandle) Serialize(response interface{}) {
+func (rh *RulesResponseHandle) Serialize(response any) {
 	switch response := response.(type) {
 	case *RulesResponse:
 		rh.response = *(response)
@@ -95,7 +95,7 @@ func (rh *RulesResponseHandle) Timestamp() string {
 
 // RulesResponse represents a response from the alert/rules API
 type RulesResponse struct {
-	XMLName xml.Name `xml:"http://marklogic.com/rest-api rules" json:"rules,omitempty"`
+	XMLName xml.Name `xml:"http://marklogic.com/rest-api rules" json:"rules"`
 	Rules   []Rule   `xml:"rule" json:"rule,omitempty"`
 }
 
@@ -103,7 +103,7 @@ type RulesResponse struct {
 type Rule struct {
 	Name         string                     `xml:"name" json:"name,omitempty"`
 	Description  string                     `xml:"description" json:"description,omitempty"`
-	Query        search.CombinedQuery       `xml:"http://marklogic.com/appservices/search search" json:"search,omitempty"`
+	Query        search.CombinedQuery       `xml:"http://marklogic.com/appservices/search search" json:"search"`
 	RuleMetadata util.SerializableStringMap `xml:"rule-metadata" json:"rule-metadata,omitempty"`
 }
 

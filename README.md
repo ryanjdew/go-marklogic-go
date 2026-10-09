@@ -23,7 +23,8 @@ A comprehensive Go client library for interacting with MarkLogic's REST APIs. Th
 - **Optic Queries** - Execute SQL-like queries on structured data with explain and query planning
 - **Query Management** - Install and manage query options, transforms, and extensions
 - **Format Flexibility** - Seamless JSON/XML serialization with format negotiation
-- **Authentication** - Basic Auth, Digest Auth, or no authentication support
+- **Authentication** - Basic, Digest, Digest-Basic, OAuth bearer tokens, and custom HTTP authentication support
+- **Transport Security** - HTTP or HTTPS, custom TLS configuration, and caller-provided HTTP clients
 
 ## Installation
 
@@ -63,9 +64,9 @@ func main() {
 }
 ```
 
-### Authentication Options
+### Authentication and HTTPS
 
-The library supports three authentication methods:
+The connection options support Basic, Digest, Digest-Basic, OAuth bearer tokens, or no client-managed authentication. Digest-Basic uses the existing Digest request flow; application-level authentication needs no client credentials. Kerberos and SAML token acquisition are external identity flows and can be provided through a custom `http.Client`.
 
 ```go
 // Basic Authentication (username:password in HTTP header)
@@ -74,9 +75,22 @@ client, err := marklogic.NewClient(host, port, user, pass, marklogic.BasicAuth)
 // Digest Authentication (challenge/response)
 client, err := marklogic.NewClient(host, port, user, pass, marklogic.DigestAuth)
 
-// No Authentication
+// Digest-Basic Authentication (uses Digest when available)
+client, err := marklogic.NewClient(host, port, user, pass, marklogic.DigestBasicAuth)
+
+// No Authentication (including MarkLogic application-level authentication)
 client, err := marklogic.NewClient(host, port, "", "", marklogic.None)
+
+// HTTPS with a bearer token
+connection := &marklogic.Connection{
+	Host: "marklogic.example.com", Port: 8011,
+	Protocol: "https", AuthenticationType: marklogic.OAuthAuth,
+	BearerToken: accessToken,
+}
+client, err = marklogic.New(connection)
 ```
+
+Set `TLSConfig.Certificates` for client-certificate authentication. A caller-provided `HTTPClient` takes precedence over `TLSConfig`; its transport can also implement external authentication such as Kerberos or SAML.
 
 ## Usage Examples
 
@@ -382,7 +396,7 @@ $x * 2 + 1
 `
 
 respHandle := eval.ResponseHandle{Format: handle.JSON}
-err := client.Eval().EvalXQuery(xqueryCode, nil, &respHandle)
+err := client.Eval().EvalXQuery(xqueryCode, nil, nil, &respHandle)
 
 // Result is available as JSON
 result := respHandle.Deserialized()
@@ -399,7 +413,7 @@ params := map[string]string{
 }
 
 respHandle := eval.ResponseHandle{Format: handle.JSON}
-err := client.Eval().EvalXQuery(xqueryCode, params, &respHandle)
+err := client.Eval().EvalXQuery(xqueryCode, params, nil, &respHandle)
 ```
 
 #### Evaluate JavaScript
@@ -413,7 +427,7 @@ result;
 `
 
 respHandle := eval.ResponseHandle{Format: handle.JSON}
-err := client.Eval().EvalJavaScript(jsCode, nil, &respHandle)
+err := client.Eval().EvalJavaScript(jsCode, nil, nil, &respHandle)
 ```
 
 ### Query Suggestions

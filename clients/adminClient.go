@@ -1,9 +1,5 @@
 package clients
 
-import (
-	"fmt"
-)
-
 // AdminClient is used for connecting to the MarkLogic Management API.
 type AdminClient struct {
 	*BasicClient
@@ -15,7 +11,10 @@ func NewAdminClient(connection *Connection) (*AdminClient, error) {
 	if connection.Port <= 0 {
 		connection.Port = 8001
 	}
-	base := fmt.Sprintf("http://%s:%v/admin/v1", connection.Host, connection.Port)
+	base, err := connectionBase(connection, "/admin/v1")
+	if err != nil {
+		return nil, err
+	}
 	basicClient, err := ClientBuilder(connection, base)
 	if err == nil {
 		client = &AdminClient{basicClient}

@@ -46,12 +46,12 @@ func (fih *ForestInfoHandle) Deserialize(bytes []byte) {
 }
 
 // Deserialized returns *[]ForestInfo as interface{}
-func (fih *ForestInfoHandle) Deserialized() interface{} {
+func (fih *ForestInfoHandle) Deserialized() any {
 	return &fih.ForestInfo
 }
 
 // Serialize returns []byte of XML or JSON that represents the Query struct
-func (fih *ForestInfoHandle) Serialize(forestInfo interface{}) {
+func (fih *ForestInfoHandle) Serialize(forestInfo any) {
 	fih.ForestInfo = forestInfo.([]ForestInfo)
 	fih.resetBuffer()
 	if fih.GetFormat() == handle.JSON {
@@ -190,12 +190,12 @@ func (uh *URIsHandle) Deserialize(bytes []byte) {
 }
 
 // Deserialized returns string array of URIs as interface{}
-func (uh *URIsHandle) Deserialized() interface{} {
+func (uh *URIsHandle) Deserialized() any {
 	return uh.URIs
 }
 
 // Serialize returns []byte of XML or JSON that represents the Query struct
-func (uh *URIsHandle) Serialize(uris interface{}) {
+func (uh *URIsHandle) Serialize(uris any) {
 	uh.URIs = uris.([]string)
 	uh.resetBuffer()
 	uh.Write([]byte(strings.Join(uh.URIs, "\r\n")))

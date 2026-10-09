@@ -44,7 +44,7 @@ func (h *DatabaseConfigHandle) resetBuffer() {
 	h.Reset()
 }
 
-func (h *DatabaseConfigHandle) Serialize(v interface{}) {
+func (h *DatabaseConfigHandle) Serialize(v any) {
 	h.config = v.(DatabaseConfig)
 	h.resetBuffer()
 	if h.GetFormat() == handle.JSON {
@@ -67,7 +67,7 @@ func (h *DatabaseConfigHandle) Deserialize(b []byte) {
 	}
 }
 
-func (h *DatabaseConfigHandle) Deserialized() interface{} { return h.config }
+func (h *DatabaseConfigHandle) Deserialized() any { return h.config }
 
 func (h *DatabaseConfigHandle) Serialized() string {
 	h.Serialize(h.config)
@@ -106,7 +106,7 @@ func (h *ForestConfigHandle) resetBuffer() {
 	h.Reset()
 }
 
-func (h *ForestConfigHandle) Serialize(v interface{}) {
+func (h *ForestConfigHandle) Serialize(v any) {
 	h.config = v.(ForestConfig)
 	h.resetBuffer()
 	if h.GetFormat() == handle.JSON {
@@ -129,7 +129,7 @@ func (h *ForestConfigHandle) Deserialize(b []byte) {
 	}
 }
 
-func (h *ForestConfigHandle) Deserialized() interface{} { return h.config }
+func (h *ForestConfigHandle) Deserialized() any { return h.config }
 
 func (h *ForestConfigHandle) Serialized() string {
 	h.Serialize(h.config)

@@ -1,9 +1,5 @@
 package clients
 
-import (
-	"fmt"
-)
-
 // ManagementClient is used for connecting to the MarkLogic Management API.
 type ManagementClient struct {
 	*BasicClient
@@ -15,7 +11,10 @@ func NewManagementClient(connection *Connection) (*ManagementClient, error) {
 	if connection.Port <= 0 {
 		connection.Port = 8002
 	}
-	base := fmt.Sprintf("http://%s:%v/manage/v2", connection.Host, connection.Port)
+	base, err := connectionBase(connection, "/manage/v2")
+	if err != nil {
+		return nil, err
+	}
 	basicClient, err := ClientBuilder(connection, base)
 	if err == nil {
 		client = &ManagementClient{basicClient}

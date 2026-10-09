@@ -52,7 +52,7 @@ func (rh *InstanceAdminHandle) Deserialize(bytes []byte) {
 }
 
 // Deserialized returns deserialized InstanceAdminRequest as interface{}
-func (rh *InstanceAdminHandle) Deserialized() interface{} {
+func (rh *InstanceAdminHandle) Deserialized() any {
 	return &rh.request
 }
 
@@ -62,7 +62,7 @@ func (rh *InstanceAdminHandle) AcceptResponse(resp *http.Response) error {
 }
 
 // Serialize returns []byte of XML or JSON that represents the Response struct
-func (rh *InstanceAdminHandle) Serialize(request interface{}) {
+func (rh *InstanceAdminHandle) Serialize(request any) {
 	switch request := request.(type) {
 	case *InstanceAdminRequest:
 		rh.request = *(request)

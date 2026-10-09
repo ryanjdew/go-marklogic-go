@@ -7,7 +7,7 @@ import (
 	handle "github.com/ryanjdew/go-marklogic-go/handle"
 )
 
-var mapperFunction = func(str string) interface{} {
+var mapperFunction = func(str string) any {
 	return stringToQueryStruct(str)
 }
 
@@ -46,12 +46,12 @@ func (qh *QueryHandle) Deserialize(bytes []byte) {
 }
 
 // Deserialized returns *Query as interface{}
-func (qh *QueryHandle) Deserialized() interface{} {
+func (qh *QueryHandle) Deserialized() any {
 	return &qh.Query
 }
 
 // Serialize returns []byte of XML or JSON that represents the Query struct
-func (qh *QueryHandle) Serialize(query interface{}) {
+func (qh *QueryHandle) Serialize(query any) {
 	qh.Query = query.(Query)
 	qh.resetBuffer()
 	if qh.GetFormat() == handle.JSON {
@@ -95,7 +95,7 @@ func (qh *QueryHandle) Timestamp() string {
 // CombinedQuery represents https://docs.marklogic.com/guide/rest-dev/search#id_69918
 type CombinedQuery struct {
 	XMLName         xml.Name `xml:"http://marklogic.com/appservices/search search" json:"search"`
-	StructuredQuery Query    `xml:"http://marklogic.com/appservices/search query" json:"query,omitempty"`
+	StructuredQuery Query    `xml:"http://marklogic.com/appservices/search query" json:"query"`
 	QText           []string `xml:"http://marklogic.com/appservices/search qtext" json:"qtext,omitempty"`
 	SPARQL          string   `xml:"http://marklogic.com/appservices/search sparql" json:"sparql,omitempty"`
 	// TODO: Options SearchOptions
@@ -130,8 +130,8 @@ type TermQuery struct {
 // AndNotQuery represents http://docs.marklogic.com/guide/search-dev/structured-query#id_65108
 type AndNotQuery struct {
 	XMLName       xml.Name      `xml:"http://marklogic.com/appservices/search and-not-query" json:"-"`
-	PositiveQuery PositiveQuery `xml:"http://marklogic.com/appservices/search positive-query" json:"positive-query,omitempty"`
-	NegativeQuery NegativeQuery `xml:"http://marklogic.com/appservices/search negative-query" json:"negative-query,omitempty"`
+	PositiveQuery PositiveQuery `xml:"http://marklogic.com/appservices/search positive-query" json:"positive-query"`
+	NegativeQuery NegativeQuery `xml:"http://marklogic.com/appservices/search negative-query" json:"negative-query"`
 }
 
 // PositiveQuery represents http://docs.marklogic.com/guide/search-dev/structured-query#id_65108
@@ -155,8 +155,8 @@ type NotQuery struct {
 // NotInQuery represents http://docs.marklogic.com/guide/search-dev/structured-query#id_90794
 type NotInQuery struct {
 	XMLName       xml.Name      `xml:"http://marklogic.com/appservices/search not-in-query" json:"-"`
-	PositiveQuery PositiveQuery `xml:"http://marklogic.com/appservices/search positive-query" json:"positive-query,omitempty"`
-	NegativeQuery NegativeQuery `xml:"http://marklogic.com/appservices/search negative-query" json:"negative-query,omitempty"`
+	PositiveQuery PositiveQuery `xml:"http://marklogic.com/appservices/search positive-query" json:"positive-query"`
+	NegativeQuery NegativeQuery `xml:"http://marklogic.com/appservices/search negative-query" json:"negative-query"`
 }
 
 // NearQuery represents http://docs.marklogic.com/guide/search-dev/structured-query#id_48512
@@ -171,8 +171,8 @@ type NearQuery struct {
 // BoostQuery represents http://docs.marklogic.com/guide/search-dev/structured-query#id_25949
 type BoostQuery struct {
 	XMLName       xml.Name      `xml:"http://marklogic.com/appservices/search boost-query" json:"-"`
-	MatchingQuery MatchingQuery `xml:"http://marklogic.com/appservices/search matching-query" json:"matching-query,omitempty"`
-	BoostingQuery BoostingQuery `xml:"http://marklogic.com/appservices/search boosting-query" json:"boosting-query,omitempty"`
+	MatchingQuery MatchingQuery `xml:"http://marklogic.com/appservices/search matching-query" json:"matching-query"`
+	BoostingQuery BoostingQuery `xml:"http://marklogic.com/appservices/search boosting-query" json:"boosting-query"`
 }
 
 // MatchingQuery represents http://docs.marklogic.com/guide/search-dev/structured-query#id_25949
@@ -209,7 +209,7 @@ type CollectionQuery struct {
 // ContainerQuery represents http://docs.marklogic.com/guide/search-dev/structured-query#id_87231
 type ContainerQuery struct {
 	XMLName       xml.Name     `xml:"http://marklogic.com/appservices/search container-query" json:"-"`
-	Element       QueryElement `xml:"http://marklogic.com/appservices/search element,omitempty" json:"element,omitempty"`
+	Element       QueryElement `xml:"http://marklogic.com/appservices/search element,omitempty" json:"element"`
 	JSONKey       string       `xml:"http://marklogic.com/appservices/search json-key,omitempty" json:"json-key,omitempty"`
 	FragmentScope string       `xml:"http://marklogic.com/appservices/search fragment-scope,omitempty" json:"fragment-scope,omitempty"`
 	Queries       []any        `xml:",any" json:"queries"`
@@ -250,10 +250,10 @@ type LocksQuery struct {
 // RangeQuery represents http://docs.marklogic.com/guide/search-dev/structured-query#id_83393
 type RangeQuery struct {
 	XMLName       xml.Name       `xml:"http://marklogic.com/appservices/search range-query" json:"-"`
-	Element       QueryElement   `xml:"http://marklogic.com/appservices/search element,omitempty" json:"element,omitempty"`
-	Attribute     QueryAttribute `xml:"http://marklogic.com/appservices/search attribute,omitempty" json:"attribute,omitempty"`
+	Element       QueryElement   `xml:"http://marklogic.com/appservices/search element,omitempty" json:"element"`
+	Attribute     QueryAttribute `xml:"http://marklogic.com/appservices/search attribute,omitempty" json:"attribute"`
 	JSONKey       string         `xml:"http://marklogic.com/appservices/search json-key,omitempty" json:"json-key,omitempty"`
-	Field         FieldReference `xml:"http://marklogic.com/appservices/search field,omitempty" json:"field,omitempty"`
+	Field         FieldReference `xml:"http://marklogic.com/appservices/search field,omitempty" json:"field"`
 	PathIndex     string         `xml:"http://marklogic.com/appservices/search path-index,omitempty" json:"path-index,omitempty"`
 	FragmentScope string         `xml:"http://marklogic.com/appservices/search fragment-scope,omitempty" json:"fragment-scope,omitempty"`
 	Value         string         `xml:"http://marklogic.com/appservices/search value,omitempty" json:"value,omitempty"`
@@ -271,10 +271,10 @@ type FieldReference struct {
 // ValueQuery represents http://docs.marklogic.com/guide/search-dev/structured-query#id_39758
 type ValueQuery struct {
 	XMLName       xml.Name       `xml:"http://marklogic.com/appservices/search value-query" json:"-"`
-	Element       QueryElement   `xml:"http://marklogic.com/appservices/search element,omitempty" json:"element,omitempty"`
-	Attribute     QueryAttribute `xml:"http://marklogic.com/appservices/search attribute,omitempty" json:"attribute,omitempty"`
+	Element       QueryElement   `xml:"http://marklogic.com/appservices/search element,omitempty" json:"element"`
+	Attribute     QueryAttribute `xml:"http://marklogic.com/appservices/search attribute,omitempty" json:"attribute"`
 	JSONKey       string         `xml:"http://marklogic.com/appservices/search json-key,omitempty" json:"json-key,omitempty"`
-	Field         FieldReference `xml:"http://marklogic.com/appservices/search field,omitempty" json:"field,omitempty"`
+	Field         FieldReference `xml:"http://marklogic.com/appservices/search field,omitempty" json:"field"`
 	FragmentScope string         `xml:"http://marklogic.com/appservices/search fragment-scope,omitempty" json:"fragment-scope,omitempty"`
 	Text          []string       `xml:"http://marklogic.com/appservices/search text,omitempty" json:"text,omitempty"`
 	TermOptions   []string       `xml:"http://marklogic.com/appservices/search term-option,omitempty" json:"term-option,omitempty"`
@@ -284,10 +284,10 @@ type ValueQuery struct {
 // WordQuery represents http://docs.marklogic.com/guide/search-dev/structured-query#id_18990
 type WordQuery struct {
 	XMLName       xml.Name       `xml:"http://marklogic.com/appservices/search word-query" json:"-"`
-	Element       QueryElement   `xml:"http://marklogic.com/appservices/search element,omitempty" json:"element,omitempty"`
-	Attribute     QueryAttribute `xml:"http://marklogic.com/appservices/search attribute,omitempty" json:"attribute,omitempty"`
+	Element       QueryElement   `xml:"http://marklogic.com/appservices/search element,omitempty" json:"element"`
+	Attribute     QueryAttribute `xml:"http://marklogic.com/appservices/search attribute,omitempty" json:"attribute"`
 	JSONKey       string         `xml:"http://marklogic.com/appservices/search json-key,omitempty" json:"json-key,omitempty"`
-	Field         FieldReference `xml:"http://marklogic.com/appservices/search field,omitempty" json:"field,omitempty"`
+	Field         FieldReference `xml:"http://marklogic.com/appservices/search field,omitempty" json:"field"`
 	FragmentScope string         `xml:"http://marklogic.com/appservices/search fragment-scope,omitempty" json:"fragment-scope,omitempty"`
 	Text          []string       `xml:"http://marklogic.com/appservices/search text,omitempty" json:"text,omitempty"`
 	TermOptions   []string       `xml:"http://marklogic.com/appservices/search term-option,omitempty" json:"term-option,omitempty"`
@@ -332,7 +332,7 @@ type Box struct {
 type Circle struct {
 	XMLName xml.Name `xml:"http://marklogic.com/appservices/search circle" json:"-"`
 	Radius  float64  `xml:"http://marklogic.com/appservices/search radius" json:"radius,omitempty"`
-	Point   Point    `xml:"http://marklogic.com/appservices/search point" json:"point,omitempty"`
+	Point   Point    `xml:"http://marklogic.com/appservices/search point" json:"point"`
 }
 
 // Polygon represents http://docs.marklogic.com/guide/search-dev/structured-query#id_87280
@@ -344,11 +344,11 @@ type Polygon struct {
 // GeoElemQuery represents http://docs.marklogic.com/guide/search-dev/structured-query#id_87280
 type GeoElemQuery struct {
 	XMLName      xml.Name     `xml:"http://marklogic.com/appservices/search geo-elem-query" json:"-"`
-	Parent       QueryParent  `xml:"http://marklogic.com/appservices/search parent,omitempty" json:"parent,omitempty"`
-	Element      QueryElement `xml:"http://marklogic.com/appservices/search element" json:"element,omitempty"`
+	Parent       QueryParent  `xml:"http://marklogic.com/appservices/search parent,omitempty" json:"parent"`
+	Element      QueryElement `xml:"http://marklogic.com/appservices/search element" json:"element"`
 	GeoOptions   []string     `xml:"http://marklogic.com/appservices/search geo-option,omitempty" json:"geo-option,omitempty"`
 	FacetOptions []string     `xml:"http://marklogic.com/appservices/search facet-option,omitempty" json:"facet-option,omitempty"`
-	HeatMap      HeatMap      `xml:"http://marklogic.com/appservices/search heatmap,omitempty" json:"heatmap,omitempty"`
+	HeatMap      HeatMap      `xml:"http://marklogic.com/appservices/search heatmap,omitempty" json:"heatmap"`
 	Points       []*Point     `xml:"http://marklogic.com/appservices/search point,omitempty" json:"point,omitempty"`
 	Boxes        []*Box       `xml:"http://marklogic.com/appservices/search box,omitempty" json:"box,omitempty"`
 	Circles      []*Circle    `xml:"http://marklogic.com/appservices/search circle,omitempty" json:"circle,omitempty"`
@@ -372,12 +372,12 @@ type Lon struct {
 // GeoElemPairQuery represents http://docs.marklogic.com/guide/search-dev/structured-query#id_18303
 type GeoElemPairQuery struct {
 	XMLName      xml.Name    `xml:"http://marklogic.com/appservices/search geo-elem-pair-query" json:"-"`
-	Parent       QueryParent `xml:"http://marklogic.com/appservices/search parent,omitempty" json:"parent,omitempty"`
-	Lat          Lat         `xml:"http://marklogic.com/appservices/search lat" json:"lat,omitempty"`
-	Lon          Lon         `xml:"http://marklogic.com/appservices/search lon" json:"lon,omitempty"`
+	Parent       QueryParent `xml:"http://marklogic.com/appservices/search parent,omitempty" json:"parent"`
+	Lat          Lat         `xml:"http://marklogic.com/appservices/search lat" json:"lat"`
+	Lon          Lon         `xml:"http://marklogic.com/appservices/search lon" json:"lon"`
 	GeoOptions   []string    `xml:"http://marklogic.com/appservices/search geo-option,omitempty" json:"geo-option,omitempty"`
 	FacetOptions []string    `xml:"http://marklogic.com/appservices/search facet-option,omitempty" json:"facet-option,omitempty"`
-	HeatMap      HeatMap     `xml:"http://marklogic.com/appservices/search heatmap,omitempty" json:"heatmap,omitempty"`
+	HeatMap      HeatMap     `xml:"http://marklogic.com/appservices/search heatmap,omitempty" json:"heatmap"`
 	Points       []*Point    `xml:"http://marklogic.com/appservices/search point,omitempty" json:"point,omitempty"`
 	Boxes        []*Box      `xml:"http://marklogic.com/appservices/search box,omitempty" json:"box,omitempty"`
 	Circles      []*Circle   `xml:"http://marklogic.com/appservices/search circle,omitempty" json:"circle,omitempty"`
@@ -387,12 +387,12 @@ type GeoElemPairQuery struct {
 // GeoAttrPairQuery represents http://docs.marklogic.com/guide/search-dev/structured-query#id_67897
 type GeoAttrPairQuery struct {
 	XMLName      xml.Name    `xml:"http://marklogic.com/appservices/search geo-attr-pair-query" json:"-"`
-	Parent       QueryParent `xml:"http://marklogic.com/appservices/search parent" json:"parent,omitempty"`
-	Lat          Lat         `xml:"http://marklogic.com/appservices/search lat" json:"lat,omitempty"`
-	Lon          Lon         `xml:"http://marklogic.com/appservices/search lon" json:"lon,omitempty"`
+	Parent       QueryParent `xml:"http://marklogic.com/appservices/search parent" json:"parent"`
+	Lat          Lat         `xml:"http://marklogic.com/appservices/search lat" json:"lat"`
+	Lon          Lon         `xml:"http://marklogic.com/appservices/search lon" json:"lon"`
 	GeoOptions   []string    `xml:"http://marklogic.com/appservices/search geo-option,omitempty" json:"geo-option,omitempty"`
 	FacetOptions []string    `xml:"http://marklogic.com/appservices/search facet-option,omitempty" json:"facet-option,omitempty"`
-	HeatMap      HeatMap     `xml:"http://marklogic.com/appservices/search heatmap,omitempty" json:"heatmap,omitempty"`
+	HeatMap      HeatMap     `xml:"http://marklogic.com/appservices/search heatmap,omitempty" json:"heatmap"`
 	Points       []*Point    `xml:"http://marklogic.com/appservices/search point,omitempty" json:"point,omitempty"`
 	Boxes        []*Box      `xml:"http://marklogic.com/appservices/search box,omitempty" json:"box,omitempty"`
 	Circles      []*Circle   `xml:"http://marklogic.com/appservices/search circle,omitempty" json:"circle,omitempty"`
@@ -405,7 +405,7 @@ type GeoPathQuery struct {
 	PathIndex    string     `xml:"http://marklogic.com/appservices/search path-index,omitempty" json:"path-index,omitempty"`
 	GeoOptions   []string   `xml:"http://marklogic.com/appservices/search geo-option,omitempty" json:"geo-option,omitempty"`
 	FacetOptions []string   `xml:"http://marklogic.com/appservices/search facet-option,omitempty" json:"facet-option,omitempty"`
-	HeatMap      HeatMap    `xml:"http://marklogic.com/appservices/search heatmap,omitempty" json:"heatmap,omitempty"`
+	HeatMap      HeatMap    `xml:"http://marklogic.com/appservices/search heatmap,omitempty" json:"heatmap"`
 	Points       []*Point   `xml:"http://marklogic.com/appservices/search point,omitempty" json:"point,omitempty"`
 	Boxes        []*Box     `xml:"http://marklogic.com/appservices/search box,omitempty" json:"box,omitempty"`
 	Circles      []*Circle  `xml:"http://marklogic.com/appservices/search circle,omitempty" json:"circle,omitempty"`
@@ -557,7 +557,7 @@ func SerializeXMLWithQueries(d *xml.Decoder, start xml.StartElement) ([]any, err
 	}
 }
 
-func stringToQueryStruct(inputString string) interface{} {
+func stringToQueryStruct(inputString string) any {
 	switch inputString {
 	case "query":
 		return &Query{}

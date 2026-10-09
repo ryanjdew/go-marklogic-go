@@ -120,7 +120,7 @@ func (wbr *WriteBatcher) Run() *WriteBatcher {
 	} else {
 		roundRobinLength = hostLength
 	}
-	for i := 0; i < threadCount; i++ {
+	for range threadCount {
 		wbr.waitGroup.Add(1)
 		var selectedHost string
 		if distributeByForest {
@@ -249,7 +249,7 @@ func (wbr *WriteBatcher) Iterator(ctx context.Context) WriteBatchIterator {
 	} else {
 		roundRobinLength = hostLength
 	}
-	for i := 0; i < threadCount; i++ {
+	for range threadCount {
 		wg.Add(1)
 		var selectedHost string
 		if distributeByForest {

@@ -147,12 +147,12 @@ func (tsh *TransactionStatusHandle) Deserialize(bytes []byte) {
 }
 
 // Deserialized returns interface{}
-func (tsh *TransactionStatusHandle) Deserialized() interface{} {
+func (tsh *TransactionStatusHandle) Deserialized() any {
 	return &tsh.TransactionStatus
 }
 
 // Serialize returns []byte of XML or JSON that represents the Query struct
-func (tsh *TransactionStatusHandle) Serialize(transactionStatus interface{}) {
+func (tsh *TransactionStatusHandle) Serialize(transactionStatus any) {
 	tsh.TransactionStatus = transactionStatus.(TransactionStatus)
 	tsh.resetBuffer()
 	enc := json.NewEncoder(tsh)

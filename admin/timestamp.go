@@ -41,7 +41,7 @@ func (rh *TimestampResponseHandle) Deserialize(bytes []byte) {
 }
 
 // Deserialized returns deserialized timestamp string as interface{}
-func (rh *TimestampResponseHandle) Deserialized() interface{} {
+func (rh *TimestampResponseHandle) Deserialized() any {
 	return rh.timestamp
 }
 
@@ -51,7 +51,7 @@ func (rh *TimestampResponseHandle) AcceptResponse(resp *http.Response) error {
 }
 
 // Serialize returns []byte of XML or JSON that represents the Response struct
-func (rh *TimestampResponseHandle) Serialize(response interface{}) {
+func (rh *TimestampResponseHandle) Serialize(response any) {
 	rh.resetBuffer()
 	if rh.GetFormat() == handle.TEXTPLAIN {
 		rh.timestamp = response.(string)

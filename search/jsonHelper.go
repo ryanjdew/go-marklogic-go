@@ -23,7 +23,7 @@ func getXMLName(d reflect.Value, label string) (string, bool) {
 
 // kudos to sberry answering this
 // http://stackoverflow.com/questions/29689092/is-there-an-easier-way-to-add-a-layer-over-a-json-object-using-golang-json-encod
-func wrapJSONInterface(item interface{}) (map[string]interface{}, error) {
+func wrapJSONInterface(item any) (map[string]any, error) {
 	reflectValue := reflect.Indirect(reflect.ValueOf(item))
 	if n, ok := getXMLName(reflectValue, "XMLName"); ok {
 		if k := reflectValue.FieldByName("Queries"); k.IsValid() {
@@ -36,12 +36,12 @@ func wrapJSONInterface(item interface{}) (map[string]interface{}, error) {
 			}
 
 		}
-		return map[string]interface{}{n: item}, nil
+		return map[string]any{n: item}, nil
 	}
 	return nil, errors.New("YOU FAILED")
 }
 
-func wrapJSON(i interface{}) ([]byte, error) {
+func wrapJSON(i any) ([]byte, error) {
 	wrappedInterface, err := wrapJSONInterface(i)
 	if err != nil {
 		return nil, err
@@ -49,12 +49,12 @@ func wrapJSON(i interface{}) ([]byte, error) {
 	return json.Marshal(wrappedInterface)
 }
 
-type stringToInterface func(string) interface{}
+type stringToInterface func(string) any
 
-func unwrapJSON(b []byte, mapper stringToInterface) (interface{}, error) {
+func unwrapJSON(b []byte, mapper stringToInterface) (any, error) {
 	var data map[string]json.RawMessage
 	var nestedName string
-	var item interface{}
+	var item any
 	if err := json.Unmarshal(b, &data); err != nil {
 		return nil, err
 	}

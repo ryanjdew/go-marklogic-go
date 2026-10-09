@@ -35,7 +35,7 @@ func (h *ResourceExtensionHandle) resetBuffer() {
 	h.Reset()
 }
 
-func (h *ResourceExtensionHandle) Serialize(v interface{}) {
+func (h *ResourceExtensionHandle) Serialize(v any) {
 	h.resource = v.(ResourceExtension)
 	h.resetBuffer()
 	if h.GetFormat() == handle.JSON {
@@ -53,7 +53,7 @@ func (h *ResourceExtensionHandle) Deserialize(b []byte) {
 	}
 }
 
-func (h *ResourceExtensionHandle) Deserialized() interface{} {
+func (h *ResourceExtensionHandle) Deserialized() any {
 	return h.resource
 }
 

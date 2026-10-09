@@ -62,7 +62,7 @@ func (bds *BulkDataService) WithInputChannel(inputChannel <-chan *handle.Handle)
 }
 
 // WithWorkUnits sets up work units to send to BulkDataServices
-func (bds *BulkDataService) WithWorkUnits(workUnits ...interface{}) *BulkDataService {
+func (bds *BulkDataService) WithWorkUnits(workUnits ...any) *BulkDataService {
 	bds.workUnits = workUnits
 	bds.workIsForestBased = false
 	return bds
@@ -156,7 +156,7 @@ func (bds *BulkDataService) Run() *BulkDataService {
 			selectedHost = hosts[roundRobinCounter]
 		}
 		client := bds.clientsByHost[selectedHost]
-		var currentWorkUnit *interface{} = nil
+		var currentWorkUnit *any = nil
 		if workUnitRoundRobinLength > 0 {
 			currentWorkUnit = &bds.workUnits[workUnitRoundRobinCounter]
 			workUnitRoundRobinCounter = (workUnitRoundRobinCounter + 1) % workUnitRoundRobinLength
@@ -182,7 +182,7 @@ func (bds *BulkDataService) Wait() *BulkDataService {
 	return bds
 }
 
-func runInputThread(bds *BulkDataService, workUnit *interface{}, inputChannel <-chan *handle.Handle, client *clients.Client) {
+func runInputThread(bds *BulkDataService, workUnit *any, inputChannel <-chan *handle.Handle, client *clients.Client) {
 	listeners := bds.outputListeners
 	batchSizeInt := int(bds.BatchSize())
 	wg := bds.waitGroup
@@ -213,7 +213,7 @@ func runInputThread(bds *BulkDataService, workUnit *interface{}, inputChannel <-
 	}
 }
 
-func runProcessThread(bds *BulkDataService, workUnit *interface{}, client *clients.Client) {
+func runProcessThread(bds *BulkDataService, workUnit *any, client *clients.Client) {
 	listeners := bds.outputListeners
 	wg := bds.waitGroup
 	defer wg.Done()
@@ -247,7 +247,7 @@ func runProcessThread(bds *BulkDataService, workUnit *interface{}, client *clien
 	}
 }
 
-func submitDataServiceBatch(dataServiceBatch *DataServiceBatch, workUnit *interface{}, listeners []chan<- []byte, client *clients.Client) error {
+func submitDataServiceBatch(dataServiceBatch *DataServiceBatch, workUnit *any, listeners []chan<- []byte, client *clients.Client) error {
 	unatomicParams := map[string][]*handle.Handle{}
 	if workUnit != nil {
 		jsonBytes, err := json.Marshal(workUnit)
@@ -261,7 +261,7 @@ func submitDataServiceBatch(dataServiceBatch *DataServiceBatch, workUnit *interf
 	// Only include endpointState if it is valid JSON and not `null`.
 	trackEndpointState := false
 	if len(dataServiceBatch.endpointState) > 0 {
-		var tmp interface{}
+		var tmp any
 		if err := json.Unmarshal(dataServiceBatch.endpointState, &tmp); err == nil && tmp != nil {
 			var endpointStateHandle handle.Handle = &handle.RawHandle{Format: handle.JSON}
 			endpointStateHandle.Deserialize(dataServiceBatch.endpointState)
@@ -342,7 +342,7 @@ func (bds *BulkDataService) Iterator(ctx context.Context) DataServiceIterator {
 			selectedHost = hosts[roundRobinCounter]
 		}
 		client := bds.clientsByHost[selectedHost]
-		var currentWorkUnit *interface{} = nil
+		var currentWorkUnit *any = nil
 		if workUnitRRLength > 0 {
 			currentWorkUnit = &bds.workUnits[workUnitRRCounter]
 			workUnitRRCounter = (workUnitRRCounter + 1) % workUnitRRLength
@@ -392,7 +392,7 @@ func (it *dataServiceIter) Close() error {
 	return nil
 }
 
-func runProcessThreadIterator(bds *BulkDataService, workUnit *interface{}, client *clients.Client, results chan<- []byte, wg *sync.WaitGroup, ctx context.Context) {
+func runProcessThreadIterator(bds *BulkDataService, workUnit *any, client *clients.Client, results chan<- []byte, wg *sync.WaitGroup, ctx context.Context) {
 	defer wg.Done()
 	b := &DataServiceBatch{endpoint: bds.endpoint, endpointState: bds.endpointState}
 	for {
@@ -420,7 +420,7 @@ func runProcessThreadIterator(bds *BulkDataService, workUnit *interface{}, clien
 	}
 }
 
-func runInputThreadIterator(bds *BulkDataService, workUnit *interface{}, inputChannel <-chan *handle.Handle, client *clients.Client, results chan<- []byte, wg *sync.WaitGroup, ctx context.Context) {
+func runInputThreadIterator(bds *BulkDataService, workUnit *any, inputChannel <-chan *handle.Handle, client *clients.Client, results chan<- []byte, wg *sync.WaitGroup, ctx context.Context) {
 	defer wg.Done()
 	trackEndpointState := len(bds.endpointState) > 0
 	batchSizeInt := int(bds.BatchSize())

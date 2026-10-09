@@ -39,7 +39,7 @@ func (th *ThingsHandle) Deserialize(bytes []byte) {
 }
 
 // Deserialized returns *Things as interface{}
-func (th *ThingsHandle) Deserialized() interface{} {
+func (th *ThingsHandle) Deserialized() any {
 	return &th.things
 }
 
@@ -49,7 +49,7 @@ func (th *ThingsHandle) AcceptResponse(resp *http.Response) error {
 }
 
 // Serialize returns []byte of XML or JSON that represents the Response struct
-func (th *ThingsHandle) Serialize(response interface{}) {
+func (th *ThingsHandle) Serialize(response any) {
 	th.things = response.(Things)
 	th.resetBuffer()
 	enc := xml.NewEncoder(th.Buffer)

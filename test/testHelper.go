@@ -47,7 +47,7 @@ func AdminClient(resp string) (*clients.AdminClient, *httptest.Server) {
 }
 
 // RoundTripSerialization is a helper to simplify testing serialization/deserialization
-func RoundTripSerialization(t *testing.T, msg string, deserializedInterface interface{}, handle handle.Handle, serialization string) {
+func RoundTripSerialization(t *testing.T, msg string, deserializedInterface any, handle handle.Handle, serialization string) {
 	handle.Serialize(deserializedInterface)
 	normalizedSpace := testHelper.NormalizeSpace(serialization)
 	roundTripSerialization := testHelper.NormalizeSpace(handle.Serialized())
@@ -56,9 +56,9 @@ func RoundTripSerialization(t *testing.T, msg string, deserializedInterface inte
 	}
 	handle.Deserialize([]byte(serialization))
 	roundTripDeserialization := handle.Deserialized()
-	var finalDeserialization interface{}
+	var finalDeserialization any
 	switch roundTripDeserialization.(type) {
-	case *interface{}:
+	case *any:
 		finalDeserialization = &roundTripDeserialization
 	default:
 		finalDeserialization = roundTripDeserialization

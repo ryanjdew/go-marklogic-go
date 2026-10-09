@@ -52,12 +52,12 @@ func (mh *MetadataHandle) Deserialize(bytes []byte) {
 }
 
 // Deserialized returns Metadata as interface{}
-func (mh *MetadataHandle) Deserialized() interface{} {
+func (mh *MetadataHandle) Deserialized() any {
 	return mh.metadata
 }
 
 // Serialize returns []byte of XML or JSON that represents the Metadata struct
-func (mh *MetadataHandle) Serialize(metadata interface{}) {
+func (mh *MetadataHandle) Serialize(metadata any) {
 	mh.metadata = metadata.(Metadata)
 	mh.resetBuffer()
 	if mh.GetFormat() == handle.JSON {

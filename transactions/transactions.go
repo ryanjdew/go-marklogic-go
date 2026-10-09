@@ -65,7 +65,7 @@ type TransactionHandle struct {
 
 func (h *TransactionHandle) GetFormat() int { return h.Format }
 
-func (h *TransactionHandle) Serialize(v interface{}) {
+func (h *TransactionHandle) Serialize(v any) {
 	h.info = v.(TransactionInfo)
 }
 
@@ -77,7 +77,7 @@ func (h *TransactionHandle) Deserialize(b []byte) {
 	}
 }
 
-func (h *TransactionHandle) Deserialized() interface{} { return h.info }
+func (h *TransactionHandle) Deserialized() any { return h.info }
 
 func (h *TransactionHandle) Serialized() string { return string(h.buffer) }
 
